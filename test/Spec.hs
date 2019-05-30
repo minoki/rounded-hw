@@ -12,6 +12,38 @@ newtype ShowHexFloat a = ShowHexFloat a deriving (Eq,Ord)
 instance RealFloat a => Show (ShowHexFloat a) where
   showsPrec _prec (ShowHexFloat x) = showHFloat x
 
+prop_fromInteger_nearest_stock :: Integer -> Property
+prop_fromInteger_nearest_stock x
+  = ShowHexFloat (getRoundedDouble (fromInteger x :: RoundedDouble TowardNearest))
+    === ShowHexFloat (fromInteger x :: Double)
+
+prop_fromInt_order :: Integer -> Property
+prop_fromInt_order x
+  = let ne   = fromInt TowardNearest x
+        ze   = fromInt TowardZero    x
+        inf  = fromInt TowardInf     x
+        ninf = fromInt TowardNegInf  x
+    in ninf <= inf
+       .&&. (ne == ninf || ne == inf)
+       .&&. (if x < 0 then ze == inf else ze == ninf)
+
+prop_fromInt_exact :: Integer -> Property
+prop_fromInt_exact x
+  = let inf  = fromInt TowardInf    x
+        ninf = fromInt TowardNegInf x
+    in if ninf == inf
+       then not (isInfinite inf) .&&. toRational inf === fromInteger x
+       else if isInfinite inf
+            then inf > 0
+                 .&&. not (isInfinite ninf)
+                 .&&. toRational ninf =/= fromInteger x
+            else if isInfinite ninf
+                 then ninf < 0
+                      .&&. not (isInfinite inf)
+                      .&&. toRational inf =/= fromInteger x
+                 else toRational inf =/= fromInteger x
+                      .&&. toRational ninf =/= fromInteger x
+
 prop_fromRational_nearest_stock :: Rational -> Property
 prop_fromRational_nearest_stock x
   = ShowHexFloat (getRoundedDouble (fromRational x :: RoundedDouble TowardNearest))
@@ -22,36 +54,43 @@ prop_fromRational proxy x
   = ShowHexFloat (fromRatio (rounding proxy) (numerator x) (denominator x))
     === ShowHexFloat (getRoundedDouble (fromRational x :: RoundedDouble rn))
 
-prop_order :: Rational -> Property
-prop_order x = let ne   = fromRatio TowardNearest (numerator x) (denominator x)
-                   ze   = fromRatio TowardZero    (numerator x) (denominator x)
-                   inf  = fromRatio TowardInf     (numerator x) (denominator x)
-                   ninf = fromRatio TowardNegInf  (numerator x) (denominator x)
-               in ninf <= inf
-                  .&&. (ne == ninf || ne == inf)
-                  .&&. (if x < 0 then ze == inf else ze == ninf)
+prop_fromRatio_order :: Rational -> Property
+prop_fromRatio_order x
+  = let ne   = fromRatio TowardNearest (numerator x) (denominator x)
+        ze   = fromRatio TowardZero    (numerator x) (denominator x)
+        inf  = fromRatio TowardInf     (numerator x) (denominator x)
+        ninf = fromRatio TowardNegInf  (numerator x) (denominator x)
+    in ninf <= inf
+       .&&. (ne == ninf || ne == inf)
+       .&&. (if x < 0 then ze == inf else ze == ninf)
 
-prop_exact :: Rational -> Property
-prop_exact x = let ne   = fromRatio TowardNearest (numerator x) (denominator x)
-                   ze   = fromRatio TowardZero    (numerator x) (denominator x)
-                   inf  = fromRatio TowardInf     (numerator x) (denominator x)
-                   ninf = fromRatio TowardNegInf  (numerator x) (denominator x)
-               in if ninf == inf
-                  then not (isInfinite inf) .&&. toRational inf === x
-                  else if isInfinite inf
-                       then inf > 0
-                            .&&. not (isInfinite ninf)
-                            .&&. toRational ninf =/= x
-                       else if isInfinite ninf
-                            then ninf < 0
-                                 .&&. not (isInfinite inf)
-                                 .&&. toRational inf =/= x
-                            else toRational inf =/= x
-                                 .&&. toRational ninf =/= x
+prop_fromRatio_exact :: Rational -> Property
+prop_fromRatio_exact x
+  = let inf  = fromRatio TowardInf    (numerator x) (denominator x)
+        ninf = fromRatio TowardNegInf (numerator x) (denominator x)
+    in if ninf == inf
+       then not (isInfinite inf) .&&. toRational inf === x
+       else if isInfinite inf
+            then inf > 0
+                 .&&. not (isInfinite ninf)
+                 .&&. toRational ninf =/= x
+            else if isInfinite ninf
+                 then ninf < 0
+                      .&&. not (isInfinite inf)
+                      .&&. toRational inf =/= x
+                 else toRational inf =/= x
+                      .&&. toRational ninf =/= x
 
 main :: IO ()
 main = hspec $ do
-  describe "fromRatio" $ do
+  describe "fromInteger" $ do
+    it "fromInteger (nearest) coincides with stock fromInteger" $
+      property $ prop_fromInteger_nearest_stock
+    it "order" $
+      property prop_fromInt_order
+    it "exactness" $
+      property $ prop_fromInt_exact
+  describe "fromRational" $ do
     it "fromRational (nearest) coincides with stock fromRational" $
       property $ prop_fromRational_nearest_stock
     it "fromRational for small numbers coincides with fromRationl (nearest)" $
@@ -63,6 +102,6 @@ main = hspec $ do
     it "fromRational for small numbers coincides with fromRationl (toward neg inf)" $
       property $ prop_fromRational (Proxy :: Proxy TowardNegInf)
     it "order" $
-      property prop_order
+      property prop_fromRatio_order
     it "exactness" $
-      property $ prop_exact
+      property $ prop_fromRatio_exact

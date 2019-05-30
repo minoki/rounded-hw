@@ -117,6 +117,42 @@ instance RoundedPrim TowardZero where
   divDouble _ = c_rounded_div_zero
   sqrtDouble _ = c_rounded_sqrt_zero
 
+fromInt :: RoundingMode -> Integer -> Double
+fromInt rn 0 = 0
+fromInt rn n | n < 0 = - fromInt (oppositeRoundingMode rn) (- n)
+-- Now n > 0
+fromInt rn n
+  = let k = integerLog2' n -- floor (log2 n)
+        -- 2^k <= n < 2^(k+1)
+    in if k < 53
+       then fromInteger n
+       else let e = k - 52
+                (q, r) = n `quotRem` (2^e)
+                -- 2^52 <= q < 2^53, 0 <= r < 2^(k-52)
+                (expMin, expMax) = floatRange (undefined :: Double) -- (-1021, 1024) for Double
+            in if k >= expMax
+               then
+                 -- infinity
+                 case rn of
+                   TowardNegInf  -> 0x1.fffffffffffffp+1023 -- max finite
+                   TowardZero    -> 0x1.fffffffffffffp+1023
+                   TowardInf     -> 1/0 -- infinity
+                   TowardNearest -> 1/0 -- infinity
+               else
+                 if r == 0
+                 then encodeFloat q e -- exact
+                 else
+                   -- inexact
+                   case rn of
+                     TowardNegInf -> encodeFloat q e
+                     TowardZero   -> encodeFloat q e
+                     TowardInf    -> encodeFloat (q + 1) e
+                     TowardNearest -> case compare r (2^(e-1)) of
+                       LT -> encodeFloat q e
+                       EQ | even q -> encodeFloat q e
+                          | otherwise -> encodeFloat (q + 1) e
+                       GT -> encodeFloat (q + 1) e
+
 instance (RoundedPrim rn) => Num (RoundedDouble rn) where
   lhs@(RoundedDouble x) + RoundedDouble y = RoundedDouble (addDouble lhs x y)
   lhs@(RoundedDouble x) - RoundedDouble y = RoundedDouble (subDouble lhs x y)
@@ -124,45 +160,7 @@ instance (RoundedPrim rn) => Num (RoundedDouble rn) where
   negate = coerce (negate :: Double -> Double)
   abs = coerce (abs :: Double -> Double)
   signum = coerce (signum :: Double -> Double)
-  fromInteger !n | abs n <= 2^53 = RoundedDouble (fromInteger n) -- exact
-                 | n > 0 = let k = integerLog2' n -- floor (log2 n)
-                               l = k - 52
-                               -- Since abs n > 2^53, k >= 53 and l >= 1
-                               -- (q, r) = n `quotRem` (2^l)
-                               q = n `shiftR` l
-                               r = n .&. (1 `shiftL` l)
-                           in if r == 0
-                              then let v = encodeFloat q l
-                                   in RoundedDouble v -- exact
-                                      -- TODO: overflow
-                              else RoundedDouble (case rounding (Proxy :: Proxy rn) of
-                                                    TowardInf -> encodeFloat (q + 1) l
-                                                    TowardNegInf -> encodeFloat q l
-                                                    TowardZero -> encodeFloat q l
-                                                    TowardNearest | r `shiftR` (l - 1) == 0 -> encodeFloat q l
-                                                                  | r == 2^(l - 1) -> if even q then encodeFloat q l else encodeFloat (q - 1) l
-                                                                  | otherwise -> encodeFloat (q + 1) l
-                                                 )
-                 | otherwise = let n' = - n
-                                   k = integerLog2' n' -- floor (log2 n)
-                                   l = k - 52
-                                   -- Since abs n > 2^53, k >= 53 and l >= 1
-                                   -- (q, r) = n `quotRem` (2^l)
-                                   q = n' `shiftR` l
-                                   r = n' .&. (1 `shiftL` l)
-                               in if r == 0
-                                  then let v = - encodeFloat q l
-                                       in RoundedDouble v -- exact
-                                          -- TODO: overflow
-                                  else RoundedDouble (- (case rounding (Proxy :: Proxy rn) of
-                                                           TowardInf -> encodeFloat q l
-                                                           TowardNegInf -> encodeFloat (q + 1) l
-                                                           TowardZero -> encodeFloat q l
-                                                           TowardNearest | r `shiftR` (l - 1) == 0 -> encodeFloat q l
-                                                                         | r == 2^(l - 1) -> if even q then encodeFloat q l else encodeFloat (q - 1) l
-                                                                         | otherwise -> encodeFloat (q + 1) l
-                                                        )
-                                                     )
+  fromInteger n = RoundedDouble (fromInt (rounding (Proxy :: Proxy rn)) n)
 
 countTrailingZerosInteger :: Integer -> Int
 countTrailingZerosInteger x
