@@ -37,8 +37,17 @@ prop_exact x = let ne   = fromRatio TowardNearest (numerator x) (denominator x)
                    inf  = fromRatio TowardInf     (numerator x) (denominator x)
                    ninf = fromRatio TowardNegInf  (numerator x) (denominator x)
                in if ninf == inf
-                  then toRational inf === x
-                  else toRational inf =/= x .&&. toRational ninf =/= x
+                  then not (isInfinite inf) .&&. toRational inf === x
+                  else if isInfinite inf
+                       then inf > 0
+                            .&&. not (isInfinite ninf)
+                            .&&. toRational ninf =/= x
+                       else if isInfinite ninf
+                            then ninf < 0
+                                 .&&. not (isInfinite inf)
+                                 .&&. toRational inf =/= x
+                            else toRational inf =/= x
+                                 .&&. toRational ninf =/= x
 
 main :: IO ()
 main = hspec $ do

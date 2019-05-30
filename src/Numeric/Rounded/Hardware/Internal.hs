@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE HexFloatLiterals #-}
 module Numeric.Rounded.Hardware.Internal where
 import Data.Coerce
 import Data.Proxy
@@ -169,7 +170,10 @@ countTrailingZerosInteger x
   {- | odd x = 0 -}
   | otherwise = integerLog2 (x `xor` (x - 1))
 
-fromRatio :: RoundingMode -> Integer -> Integer -> Double
+fromRatio :: RoundingMode
+          -> Integer -- ^ numerator
+          -> Integer -- ^ denominator
+          -> Double
 fromRatio _rn 0 _ = 0
 fromRatio rn n 0 | n > 0 = 1/0 -- positive infinity
                  | otherwise = -1/0 -- negative infinity
@@ -179,36 +183,76 @@ fromRatio rn n d | d < 0 = error "fromRatio: negative denominator"
 fromRatio rn n d
   = let ln = integerLog2 n
         ld = integerLog2 d
-        (q, r) = (n `shiftL` (53 + ld - ln)) `quotRem` d
-        -- n * 2^(53+ld-ln) = q * d + r, 0 <= r < d
-        -- n/d = q * 2^(ln-ld-53) + r*2^(ln-ld-53)/d
+        e = ln - ld - 53
+        (q, r) | e >= 0 = n `quotRem` (d `shiftL` e)
+               | e <  0 = (n `shiftL` (-e)) `quotRem` d
+        -- e >= 0: n = q * (d * 2^e) + r, 0 <= r < d * 2^e
+        -- e <= 0: n * 2^(-e) = q * d + r, 0 <= r < d
+        -- n / d * 2^^(-e) = q + r / d
         -- 52 <= log2 q < 54
-        q' = q `shiftR` 1
-    in if r == 0 && (q < 2^53 || even q)
+        (q', r', d', e') | q < 2^53 = (q, r, d, e)
+                         | e >= 0 = let (q'', r'') = q `quotRem` 2
+                                    in (q'', r'' * (d `shiftL` e) + r, d, e + 1)
+                         | otherwise = let (q'', r'') = q `quotRem` 2
+                                       in (q'', r'' * d + r, 2 * d, e + 1)
+        -- n' / d' * 2^^(-e') = q' + r' / d', 2^52 <= q' < 2^53
+        -- e >= 0: n = (2 * (q `quot` 2) + (q `rem` 2)) * (d * 2^e) + r
+        --           = (q `quot` 2) * (d * 2^(e+1)) + (q `rem` 2) * (d * 2^e) + r
+        -- e < 0: n * 2^(-e) = (2 * (q `quot` 2) + (q `rem` 2)) * d + r
+        --                   = (q `quot` 2) * (2 * d) + (q `rem` 2) * d + r
+        -- q' * 2^^e' <= n/d < (q'+1) * 2^^e', 2^52 <= q' < 2^53
+        -- (q'/2^53) * 2^^(e'+53) <= n/d < (q'+1)/2^53 * 2^^(e'+53), 1/2 <= q'/2^53 < 1
+        (expMin, expMax) = floatRange (undefined :: Double) -- (-1021, 1024) for Double
+        -- normal: 0x1p-1022 <= x <= 0x1.fffffffffffffp+1023
+    in if expMin <= e'+53 && e'+53 < expMax
        then
-         -- exact
-         encodeFloat q (ln - ld - 53)
+         -- normal
+         if r' == 0
+         then
+           encodeFloat q' e' -- exact
+         else
+           -- inexact
+           -- encodeFloat (q' + 1) e' may be infinity
+           case rn of
+             TowardNegInf  -> encodeFloat q' e'
+             TowardZero    -> encodeFloat q' e'
+             TowardInf     -> encodeFloat (q' + 1) e'
+             TowardNearest -> case compare (2 * r') d' of
+               LT -> encodeFloat q' e'
+               EQ | even q' -> encodeFloat q' e'
+                  | otherwise -> encodeFloat (q' + 1) e' -- q' + 1 is even
+               GT -> encodeFloat (q' + 1) e'
        else
-         -- inexact
-         case rn of
-           TowardNegInf | q < 2^53  -> encodeFloat q  (ln - ld - 53)
-                        | otherwise -> encodeFloat q' (ln - ld - 52)
-           TowardZero   | q < 2^53  -> encodeFloat q  (ln - ld - 53)
-                        | otherwise -> encodeFloat q' (ln - ld - 52)
-           TowardInf    | q < 2^53  -> encodeFloat (q + 1) (ln - ld - 53)
-                        | otherwise -> encodeFloat (q' + 1) (ln - ld - 52)
-           TowardNearest | q < 2^53 -> case compare (2 * r) d of
-                                         LT -> encodeFloat q (ln - ld - 53)
-                                         EQ | even q -> encodeFloat q (ln - ld - 53)
-                                            | otherwise -> encodeFloat (q + 1) (ln - ld - 53)
-                                         GT -> encodeFloat (q + 1) (ln - ld - 53)
-                         | even q -> encodeFloat q (ln - ld - 53)
-                         | {- odd q, -} r == 0 ->
-                                        if even q'
-                                        then encodeFloat q' (ln - ld - 52)
-                                        else encodeFloat (q' + 1) (ln - ld - 52)
-                         | otherwise {- odd q, r > 0 -} ->
-                             encodeFloat (q' + 1) (ln - ld - 52)
+         -- infinity or subnormal
+         if expMax <= e'+53
+         then
+           -- infinity
+           case rn of
+             TowardNegInf  -> 0x1.fffffffffffffp+1023 -- max finite
+             TowardZero    -> 0x1.fffffffffffffp+1023
+             TowardInf     -> 1/0 -- infinity
+             TowardNearest -> 1/0 -- infinity
+         else
+           -- e'+53 < expMin (e' < expMin - 53 = -1074)
+           -- subnormal: 0 <= rounded(n/d) <= 0x1p-1022, minimum (positive) subnormal: 0x1p-1074
+           -- e'+53 < expMin = -1021,  i.e. e < expMin - 53 = -1074
+           -- q' * 2^^e' = q' * 2^^(e'+1074) * 2^^(-1074)
+           --            = ((q' `quot` (2^(-1074-e'))) * (2^(-1074-e')) + (q' `rem` (2^(-1074-e')))) * 2^^(e'+1074) * 2^^(-1074)
+           --            = (q' `quot` (2^(-1074-e'))) * 2^^(-1074) + (q' `rem` (2^(-1074-e'))) * 2^^(e'+1074) * 2^^(-1074)
+           --            = q'' * 2^^(-1074) + r'' * 2^^e'
+           let (q'', r'') = q' `quotRem` (2^(expMin-53-e'))
+           in if r == 0 && r'' == 0
+              then encodeFloat q'' (expMin-53) -- exact
+              else case rn of
+                     TowardNegInf -> encodeFloat q'' (expMin-53)
+                     TowardZero   -> encodeFloat q'' (expMin-53)
+                     TowardInf    -> encodeFloat (q'' + 1) (expMin-53)
+                     TowardNearest -> case compare r' (2^(expMin - 53 - e' - 1)) of
+                       LT -> encodeFloat q'' (expMin-53)
+                       GT -> encodeFloat (q'' + 1) (expMin-53)
+                       EQ | r /= 0    -> encodeFloat (q'' + 1) (expMin-53)
+                          | even q'   -> encodeFloat q'' (expMin-53)
+                          | otherwise -> encodeFloat (q'' + 1) (expMin-53)
 
 instance (RoundedPrim rn) => Fractional (RoundedDouble rn) where
   fromRational x
