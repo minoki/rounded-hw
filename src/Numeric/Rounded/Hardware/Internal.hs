@@ -8,9 +8,12 @@ import Data.Coerce
 import Data.Proxy
 import Data.Ratio
 import Data.Bits
+import Data.Char (intToDigit)
+import Data.Bifunctor (first)
 import Math.NumberTheory.Logarithms -- (integerLog2')
 -- import GHC.Integer.Logarithms.Internals (integerLog2IsPowerOf2#)
 -- integerLog2IsPowerOf2# :: Integer -> (# Int#, Int# #)
+import Debug.Trace
 
 foreign import ccall unsafe "hs_rounded_c99_add_up"
   c_rounded_add_up :: Double -> Double -> Double
@@ -261,3 +264,179 @@ instance (RoundedPrim rn) => Fractional (RoundedDouble rn) where
     | otherwise = RoundedDouble $ fromRatio (rounding (Proxy :: Proxy rn)) (numerator x) (denominator x)
   recip a@(RoundedDouble x) = RoundedDouble (divDouble a 1 x)
   lhs@(RoundedDouble x) / RoundedDouble y = RoundedDouble (divDouble lhs x y)
+
+-- ratToDigitsRn :: RoundingMode -> Int -> Int -> Rational -> ([Int], Int)
+
+-- doubleToDecimalDigitsRn _ prec x = ([d1,d2,...,dn], e)
+-- 0 <= n <= prec + 1, x = 0.d1d2...dn * (10^^e) up to rounding
+-- 0 <= di < 10
+doubleToDecimalDigitsRn :: RoundingMode -- ^ rounding mode
+                        -> Int -- ^ prec
+                        -> Double -- ^ a non-negative number (zero, normal or subnormal)
+                        -> ([Int], Int)
+doubleToDecimalDigitsRn _rn _prec 0 = ([], 0)
+-- doubleToDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "floatRadix x must be 2"
+doubleToDecimalDigitsRn rn prec x =
+  -- x > 0
+  let (m,n) = decodeFloat x
+      -- x = m*2^n, 2^52 <= m < 2^53
+      -- 2^(-1074) <= x < 2^1024
+      -- => -1074-52=-1126 <= n < 1024-52=972
+      -- d = floatDigits x -- d=53 for Double
+      e0 = floor (fromIntegral (52 + n) * logBase 10 2 :: Double) - prec
+      -- TODO: precision?
+      -- TODO: Use rational approximation for logBase 10 2?
+      (s,t) | n < 0,       0 <= e0 = (m,     2^(-n) * 10^e0)
+            | {- n >= 0 -} 0 <= e0 = (m * 2^n,        10^e0)
+            | n < 0   {- e0 < 0 -} = (m * 10^(-e0),  2^(-n))
+            | otherwise            = (m * 2^n * 10^(-e0), 1)
+      -- s/t = m * 2^n * 10^(-e0)
+      (q,r) = s `quotRem` t
+      -- s = q * t + r
+      -- 10^prec <= q + r/t < 2 * 10^(prec+1)
+      (q',r',t',e') | 10^(prec+1) <= q = case q `quotRem` 10 of
+                                           -- q = q'*10+r'
+                                           -- s = (q'*10+r')*t + r = q'*10*t+(r'*t+r)
+                                           (q',r') -> (q', r'*t+r, 10*t, e0+1)
+                    | otherwise = (q,r,t,e0)
+      -- 10^prec <= q' + r'/t' < 10^(prec+1), 0 <= r' < t'
+
+      -- x = m*2^n
+      --   = s/t * 10^^(e0)
+      --   = (q + r/t) * 10^^(e0)
+      --   = (q' + r'/t') * 10^^e'
+
+      -- loop0 e n: x = n * 10^(e-prec-1)
+      loop0 !e 0 = ([], 0) -- should not occur
+      loop0 !e a = case a `quotRem` 10 of
+                     (q,0) -> loop0 (e+1) q
+                     (q,r) -> loop (e+1) [fromInteger r] q
+
+      -- loop e acc a: (a + 0.<acc>)*10^(e-prec-1)
+      loop !e acc 0 = (acc, e)
+      loop !e acc a = case a `quotRem` 10 of
+                        (q,r) -> loop (e+1) (fromInteger r : acc) q
+  in if r' == 0
+     then
+       -- exact
+       loop0 e' q'
+     else
+       -- inexact
+       case rn of
+         TowardNegInf -> loop0 e' q'
+         TowardZero   -> loop0 e' q'
+         TowardInf    -> loop0 e' (q' + 1)
+         TowardNearest -> case compare (2 * r') t' of
+           LT -> loop0 e' q'
+           EQ | even q' -> loop0 e' q'
+              | otherwise -> loop0 e' (q' + 1)
+           GT -> loop0 e' (q' + 1)
+
+-- doubleToDecimalDigits x = ([d1,d2,...,dn], e)
+-- n >= 0, x = 0.d1d2...dn * (10^^e)
+-- 0 <= di < 10
+doubleToDecimalDigits :: Double -- ^ a non-negative number (zero, normal or subnormal)
+                      -> ([Int], Int)
+doubleToDecimalDigits 0 = ([], 0)
+doubleToDecimalDigits x =
+  let (m,n) = decodeFloat x -- x = m*2^n
+      z = countTrailingZerosInteger m
+      (m',n') = (m `shiftR` z, n + z)
+      -- x = m*2^n = m'*2^n'
+      (m'',e) | n' < 0 = (m' * 5^(-n'), n') -- x = m'/2^(-n') = m'*5^(-n') / 10^(-n')
+              | otherwise = (m' * 2^n', 0)
+      -- x = m''*10^e, m'' is an integer, e <= 0
+
+      -- x = a*10^e, a is an integer
+      loop0 !e 0 = ([0], 0) -- should not occur
+      loop0 !e a = case a `quotRem` 10 of
+                     (q,0) -> loop0 (e+1) q
+                     (q,r) -> loop (e+1) [fromInteger r] q
+
+      -- x = (a + 0.<acc>)*10^e, a is an integer
+      loop !e acc 0 = (acc, e)
+      loop !e acc n = case n `quotRem` 10 of
+                        (q,r) -> loop (e+1) (fromInteger r : acc) q
+  in loop0 e m''
+
+-- TODO: Maybe implement ByteString or Text versions
+
+showEFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showEFloatRn rn mprec x
+  | isNaN x = showString "NaN"
+  | x < 0 || isNegativeZero x = showChar '-' . showEFloatRn (oppositeRoundingMode rn) mprec (-x)
+  | isInfinite x = showString "Infinity"
+  | otherwise = let (xs,e) = case mprec of
+                      Nothing -> doubleToDecimalDigits x
+                      Just prec -> let !prec' = max prec 0
+                                   in first (padRight0 (prec' + 1)) $ doubleToDecimalDigitsRn rn prec' x
+                in case xs of
+                     [] -> showString "0.0e0" -- mprec must be `Nothing`
+                     [0] -> showString "0" -- mprec must be `Just 0`
+                     [d] -> showString $ intToDigit d : 'e' : show (e - 1)
+                     (d:ds) -> showString $ (intToDigit d : '.' : map intToDigit ds) ++ ('e' : show (e - 1))
+  where
+    padRight0 :: Int -> [Int] -> [Int]
+    padRight0 0 xs = xs
+    padRight0 !n [] = replicate n 0
+    padRight0 !n (x:xs) = x : padRight0 (n - 1) xs
+
+showFFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showFFloatRn rn mprec x
+  | isNaN x = showString "NaN"
+  | x < 0 || isNegativeZero x = showChar '-' . showFFloatRn (oppositeRoundingMode rn) mprec (-x)
+  | isInfinite x = showString "Infinity"
+  | otherwise = let (a,b) = properFraction x
+                    (a',xs) = case mprec of
+                      Nothing -> let (xs,e) = doubleToDecimalDigits b
+                                     -- e <= 1 because b < 1
+                                 in if e == 1
+                                    then (a+1, [0]) -- should not occur
+                                    else if null xs
+                                         then (a, [0])
+                                         else (a, replicate (-e) 0 ++ xs)
+                      Just prec
+                        | prec <= 0 -> let !a' = case rn of
+                                             TowardNegInf -> a
+                                             TowardZero -> a
+                                             TowardInf | b == 0 -> a -- exact
+                                                       | otherwise -> a + 1
+                                             TowardNearest -> case compare b (1/2) of
+                                               LT -> a
+                                               EQ | even a -> a
+                                                  | otherwise -> a + 1
+                                               GT -> a + 1
+                                       in (a', [])
+                        | otherwise -> let (xs,e) = doubleToDecimalDigitsRn rn (prec - 1) b
+                                           -- e <= 1 because b < 1
+                                           -- length xs <= prec
+                                       in if e == 1
+                                          then (a+1, replicate prec 0) -- b -> 1
+                                          else (a, replicate (-e) 0 ++ padRight0 (prec - e) xs)
+                in if null xs
+                   then showString (map intToDigit $ toDigits a') -- prec <= 0
+                   else showString (map intToDigit $ toDigits a') . showChar '.' . showString (map intToDigit xs)
+  where
+    padRight0 :: Int -> [Int] -> [Int]
+    padRight0 0 xs = xs
+    padRight0 !n [] = replicate n 0
+    padRight0 !n (x:xs) = x : padRight0 (n - 1) xs
+
+    toDigits :: Integer -> [Int]
+    toDigits 0 = [0]
+    toDigits n = let loop acc 0 = acc
+                     loop acc n = case n `quotRem` 10 of
+                                    (q,r) -> loop (fromInteger r : acc) q
+                 in loop [] n
+
+showGFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showGFloatRn rn mprec x | x == 0 || (0.1 <= abs x && abs x < 10^7) = showFFloatRn rn mprec x -- Note that 1%10 < toRational (0.1 :: Double)
+                        | otherwise = showEFloatRn rn mprec x
+
+{-
+showFFloatAltRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showGFloatAltRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+-- showFloat :: RoundingMode -> Double -> ShowS
+-}
+
+foreign import ccall unsafe "nextafter" c_nextafter :: Double -> Double -> Double

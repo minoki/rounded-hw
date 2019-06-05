@@ -81,6 +81,18 @@ prop_fromRatio_exact x
                  else toRational inf =/= x
                       .&&. toRational ninf =/= x
 
+prop_showEFloatP :: Int -> Double -> Property
+prop_showEFloatP prec x = showEFloat mprec x "" === showEFloatRn TowardNearest mprec x ""
+  where mprec = Just prec
+
+prop_showFFloatP ::  Int -> Double -> Property
+prop_showFFloatP prec x = showFFloat mprec x "" === showFFloatRn TowardNearest mprec x ""
+  where mprec = Just prec
+
+prop_showGFloatP :: Int -> Double -> Property
+prop_showGFloatP prec x = showGFloat mprec x "" === showGFloatRn TowardNearest mprec x ""
+  where mprec = Just prec
+
 main :: IO ()
 main = hspec $ do
   describe "fromInteger" $ do
@@ -105,3 +117,10 @@ main = hspec $ do
       property prop_fromRatio_order
     it "exactness" $
       property $ prop_fromRatio_exact
+  describe "show*Float" $ do
+    it "showEFloat (nearest)" $
+      property prop_showEFloatP
+    it "showFFloat (nearest)" $
+      property prop_showFFloatP
+    it "showGFloat (nearest)" $
+      property prop_showGFloatP
