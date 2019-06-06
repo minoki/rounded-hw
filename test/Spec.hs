@@ -5,6 +5,7 @@ import Test.Hspec
 import Test.QuickCheck
 import Data.Ratio
 import Data.Proxy
+import Data.Int
 import Numeric
 
 newtype ShowHexFloat a = ShowHexFloat a deriving (Eq,Ord)
@@ -81,17 +82,20 @@ prop_fromRatio_exact x
                  else toRational inf =/= x
                       .&&. toRational ninf =/= x
 
-prop_showEFloatP :: Int -> Double -> Property
-prop_showEFloatP prec x = showEFloat mprec x "" === showEFloatRn TowardNearest mprec x ""
+prop_showEFloatP :: Int -> Int32 -> Property
+prop_showEFloatP prec x = showEFloat mprec x' "" === showEFloatRn TowardNearest mprec x' ""
   where mprec = Just prec
+        x' = fromIntegral x / 64
 
-prop_showFFloatP ::  Int -> Double -> Property
-prop_showFFloatP prec x = showFFloat mprec x "" === showFFloatRn TowardNearest mprec x ""
+prop_showFFloatP ::  Int -> Int32 -> Property
+prop_showFFloatP prec x = showFFloat mprec x' "" === showFFloatRn TowardNearest mprec x' ""
   where mprec = Just prec
+        x' = fromIntegral x / 64
 
-prop_showGFloatP :: Int -> Double -> Property
-prop_showGFloatP prec x = showGFloat mprec x "" === showGFloatRn TowardNearest mprec x ""
+prop_showGFloatP :: Int -> Int32 -> Property
+prop_showGFloatP prec x = showGFloat mprec x' "" === showGFloatRn TowardNearest mprec x' ""
   where mprec = Just prec
+        x' = fromIntegral x / 64
 
 main :: IO ()
 main = hspec $ do
@@ -117,10 +121,16 @@ main = hspec $ do
       property prop_fromRatio_order
     it "exactness" $
       property $ prop_fromRatio_exact
-  describe "show*Float" $ do
+  describe "showFloat" $ do
     it "showEFloat (nearest)" $
       property prop_showEFloatP
     it "showFFloat (nearest)" $
       property prop_showFFloatP
     it "showGFloat (nearest)" $
       property prop_showGFloatP
+    it "showEFloat/Int32" $
+      property (\mprec (x :: Int32) -> showEFloat mprec (fromIntegral x) "" === showEFloatRn TowardNearest mprec (fromIntegral x) "")
+    it "showFFloat/Int32" $
+      property (\mprec (x :: Int32) -> showFFloat mprec (fromIntegral x) "" === showFFloatRn TowardNearest mprec (fromIntegral x) "")
+    it "showGFloat/Int32" $
+      property (\mprec (x :: Int32) -> showGFloat mprec (fromIntegral x) "" === showGFloatRn TowardNearest mprec (fromIntegral x) "")
