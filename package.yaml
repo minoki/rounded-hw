@@ -42,3 +42,8 @@ tests:
     - rounded-hw
     - hspec
     - QuickCheck
+
+  rounded-hw-doctests:
+    main: doctests.hs
+    dependencies:
+    - doctest >= 0.8

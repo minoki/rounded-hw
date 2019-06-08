@@ -6,12 +6,15 @@ import Data.Bifunctor (first)
 import Data.Bits
 import Math.NumberTheory.Logarithms
 
+-- $setup
+-- >>> import Data.Int
+
 -- |
+-- prop> \x -> x == 0 || countTrailingZerosInteger (fromIntegral x) == countTrailingZeros (x :: Int64)
 -- >>> countTrailingZerosInteger 7
 -- 0
 -- >>> countTrailingZerosInteger 8
 -- 3
--- prop> \x -> x == 0 || countTrailingZerosInteger (fromIntegral x) == countTrailingZeros (x :: Int64)
 countTrailingZerosInteger :: Integer -> Int
 countTrailingZerosInteger x
   | x == 0 = error "countTrailingZerosInteger: zero"
@@ -176,6 +179,13 @@ showEFloatRn rn mprec x
     padRight0 !n [] = replicate n 0
     padRight0 !n (x:xs) = x : padRight0 (n - 1) xs
 
+-- |
+-- >>> showFFloatRn TowardNearest (Just 0) 0 ""
+-- "0"
+-- >>> showFFloatRn TowardNearest Nothing 0 ""
+-- "0.0"
+-- >>> showFFloatRn TowardNearest Nothing (-0) ""
+-- "-0.0"
 showFFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
 showFFloatRn rn mprec x
   | isNaN x = showString "NaN"
