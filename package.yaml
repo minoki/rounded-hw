@@ -48,3 +48,13 @@ tests:
     main: doctests.hs
     dependencies:
     - doctest >= 0.8
+
+benchmarks:
+  rounded-hw-benchmark:
+    main: Benchmark.hs
+    source-dirs: benchmark
+    dependencies:
+    - rounded-hw
+    - gauge
+    - array
+    - vector
