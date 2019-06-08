@@ -2,8 +2,9 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 module Numeric.Rounded.Hardware.Interval where
-import Data.Coerce
+import Numeric.Rounded.Hardware.Rounding
 import Numeric.Rounded.Hardware.Internal
+import Data.Coerce
 
 data IntervalDouble
   = I !(RoundedDouble TowardNegInf) !(RoundedDouble TowardInf)
