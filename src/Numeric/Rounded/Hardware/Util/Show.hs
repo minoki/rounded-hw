@@ -185,12 +185,16 @@ showFFloatRn rn mprec x
                   Nothing -> let (xs,e) = doubleToDecimalDigits x
                                  l = length xs
                              in if e >= l
-                                then showString (map intToDigit xs ++ replicate (e - l) '0' ++ ".0")
+                                then if null xs
+                                     then showString "0.0"
+                                     else showString (map intToDigit xs ++ replicate (e - l) '0' ++ ".0")
                                 else if e >= 0 -- 0 <= e < l
                                      then if l == e -- null zs
                                           then showString (map intToDigit xs ++ ".0")
                                           else let (ys,zs) = splitAt (l - e) xs
-                                               in showString (map intToDigit ys ++ "." ++ map intToDigit zs)
+                                                   ys' | null ys = [0]
+                                                       | otherwise = ys
+                                               in showString (map intToDigit ys' ++ "." ++ map intToDigit zs)
                                      else -- e < 0
                                        showString ("0." ++ replicate (-e) '0' ++ map intToDigit xs)
                   Just prec -> let prec' = max prec 0
