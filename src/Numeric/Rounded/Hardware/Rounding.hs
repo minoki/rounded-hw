@@ -1,4 +1,7 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Numeric.Rounded.Hardware.Rounding where
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData(..))
 
 -- TODO: Use rounded package (Numeric.Rounded)
 data RoundingMode
@@ -6,7 +9,9 @@ data RoundingMode
   | TowardZero
   | TowardInf
   | TowardNegInf
-  deriving (Eq, Ord, Read, Show, Bounded)
+  deriving (Eq, Ord, Read, Show, Bounded, Generic)
+
+instance NFData RoundingMode
 
 oppositeRoundingMode :: RoundingMode -> RoundingMode
 oppositeRoundingMode TowardNearest = TowardNearest

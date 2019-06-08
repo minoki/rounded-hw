@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Numeric.Rounded.Hardware.Internal
   ( module Numeric.Rounded.Hardware.Internal
   , module Numeric.Rounded.Hardware.Rounding
@@ -14,6 +15,8 @@ import Numeric.Rounded.Hardware.Util.Show
 import Data.Coerce
 import Data.Proxy
 import Data.Ratio
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData(..))
 
 foreign import ccall unsafe "hs_rounded_c99_add_up"
   c_rounded_add_up :: Double -> Double -> Double
@@ -61,7 +64,9 @@ foreign import ccall unsafe "hs_rounded_c99_sqrt_zero"
   c_rounded_sqrt_zero :: Double -> Double
 
 newtype RoundedDouble (rn :: RoundingMode) = RoundedDouble Double
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
+
+instance NFData (RoundedDouble rn)
 
 getRoundedDouble :: RoundedDouble rn -> Double
 getRoundedDouble (RoundedDouble x) = x

@@ -1,14 +1,20 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Numeric.Rounded.Hardware.Interval where
 import Numeric.Rounded.Hardware.Rounding
 import Numeric.Rounded.Hardware.Internal
 import Data.Coerce
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData(..))
 
 data IntervalDouble
   = I !(RoundedDouble TowardNegInf) !(RoundedDouble TowardInf)
   | Empty
+  deriving (Show,Generic)
+
+instance NFData IntervalDouble
 
 instance Num IntervalDouble where
   I a b + I a' b' = I (a + a') (b + b')
