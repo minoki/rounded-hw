@@ -41,8 +41,14 @@ increasing _ Empty = Empty
 whole :: IntervalDouble
 whole = I ((-1)/0) (1/0)
 
-{-
 instance Fractional IntervalDouble where
+  recip Empty = Empty
+  recip (I a b) | 0 < a || b < 0 = I (recip (coerce b)) (recip (coerce a))
+                | otherwise = error "divide by zero"
+  x@(I a b) / y@(I a' b') | 0 < a' || b' < 0 = I (minimum [a / a', a / coerce b', coerce b / a', coerce b / coerce b'])
+                                                 (maximum [coerce a / coerce a', coerce a / b', b / coerce a', b / b'])
+                            -- TODO: Allow a' == 0 || b' == 0?
+                          | otherwise = error "divide by zero"
   _ / Empty = Empty
-  x / y@(I a b)
--}
+  Empty / _ = Empty
+  fromRational = I <$> fromRational <*> fromRational
