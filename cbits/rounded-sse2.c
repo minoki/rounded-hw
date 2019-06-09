@@ -6,7 +6,7 @@
 // static const unsigned int RC_TONEAREST  = 0;
 static const unsigned int RC_DOWNWARD   = 1;
 static const unsigned int RC_UPWARD     = 2;
-// static const unsigned int RC_TOWARDZERO = 3;
+static const unsigned int RC_TOWARDZERO = 3;
 
 static inline double rounded_add(unsigned int mode, double a, double b)
 {
@@ -17,14 +17,19 @@ static inline double rounded_add(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double hs_rounded_sse2_add_up(double a, double b)
+extern double rounded_hw_sse2_add_up(double a, double b)
 {
     return rounded_add(RC_UPWARD, a, b);
 }
 
-extern double hs_rounded_sse2_add_down(double a, double b)
+extern double rounded_hw_sse2_add_down(double a, double b)
 {
     return rounded_add(RC_DOWNWARD, a, b);
+}
+
+extern double rounded_hw_sse2_add_zero(double a, double b)
+{
+    return rounded_add(RC_TOWARDZERO, a, b);
 }
 
 static inline double rounded_sub(unsigned int mode, double a, double b)
@@ -36,14 +41,19 @@ static inline double rounded_sub(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double hs_rounded_sse2_sub_up(double a, double b)
+extern double rounded_hw_sse2_sub_up(double a, double b)
 {
     return rounded_sub(RC_UPWARD, a, b);
 }
 
-extern double hs_rounded_sse2_sub_down(double a, double b)
+extern double rounded_hw_sse2_sub_down(double a, double b)
 {
     return rounded_sub(RC_DOWNWARD, a, b);
+}
+
+extern double rounded_hw_sse2_sub_zero(double a, double b)
+{
+    return rounded_sub(RC_TOWARDZERO, a, b);
 }
 
 static inline double rounded_mul(unsigned int mode, double a, double b)
@@ -55,14 +65,19 @@ static inline double rounded_mul(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double hs_rounded_sse2_mul_up(double a, double b)
+extern double rounded_hw_sse2_mul_up(double a, double b)
 {
     return rounded_mul(RC_UPWARD, a, b);
 }
 
-extern double hs_rounded_sse2_mul_down(double a, double b)
+extern double rounded_hw_sse2_mul_down(double a, double b)
 {
     return rounded_mul(RC_DOWNWARD, a, b);
+}
+
+extern double rounded_hw_sse2_mul_zero(double a, double b)
+{
+    return rounded_mul(RC_TOWARDZERO, a, b);
 }
 
 static inline double rounded_div(unsigned int mode, double a, double b)
@@ -74,14 +89,19 @@ static inline double rounded_div(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double hs_rounded_sse2_div_up(double a, double b)
+extern double rounded_hw_sse2_div_up(double a, double b)
 {
     return rounded_div(RC_UPWARD, a, b);
 }
 
-extern double hs_rounded_sse2_div_down(double a, double b)
+extern double rounded_hw_sse2_div_down(double a, double b)
 {
     return rounded_div(RC_DOWNWARD, a, b);
+}
+
+extern double rounded_hw_sse2_div_zero(double a, double b)
+{
+    return rounded_div(RC_TOWARDZERO, a, b);
 }
 
 static inline double rounded_sqrt(unsigned int mode, double a)
@@ -93,12 +113,17 @@ static inline double rounded_sqrt(unsigned int mode, double a)
     return c;
 }
 
-extern double hs_rounded_sse2_sqrt_up(double a)
+extern double rounded_hw_sse2_sqrt_up(double a)
 {
     return rounded_sqrt(RC_UPWARD, a);
 }
 
-extern double hs_rounded_sse2_sqrt_down(double a)
+extern double rounded_hw_sse2_sqrt_down(double a)
 {
     return rounded_sqrt(RC_DOWNWARD, a);
+}
+
+extern double rounded_hw_sse2_sqrt_zero(double a)
+{
+    return rounded_sqrt(RC_TOWARDZERO, a);
 }
