@@ -127,3 +127,43 @@ extern double rounded_hw_sse2_sqrt_zero(double a)
 {
     return rounded_sqrt(RC_TOWARDZERO, a);
 }
+
+extern double rounded_hw_sse2_interval_mul_up(double lo1, double hi1, double lo2, double hi2)
+{
+    // TODO: zero and infinity
+    unsigned int oldmode = _mm_getcsr();
+    _mm_setcsr((oldmode & ~(3u << 13)) | (RC_UPWARD << 13));
+    double hi = fmax(fmax(lo1 * lo2, lo1 * hi2), fmax(hi1 * lo2, hi1 * hi2));
+    _mm_setcsr(oldmode);
+    return hi;
+}
+
+extern double rounded_hw_sse2_interval_mul_down(double lo1, double hi1, double lo2, double hi2)
+{
+    // TODO: zero and infinity
+    unsigned int oldmode = _mm_getcsr();
+    _mm_setcsr((oldmode & ~(3u << 13)) | (RC_DOWNWARD << 13));
+    double lo = fmin(fmin(lo1 * lo2, lo1 * hi2), fmin(hi1 * lo2, hi1 * hi2));
+    _mm_setcsr(oldmode);
+    return lo;
+}
+
+extern double rounded_hw_sse2_interval_div_up(double lo1, double hi1, double lo2, double hi2)
+{
+    // TODO: zero and infinity
+    unsigned int oldmode = _mm_getcsr();
+    _mm_setcsr((oldmode & ~(3u << 13)) | (RC_UPWARD << 13));
+    double hi = fmax(fmax(lo1 / lo2, lo1 / hi2), fmax(hi1 / lo2, hi1 / hi2));
+    _mm_setcsr(oldmode);
+    return hi;
+}
+
+extern double rounded_hw_sse2_interval_div_down(double lo1, double hi1, double lo2, double hi2)
+{
+    // TODO: zero and infinity
+    unsigned int oldmode = _mm_getcsr();
+    _mm_setcsr((oldmode & ~(3u << 13)) | (RC_DOWNWARD << 13));
+    double lo = fmin(fmin(lo1 / lo2, lo1 / hi2), fmin(hi1 / lo2, hi1 / hi2));
+    _mm_setcsr(oldmode);
+    return lo;
+}

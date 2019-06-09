@@ -16,6 +16,18 @@ data IntervalDouble
 
 instance NFData IntervalDouble
 
+foreign import ccall unsafe "rounded_hw_sse2_interval_mul_down"
+  c_rounded_interval_mul_down :: Double -> Double -> Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_sse2_interval_mul_up"
+  c_rounded_interval_mul_up :: Double -> Double -> Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_sse2_interval_div_down"
+  c_rounded_interval_div_down :: Double -> Double -> Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_sse2_interval_div_up"
+  c_rounded_interval_div_up :: Double -> Double -> Double -> Double -> Double
+
 instance Num IntervalDouble where
   I a b + I a' b' = I (a + a') (b + b')
   _ + _ = Empty
@@ -23,8 +35,10 @@ instance Num IntervalDouble where
   _ - _ = Empty
   negate (I a b) = I (coerce (negate b)) (coerce (negate a))
   negate Empty = Empty
-  I a b * I a' b' = I (minimum [a * a', a * coerce b', coerce b * a', coerce b * coerce b'])
-                      (maximum [coerce a * coerce a', coerce a * b', b * coerce a', b * b'])
+  I a b * I a' b' = I (coerce (c_rounded_interval_mul_down (coerce a) (coerce b) (coerce a') (coerce b')))
+                      (coerce (c_rounded_interval_mul_up (coerce a) (coerce b) (coerce a') (coerce b')))
+                    -- I (minimum [a * a', a * coerce b', coerce b * a', coerce b * coerce b'])
+                    --   (maximum [coerce a * coerce a', coerce a * b', b * coerce a', b * b'])
   _ * _ = Empty
   abs x@(I a b)
     | a >= 0 = x
@@ -45,8 +59,10 @@ instance Fractional IntervalDouble where
   recip Empty = Empty
   recip (I a b) | 0 < a || b < 0 = I (recip (coerce b)) (recip (coerce a))
                 | otherwise = error "divide by zero"
-  x@(I a b) / y@(I a' b') | 0 < a' || b' < 0 = I (minimum [a / a', a / coerce b', coerce b / a', coerce b / coerce b'])
-                                                 (maximum [coerce a / coerce a', coerce a / b', b / coerce a', b / b'])
+  x@(I a b) / y@(I a' b') | 0 < a' || b' < 0 = I (coerce (c_rounded_interval_div_down (coerce a) (coerce b) (coerce a') (coerce b')))
+                                                 (coerce (c_rounded_interval_div_up (coerce a) (coerce b) (coerce a') (coerce b')))
+                                               -- I (minimum [a / a', a / coerce b', coerce b / a', coerce b / coerce b'])
+                                               --   (maximum [coerce a / coerce a', coerce a / b', b / coerce a', b / b'])
                             -- TODO: Allow a' == 0 || b' == 0?
                           | otherwise = error "divide by zero"
   _ / Empty = Empty
