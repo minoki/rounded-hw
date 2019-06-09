@@ -16,16 +16,16 @@ data IntervalDouble
 
 instance NFData IntervalDouble
 
-foreign import ccall unsafe "rounded_hw_sse2_interval_mul_down"
+foreign import ccall unsafe "rounded_hw_interval_mul_down"
   c_rounded_interval_mul_down :: Double -> Double -> Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_interval_mul_up"
+foreign import ccall unsafe "rounded_hw_interval_mul_up"
   c_rounded_interval_mul_up :: Double -> Double -> Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_interval_div_down"
+foreign import ccall unsafe "rounded_hw_interval_div_down"
   c_rounded_interval_div_down :: Double -> Double -> Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_interval_div_up"
+foreign import ccall unsafe "rounded_hw_interval_div_up"
   c_rounded_interval_div_up :: Double -> Double -> Double -> Double -> Double
 
 instance Num IntervalDouble where

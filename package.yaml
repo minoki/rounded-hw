@@ -25,11 +25,22 @@ dependencies:
 - deepseq
 # - rounded
 
+flags:
+  sse2:
+    description: Use SSE2
+    manual: true
+    default: false
+
 library:
   source-dirs: src
-  c-sources:
-  - cbits/rounded-c99.c
-  - cbits/rounded-sse2.c
+  when:
+  - condition: flag(sse2)
+    then:
+      c-sources:
+      - cbits/rounded-sse2.c
+    else:
+      c-sources:
+      - cbits/rounded-c99.c
 
 tests:
   rounded-hw-test:

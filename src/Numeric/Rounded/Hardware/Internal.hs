@@ -18,49 +18,49 @@ import Data.Ratio
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData(..))
 
-foreign import ccall unsafe "rounded_hw_sse2_add_up"
+foreign import ccall unsafe "rounded_hw_add_up"
   c_rounded_add_up :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_add_down"
+foreign import ccall unsafe "rounded_hw_add_down"
   c_rounded_add_down :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_add_zero"
+foreign import ccall unsafe "rounded_hw_add_zero"
   c_rounded_add_zero :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_sub_up"
+foreign import ccall unsafe "rounded_hw_sub_up"
   c_rounded_sub_up :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_sub_down"
+foreign import ccall unsafe "rounded_hw_sub_down"
   c_rounded_sub_down :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_sub_zero"
+foreign import ccall unsafe "rounded_hw_sub_zero"
   c_rounded_sub_zero :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_mul_up"
+foreign import ccall unsafe "rounded_hw_mul_up"
   c_rounded_mul_up :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_mul_down"
+foreign import ccall unsafe "rounded_hw_mul_down"
   c_rounded_mul_down :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_mul_zero"
+foreign import ccall unsafe "rounded_hw_mul_zero"
   c_rounded_mul_zero :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_div_up"
+foreign import ccall unsafe "rounded_hw_div_up"
   c_rounded_div_up :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_div_down"
+foreign import ccall unsafe "rounded_hw_div_down"
   c_rounded_div_down :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_div_zero"
+foreign import ccall unsafe "rounded_hw_div_zero"
   c_rounded_div_zero :: Double -> Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_sqrt_up"
+foreign import ccall unsafe "rounded_hw_sqrt_up"
   c_rounded_sqrt_up :: Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_sqrt_down"
+foreign import ccall unsafe "rounded_hw_sqrt_down"
   c_rounded_sqrt_down :: Double -> Double
 
-foreign import ccall unsafe "rounded_hw_sse2_sqrt_zero"
+foreign import ccall unsafe "rounded_hw_sqrt_zero"
   c_rounded_sqrt_zero :: Double -> Double
 
 newtype RoundedDouble (rn :: RoundingMode) = RoundedDouble Double

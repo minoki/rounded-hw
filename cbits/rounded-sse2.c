@@ -17,17 +17,17 @@ static inline double rounded_add(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double rounded_hw_sse2_add_up(double a, double b)
+extern double rounded_hw_add_up(double a, double b)
 {
     return rounded_add(RC_UPWARD, a, b);
 }
 
-extern double rounded_hw_sse2_add_down(double a, double b)
+extern double rounded_hw_add_down(double a, double b)
 {
     return rounded_add(RC_DOWNWARD, a, b);
 }
 
-extern double rounded_hw_sse2_add_zero(double a, double b)
+extern double rounded_hw_add_zero(double a, double b)
 {
     return rounded_add(RC_TOWARDZERO, a, b);
 }
@@ -41,17 +41,17 @@ static inline double rounded_sub(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double rounded_hw_sse2_sub_up(double a, double b)
+extern double rounded_hw_sub_up(double a, double b)
 {
     return rounded_sub(RC_UPWARD, a, b);
 }
 
-extern double rounded_hw_sse2_sub_down(double a, double b)
+extern double rounded_hw_sub_down(double a, double b)
 {
     return rounded_sub(RC_DOWNWARD, a, b);
 }
 
-extern double rounded_hw_sse2_sub_zero(double a, double b)
+extern double rounded_hw_sub_zero(double a, double b)
 {
     return rounded_sub(RC_TOWARDZERO, a, b);
 }
@@ -65,17 +65,17 @@ static inline double rounded_mul(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double rounded_hw_sse2_mul_up(double a, double b)
+extern double rounded_hw_mul_up(double a, double b)
 {
     return rounded_mul(RC_UPWARD, a, b);
 }
 
-extern double rounded_hw_sse2_mul_down(double a, double b)
+extern double rounded_hw_mul_down(double a, double b)
 {
     return rounded_mul(RC_DOWNWARD, a, b);
 }
 
-extern double rounded_hw_sse2_mul_zero(double a, double b)
+extern double rounded_hw_mul_zero(double a, double b)
 {
     return rounded_mul(RC_TOWARDZERO, a, b);
 }
@@ -89,17 +89,17 @@ static inline double rounded_div(unsigned int mode, double a, double b)
     return c;
 }
 
-extern double rounded_hw_sse2_div_up(double a, double b)
+extern double rounded_hw_div_up(double a, double b)
 {
     return rounded_div(RC_UPWARD, a, b);
 }
 
-extern double rounded_hw_sse2_div_down(double a, double b)
+extern double rounded_hw_div_down(double a, double b)
 {
     return rounded_div(RC_DOWNWARD, a, b);
 }
 
-extern double rounded_hw_sse2_div_zero(double a, double b)
+extern double rounded_hw_div_zero(double a, double b)
 {
     return rounded_div(RC_TOWARDZERO, a, b);
 }
@@ -113,22 +113,22 @@ static inline double rounded_sqrt(unsigned int mode, double a)
     return c;
 }
 
-extern double rounded_hw_sse2_sqrt_up(double a)
+extern double rounded_hw_sqrt_up(double a)
 {
     return rounded_sqrt(RC_UPWARD, a);
 }
 
-extern double rounded_hw_sse2_sqrt_down(double a)
+extern double rounded_hw_sqrt_down(double a)
 {
     return rounded_sqrt(RC_DOWNWARD, a);
 }
 
-extern double rounded_hw_sse2_sqrt_zero(double a)
+extern double rounded_hw_sqrt_zero(double a)
 {
     return rounded_sqrt(RC_TOWARDZERO, a);
 }
 
-extern double rounded_hw_sse2_interval_mul_up(double lo1, double hi1, double lo2, double hi2)
+extern double rounded_hw_interval_mul_up(double lo1, double hi1, double lo2, double hi2)
 {
     // TODO: zero and infinity
     unsigned int oldmode = _mm_getcsr();
@@ -138,7 +138,7 @@ extern double rounded_hw_sse2_interval_mul_up(double lo1, double hi1, double lo2
     return hi;
 }
 
-extern double rounded_hw_sse2_interval_mul_down(double lo1, double hi1, double lo2, double hi2)
+extern double rounded_hw_interval_mul_down(double lo1, double hi1, double lo2, double hi2)
 {
     // TODO: zero and infinity
     unsigned int oldmode = _mm_getcsr();
@@ -148,7 +148,7 @@ extern double rounded_hw_sse2_interval_mul_down(double lo1, double hi1, double l
     return lo;
 }
 
-extern double rounded_hw_sse2_interval_div_up(double lo1, double hi1, double lo2, double hi2)
+extern double rounded_hw_interval_div_up(double lo1, double hi1, double lo2, double hi2)
 {
     // TODO: zero and infinity
     unsigned int oldmode = _mm_getcsr();
@@ -158,7 +158,7 @@ extern double rounded_hw_sse2_interval_div_up(double lo1, double hi1, double lo2
     return hi;
 }
 
-extern double rounded_hw_sse2_interval_div_down(double lo1, double hi1, double lo2, double hi2)
+extern double rounded_hw_interval_div_down(double lo1, double hi1, double lo2, double hi2)
 {
     // TODO: zero and infinity
     unsigned int oldmode = _mm_getcsr();
