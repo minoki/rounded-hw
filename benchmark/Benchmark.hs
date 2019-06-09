@@ -8,6 +8,7 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
 import Control.Monad
 import Control.Monad.ST
+import Data.Ratio
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
 thawST = thaw
@@ -46,20 +47,36 @@ intervalGaussianElimination a b
             VM.write vec i $! f x
 
 main :: IO ()
-main = do
-  let arr :: Fractional a => Array (Int,Int) a
-      arr = listArray ((0,0),(4,4))
-            [2,4,1,3,8
-            ,-4,7,3.1,0,7
-            ,9,7,54,1,0,1
-            ,0,5,8,1e-10,7
-            ,8,6,4,8,0
-            ]
-  let vec :: Fractional a => V.Vector a
-      vec = V.fromList [1,0,0,0,0]
+main =
   defaultMain
-    [ bgroup "Interval Gaussian Elimination"
-      [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
-      , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector IntervalDouble)
-      ]
+    [ let smallInteger = -2^50+2^13+127 :: Integer
+          largeInteger = -2^100-37*2^80+2^13+127 :: Integer
+      in bgroup "fromInteger"
+         [ bench "Double/small" $ nf (fromInteger :: Integer -> Double) smallInteger
+         , bench "Double/large" $ nf (fromInteger :: Integer -> Double) largeInteger
+         , bench "IntervalDouble/small" $ nf (fromInteger :: Integer -> IntervalDouble) smallInteger
+         , bench "IntervalDouble/large" $ nf (fromInteger :: Integer -> IntervalDouble) largeInteger
+         ]
+    , let pi' = 3.14159265358979323846264338327950 :: Rational
+          largeRational = 78326489123342523452342137498719847192 % 348912374981749170413424213275017 :: Rational
+      in bgroup "fromRational"
+         [ bench "Double/decimal" $ nf (fromRational :: Rational -> Double) pi'
+         , bench "Double/large" $ nf (fromRational :: Rational -> Double) largeRational
+         , bench "IntervalDouble/decimal" $ nf (fromRational :: Rational -> Double) pi'
+         , bench "IntervalDouble/large" $ nf (fromRational :: Rational -> IntervalDouble) largeRational
+         ]
+    , let arr :: Fractional a => Array (Int,Int) a
+          arr = listArray ((0,0),(4,4))
+                [2,4,1,3,8
+                ,-4,7,3.1,0,7
+                ,9,7,54,1,0,1
+                ,0,5,8,1e-10,7
+                ,8,6,4,8,0
+                ]
+          vec :: Fractional a => V.Vector a
+          vec = V.fromList [1,0,0,0,0]
+      in bgroup "(Interval) Gaussian Elimination"
+         [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
+         , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector IntervalDouble)
+         ]
     ]
