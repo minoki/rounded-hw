@@ -26,6 +26,6 @@ sumUnboxedVector :: RoundingMode -> VU.Vector Double -> Double
 sumUnboxedVector mode (VU.V_Double primVec) = sumPrimitiveVector mode primVec
 {-# INLINE sumUnboxedVector #-}
 
-sumUnboxedVector' :: forall rn. (RoundedPrim rn) => VU.Vector (RoundedDouble rn) -> RoundedDouble rn
+sumUnboxedVector' :: forall rn. (Rounding rn) => VU.Vector (RoundedDouble rn) -> RoundedDouble rn
 sumUnboxedVector' (V_RoundedDouble vec) = RoundedDouble (sumUnboxedVector (rounding (Proxy :: Proxy rn)) vec)
 {-# INLINE sumUnboxedVector' #-}

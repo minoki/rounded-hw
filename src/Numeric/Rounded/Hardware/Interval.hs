@@ -48,7 +48,7 @@ instance Num IntervalDouble where
   signum = increasing signum
   fromInteger = I <$> fromInteger <*> fromInteger
 
-increasing :: (forall r. RoundedPrim r => RoundedDouble r -> RoundedDouble r) -> IntervalDouble -> IntervalDouble
+increasing :: (forall r. Rounding r => RoundedDouble r -> RoundedDouble r) -> IntervalDouble -> IntervalDouble
 increasing f (I a b) = I (f a) (f b)
 increasing _ Empty = Empty
 

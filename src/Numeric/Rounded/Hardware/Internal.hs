@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -92,19 +91,16 @@ instance NFData (RoundedDouble rn)
 getRoundedDouble :: RoundedDouble rn -> Double
 getRoundedDouble (RoundedDouble x) = x
 
-class RoundedPrim (rn :: RoundingMode) where
-  rounding :: proxy rn -> RoundingMode
-
-addDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+addDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
 addDouble proxy x y = c_rounded_add (fromEnum (rounding proxy)) x y
 {-# INLINE [1] addDouble #-}
-subDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+subDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
 subDouble proxy x y = c_rounded_sub (fromEnum (rounding proxy)) x y
 {-# INLINE [1] subDouble #-}
-mulDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+mulDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
 mulDouble proxy x y = c_rounded_mul (fromEnum (rounding proxy)) x y
 {-# INLINE [1] mulDouble #-}
-divDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+divDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
 divDouble proxy x y = c_rounded_div (fromEnum (rounding proxy)) x y
 {-# INLINE [1] divDouble #-}
 {-# RULES
@@ -118,19 +114,7 @@ divDouble proxy x y = c_rounded_div (fromEnum (rounding proxy)) x y
 "divDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    divDouble proxy = c_rounded_div_up
 #-}
 
-instance RoundedPrim TowardNearest where
-  rounding _ = TowardNearest
-
-instance RoundedPrim TowardInf where
-  rounding _ = TowardInf
-
-instance RoundedPrim TowardNegInf where
-  rounding _ = TowardNegInf
-
-instance RoundedPrim TowardZero where
-  rounding _ = TowardZero
-
-instance (RoundedPrim rn) => Num (RoundedDouble rn) where
+instance (Rounding rn) => Num (RoundedDouble rn) where
   lhs@(RoundedDouble x) + RoundedDouble y = RoundedDouble (addDouble lhs x y)
   lhs@(RoundedDouble x) - RoundedDouble y = RoundedDouble (subDouble lhs x y)
   lhs@(RoundedDouble x) * RoundedDouble y = RoundedDouble (mulDouble lhs x y)
@@ -139,7 +123,7 @@ instance (RoundedPrim rn) => Num (RoundedDouble rn) where
   signum = coerce (signum :: Double -> Double)
   fromInteger n = RoundedDouble (fromInt (rounding (Proxy :: Proxy rn)) n)
 
-instance (RoundedPrim rn) => Fractional (RoundedDouble rn) where
+instance (Rounding rn) => Fractional (RoundedDouble rn) where
   fromRational x
     | abs (numerator x) <= 2^53 && abs (denominator x) <= 2^53
     = let n' = fromInteger (numerator x)
