@@ -1,35 +1,31 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnliftedFFITypes #-}
-{-# LANGUAGE DataKinds #-}
 module Numeric.Rounded.Hardware.Sum where
 import Numeric.Rounded.Hardware.Internal
 import qualified Data.Vector.Primitive as VP
 import qualified Data.Vector.Unboxed.Base as VU
 import Data.Primitive.ByteArray
+import Data.Proxy
 
+foreign import ccall unsafe "rounded_hw_sum"
+  c_rounded_sum :: Int -> Int -> Int -> ByteArray# -> Double
 foreign import ccall unsafe "rounded_hw_sum_up"
   c_rounded_sum_up :: Int -> Int -> ByteArray# -> Double
-
 foreign import ccall unsafe "rounded_hw_sum_down"
   c_rounded_sum_down :: Int -> Int -> ByteArray# -> Double
+foreign import ccall unsafe "rounded_hw_sum_zero"
+  c_rounded_sum_zero :: Int -> Int -> ByteArray# -> Double
 
-sumPrimitiveVectorUp :: VP.Vector Double -> Double
-sumPrimitiveVectorUp (VP.Vector offset length (ByteArray arr#)) = c_rounded_sum_up offset length arr#
-{-# INLINE sumPrimitiveVectorUp #-}
+sumPrimitiveVector :: RoundingMode -> VP.Vector Double -> Double
+sumPrimitiveVector mode (VP.Vector offset length (ByteArray arr#)) = c_rounded_sum (fromEnum mode) offset length arr#
+{-# INLINE sumPrimitiveVector #-}
 
-sumPrimitiveVectorDown :: VP.Vector Double -> Double
-sumPrimitiveVectorDown (VP.Vector offset length (ByteArray arr#)) = c_rounded_sum_down offset length arr#
+sumUnboxedVector :: RoundingMode -> VU.Vector Double -> Double
+sumUnboxedVector mode (VU.V_Double primVec) = sumPrimitiveVector mode primVec
+{-# INLINE sumUnboxedVector #-}
 
-sumUnboxedVectorUp :: VU.Vector Double -> Double
-sumUnboxedVectorUp (VU.V_Double primVec) = sumPrimitiveVectorUp primVec
-{-# INLINE sumUnboxedVectorUp #-}
-
-sumUnboxedVectorDown :: VU.Vector Double -> Double
-sumUnboxedVectorDown (VU.V_Double primVec) = sumPrimitiveVectorDown primVec
-
-sumUnboxedVectorUp' :: VU.Vector (RoundedDouble TowardInf) -> RoundedDouble TowardInf
-sumUnboxedVectorUp' (V_RoundedDouble vec) = RoundedDouble (sumUnboxedVectorUp vec)
-{-# INLINE sumUnboxedVectorUp' #-}
-
-sumUnboxedVectorDown' :: VU.Vector (RoundedDouble TowardNegInf) -> RoundedDouble TowardNegInf
-sumUnboxedVectorDown' (V_RoundedDouble vec) = RoundedDouble (sumUnboxedVectorDown vec)
+sumUnboxedVector' :: forall rn. (RoundedPrim rn) => VU.Vector (RoundedDouble rn) -> RoundedDouble rn
+sumUnboxedVector' (V_RoundedDouble vec) = RoundedDouble (sumUnboxedVector (rounding (Proxy :: Proxy rn)) vec)
+{-# INLINE sumUnboxedVector' #-}

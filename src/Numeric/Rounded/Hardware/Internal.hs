@@ -24,6 +24,9 @@ import qualified Data.Vector.Unboxed.Mutable as UM
 import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Generic.Mutable as GM
 
+foreign import ccall unsafe "rounded_hw_add"
+  c_rounded_add :: Int -> Double -> Double -> Double
+
 foreign import ccall unsafe "rounded_hw_add_up"
   c_rounded_add_up :: Double -> Double -> Double
 
@@ -32,6 +35,9 @@ foreign import ccall unsafe "rounded_hw_add_down"
 
 foreign import ccall unsafe "rounded_hw_add_zero"
   c_rounded_add_zero :: Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_sub"
+  c_rounded_sub :: Int -> Double -> Double -> Double
 
 foreign import ccall unsafe "rounded_hw_sub_up"
   c_rounded_sub_up :: Double -> Double -> Double
@@ -42,6 +48,9 @@ foreign import ccall unsafe "rounded_hw_sub_down"
 foreign import ccall unsafe "rounded_hw_sub_zero"
   c_rounded_sub_zero :: Double -> Double -> Double
 
+foreign import ccall unsafe "rounded_hw_mul"
+  c_rounded_mul :: Int -> Double -> Double -> Double
+
 foreign import ccall unsafe "rounded_hw_mul_up"
   c_rounded_mul_up :: Double -> Double -> Double
 
@@ -51,6 +60,9 @@ foreign import ccall unsafe "rounded_hw_mul_down"
 foreign import ccall unsafe "rounded_hw_mul_zero"
   c_rounded_mul_zero :: Double -> Double -> Double
 
+foreign import ccall unsafe "rounded_hw_div"
+  c_rounded_div :: Int -> Double -> Double -> Double
+
 foreign import ccall unsafe "rounded_hw_div_up"
   c_rounded_div_up :: Double -> Double -> Double
 
@@ -59,6 +71,9 @@ foreign import ccall unsafe "rounded_hw_div_down"
 
 foreign import ccall unsafe "rounded_hw_div_zero"
   c_rounded_div_zero :: Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_sqrt"
+  c_rounded_sqrt :: Int -> Double -> Double
 
 foreign import ccall unsafe "rounded_hw_sqrt_up"
   c_rounded_sqrt_up :: Double -> Double
@@ -79,43 +94,41 @@ getRoundedDouble (RoundedDouble x) = x
 
 class RoundedPrim (rn :: RoundingMode) where
   rounding :: proxy rn -> RoundingMode
-  addDouble :: proxy rn -> Double -> Double -> Double
-  subDouble :: proxy rn -> Double -> Double -> Double
-  mulDouble :: proxy rn -> Double -> Double -> Double
-  divDouble :: proxy rn -> Double -> Double -> Double
-  sqrtDouble :: proxy rn -> Double -> Double
+
+addDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+addDouble proxy x y = c_rounded_add (fromEnum (rounding proxy)) x y
+{-# INLINE [1] addDouble #-}
+subDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+subDouble proxy x y = c_rounded_sub (fromEnum (rounding proxy)) x y
+{-# INLINE [1] subDouble #-}
+mulDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+mulDouble proxy x y = c_rounded_mul (fromEnum (rounding proxy)) x y
+{-# INLINE [1] mulDouble #-}
+divDouble :: (RoundedPrim rn) => proxy rn -> Double -> Double -> Double
+divDouble proxy x y = c_rounded_div (fromEnum (rounding proxy)) x y
+{-# INLINE [1] divDouble #-}
+{-# RULES
+"addDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). addDouble proxy = c_rounded_add_down
+"addDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    addDouble proxy = c_rounded_add_up
+"subDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). subDouble proxy = c_rounded_sub_down
+"subDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    subDouble proxy = c_rounded_sub_up
+"mulDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). mulDouble proxy = c_rounded_mul_down
+"mulDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    mulDouble proxy = c_rounded_mul_up
+"divDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). divDouble proxy = c_rounded_div_down
+"divDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    divDouble proxy = c_rounded_div_up
+#-}
 
 instance RoundedPrim TowardNearest where
   rounding _ = TowardNearest
-  addDouble _ = (+)
-  subDouble _ = (-)
-  mulDouble _ = (*)
-  divDouble _ = (/)
-  sqrtDouble _ = sqrt
 
 instance RoundedPrim TowardInf where
   rounding _ = TowardInf
-  addDouble _ = c_rounded_add_up
-  subDouble _ = c_rounded_sub_up
-  mulDouble _ = c_rounded_mul_up
-  divDouble _ = c_rounded_div_up
-  sqrtDouble _ = c_rounded_sqrt_up
 
 instance RoundedPrim TowardNegInf where
   rounding _ = TowardNegInf
-  addDouble _ = c_rounded_add_down
-  subDouble _ = c_rounded_sub_down
-  mulDouble _ = c_rounded_mul_down
-  divDouble _ = c_rounded_div_down
-  sqrtDouble _ = c_rounded_sqrt_down
 
 instance RoundedPrim TowardZero where
   rounding _ = TowardZero
-  addDouble _ = c_rounded_add_zero
-  subDouble _ = c_rounded_sub_zero
-  mulDouble _ = c_rounded_mul_zero
-  divDouble _ = c_rounded_div_zero
-  sqrtDouble _ = c_rounded_sqrt_zero
 
 instance (RoundedPrim rn) => Num (RoundedDouble rn) where
   lhs@(RoundedDouble x) + RoundedDouble y = RoundedDouble (addDouble lhs x y)

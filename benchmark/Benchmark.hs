@@ -91,6 +91,6 @@ main =
           vec'' = VU.drop 1234 $ VU.take 78245 $ VU.map RoundedDouble vec
       in bgroup "sum"
          [ bench "naive" $ nf VU.sum vec'
-         , bench "C impl" $ nf sumUnboxedVectorUp' vec'
+         , bench "C impl" $ nf sumUnboxedVector' vec'
          ]
     ]

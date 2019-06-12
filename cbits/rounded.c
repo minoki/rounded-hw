@@ -83,7 +83,7 @@ void restore_fp_reg(fp_reg oldmode)
 #error Please define USE_C99 or USE_SSE2
 #endif
 
-static inline double rounded_add(native_rounding_mode mode, double a, double b)
+static inline double rounded_add_impl(native_rounding_mode mode, double a, double b)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
@@ -92,14 +92,16 @@ static inline double rounded_add(native_rounding_mode mode, double a, double b)
     return c;
 }
 
+extern double rounded_hw_add(HsInt mode, double a, double b)
+{ return rounded_add_impl(hs_rounding_mode_to_native(mode), a, b); }
 extern double rounded_hw_add_up(double a, double b)
-{ return rounded_add(ROUND_UPWARD, a, b); }
+{ return rounded_add_impl(ROUND_UPWARD, a, b); }
 extern double rounded_hw_add_down(double a, double b)
-{ return rounded_add(ROUND_DOWNWARD, a, b); }
+{ return rounded_add_impl(ROUND_DOWNWARD, a, b); }
 extern double rounded_hw_add_zero(double a, double b)
-{ return rounded_add(ROUND_TOWARDZERO, a, b); }
+{ return rounded_add_impl(ROUND_TOWARDZERO, a, b); }
 
-static inline double rounded_sub(native_rounding_mode mode, double a, double b)
+static inline double rounded_sub_impl(native_rounding_mode mode, double a, double b)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
@@ -108,14 +110,16 @@ static inline double rounded_sub(native_rounding_mode mode, double a, double b)
     return c;
 }
 
+extern double rounded_hw_sub(HsInt mode, double a, double b)
+{ return rounded_sub_impl(hs_rounding_mode_to_native(mode), a, b); }
 extern double rounded_hw_sub_up(double a, double b)
-{ return rounded_sub(ROUND_UPWARD, a, b); }
+{ return rounded_sub_impl(ROUND_UPWARD, a, b); }
 extern double rounded_hw_sub_down(double a, double b)
-{ return rounded_sub(ROUND_DOWNWARD, a, b); }
+{ return rounded_sub_impl(ROUND_DOWNWARD, a, b); }
 extern double rounded_hw_sub_zero(double a, double b)
-{ return rounded_sub(ROUND_TOWARDZERO, a, b); }
+{ return rounded_sub_impl(ROUND_TOWARDZERO, a, b); }
 
-static inline double rounded_mul(native_rounding_mode mode, double a, double b)
+static inline double rounded_mul_impl(native_rounding_mode mode, double a, double b)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
@@ -124,14 +128,16 @@ static inline double rounded_mul(native_rounding_mode mode, double a, double b)
     return c;
 }
 
+extern double rounded_hw_mul(HsInt mode, double a, double b)
+{ return rounded_mul_impl(hs_rounding_mode_to_native(mode), a, b); }
 extern double rounded_hw_mul_up(double a, double b)
-{ return rounded_mul(ROUND_UPWARD, a, b); }
+{ return rounded_mul_impl(ROUND_UPWARD, a, b); }
 extern double rounded_hw_mul_down(double a, double b)
-{ return rounded_mul(ROUND_DOWNWARD, a, b); }
+{ return rounded_mul_impl(ROUND_DOWNWARD, a, b); }
 extern double rounded_hw_mul_zero(double a, double b)
-{ return rounded_mul(ROUND_TOWARDZERO, a, b); }
+{ return rounded_mul_impl(ROUND_TOWARDZERO, a, b); }
 
-static inline double rounded_div(native_rounding_mode mode, double a, double b)
+static inline double rounded_div_impl(native_rounding_mode mode, double a, double b)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
@@ -140,14 +146,16 @@ static inline double rounded_div(native_rounding_mode mode, double a, double b)
     return c;
 }
 
+extern double rounded_hw_div(HsInt mode, double a, double b)
+{ return rounded_div_impl(hs_rounding_mode_to_native(mode), a, b); }
 extern double rounded_hw_div_up(double a, double b)
-{ return rounded_div(ROUND_UPWARD, a, b); }
+{ return rounded_div_impl(ROUND_UPWARD, a, b); }
 extern double rounded_hw_div_down(double a, double b)
-{ return rounded_div(ROUND_DOWNWARD, a, b); }
+{ return rounded_div_impl(ROUND_DOWNWARD, a, b); }
 extern double rounded_hw_div_zero(double a, double b)
-{ return rounded_div(ROUND_TOWARDZERO, a, b); }
+{ return rounded_div_impl(ROUND_TOWARDZERO, a, b); }
 
-static inline double rounded_sqrt(native_rounding_mode mode, double a)
+static inline double rounded_sqrt_impl(native_rounding_mode mode, double a)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
@@ -156,12 +164,14 @@ static inline double rounded_sqrt(native_rounding_mode mode, double a)
     return c;
 }
 
+extern double rounded_hw_sqrt(HsInt mode, double a)
+{ return rounded_sqrt_impl(hs_rounding_mode_to_native(mode), a); }
 extern double rounded_hw_sqrt_up(double a)
-{ return rounded_sqrt(ROUND_UPWARD, a); }
+{ return rounded_sqrt_impl(ROUND_UPWARD, a); }
 extern double rounded_hw_sqrt_down(double a)
-{ return rounded_sqrt(ROUND_DOWNWARD, a); }
+{ return rounded_sqrt_impl(ROUND_DOWNWARD, a); }
 extern double rounded_hw_sqrt_zero(double a)
-{ return rounded_sqrt(ROUND_TOWARDZERO, a); }
+{ return rounded_sqrt_impl(ROUND_TOWARDZERO, a); }
 
 // TODO: FMA, remainder, int64 -> double, double -> int
 
@@ -205,7 +215,7 @@ extern double rounded_hw_interval_div_down(double lo1, double hi1, double lo2, d
     return lo;
 }
 
-static inline double rounded_hw_sum_impl(native_rounding_mode mode, HsInt offset, HsInt length, const double *a)
+static inline double rounded_sum_impl(native_rounding_mode mode, HsInt offset, HsInt length, const double *a)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
@@ -217,7 +227,11 @@ static inline double rounded_hw_sum_impl(native_rounding_mode mode, HsInt offset
     return s;
 }
 
+extern double rounded_hw_sum(HsInt mode, HsInt offset, HsInt length, const double *a)
+{ return rounded_sum_impl(hs_rounding_mode_to_native(mode), offset, length, a); }
 extern double rounded_hw_sum_up(HsInt offset, HsInt length, const double *a)
-{ return rounded_hw_sum_impl(ROUND_UPWARD, offset, length, a); }
+{ return rounded_sum_impl(ROUND_UPWARD, offset, length, a); }
 extern double rounded_hw_sum_down(HsInt offset, HsInt length, const double *a)
-{ return rounded_hw_sum_impl(ROUND_DOWNWARD, offset, length, a); }
+{ return rounded_sum_impl(ROUND_DOWNWARD, offset, length, a); }
+extern double rounded_hw_sum_zero(HsInt offset, HsInt length, const double *a)
+{ return rounded_sum_impl(ROUND_TOWARDZERO, offset, length, a); }
