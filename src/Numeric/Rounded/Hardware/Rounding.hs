@@ -3,12 +3,12 @@ module Numeric.Rounded.Hardware.Rounding where
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData(..))
 
--- TODO: Use rounded package (Numeric.Rounded)
+-- See cbits/rounded.c for the ordering
 data RoundingMode
   = TowardNearest
-  | TowardZero
-  | TowardInf
   | TowardNegInf
+  | TowardInf
+  | TowardZero
   deriving (Eq, Ord, Read, Show, Enum, Bounded, Generic)
 
 instance NFData RoundingMode

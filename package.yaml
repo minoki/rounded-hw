@@ -35,14 +35,16 @@ flags:
 
 library:
   source-dirs: src
+  c-sources:
+  - cbits/rounded.c
   when:
   - condition: flag(sse2)
     then:
-      c-sources:
-      - cbits/rounded-sse2.c
+      cc-options:
+      - -DUSE_SSE2
     else:
-      c-sources:
-      - cbits/rounded-c99.c
+      cc-options:
+      - -DUSE_C99
 
 tests:
   rounded-hw-test:
