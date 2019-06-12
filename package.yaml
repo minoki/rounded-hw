@@ -24,6 +24,7 @@ dependencies:
 - integer-logarithms
 - deepseq
 - vector
+- primitive
 # - rounded
 
 flags:

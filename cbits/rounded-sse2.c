@@ -1,5 +1,6 @@
 #include <math.h>
 #include <x86intrin.h>
+#include "HsFFI.h"
 
 #pragma STDC FENV_ACCESS ON
 
@@ -166,4 +167,28 @@ extern double rounded_hw_interval_div_down(double lo1, double hi1, double lo2, d
     double lo = fmin(fmin(lo1 / lo2, lo1 / hi2), fmin(hi1 / lo2, hi1 / hi2));
     _mm_setcsr(oldmode);
     return lo;
+}
+
+extern double rounded_hw_sum_up(HsInt offset, HsInt length, const double *a)
+{
+    unsigned int oldmode = _mm_getcsr();
+    _mm_setcsr((oldmode & ~(3u << 13)) | (RC_UPWARD << 13));
+    double s = 0;
+    for(HsInt i = 0; i < length; ++i) {
+        s += a[offset + i];
+    }
+    _mm_setcsr(oldmode);
+    return s;
+}
+
+extern double rounded_hw_sum_down(HsInt offset, HsInt length, const double *a)
+{
+    unsigned int oldmode = _mm_getcsr();
+    _mm_setcsr((oldmode & ~(3u << 13)) | (RC_DOWNWARD << 13));
+    double s = 0;
+    for(HsInt i = 0; i < length; ++i) {
+        s += a[offset + i];
+    }
+    _mm_setcsr(oldmode);
+    return s;
 }

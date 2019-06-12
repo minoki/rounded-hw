@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
 import Numeric.Rounded.Hardware.Interval
 import Gauge.Main
 import Data.Array
@@ -6,9 +7,12 @@ import Data.Array.IArray (IArray)
 import Data.Array.ST
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
+import qualified Data.Vector.Unboxed as VU
 import Control.Monad
 import Control.Monad.ST
 import Data.Ratio
+import Numeric.Rounded.Hardware.Sum
+import Numeric.Rounded.Hardware.Internal
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
 thawST = thaw
@@ -78,5 +82,15 @@ main =
       in bgroup "(Interval) Gaussian Elimination"
          [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
          , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector IntervalDouble)
+         ]
+    , let vec :: VU.Vector Double
+          vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral i)
+          vec' :: VU.Vector (RoundedDouble TowardInf)
+          vec' = VU.drop 1234 $ VU.take 78245 $ VU.map RoundedDouble vec
+          vec'' :: VU.Vector (RoundedDouble TowardNegInf)
+          vec'' = VU.drop 1234 $ VU.take 78245 $ VU.map RoundedDouble vec
+      in bgroup "sum"
+         [ bench "naive" $ nf VU.sum vec'
+         , bench "C impl" $ nf sumUnboxedVectorUp' vec'
          ]
     ]

@@ -9,7 +9,7 @@ data RoundingMode
   | TowardZero
   | TowardInf
   | TowardNegInf
-  deriving (Eq, Ord, Read, Show, Bounded, Generic)
+  deriving (Eq, Ord, Read, Show, Enum, Bounded, Generic)
 
 instance NFData RoundingMode
 
