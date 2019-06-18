@@ -13,6 +13,7 @@ import Control.Monad.ST
 import Data.Ratio
 import Numeric.Rounded.Hardware.Sum
 import Numeric.Rounded.Hardware.Internal
+import Numeric.Rounded.Hardware.Prim
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
 thawST = thaw
@@ -82,6 +83,7 @@ main =
       in bgroup "(Interval) Gaussian Elimination"
          [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
          , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector IntervalDouble)
+         , bench "fast add/sub" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector FastIntervalDouble)
          ]
     , let vec :: VU.Vector Double
           vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral i)
@@ -92,5 +94,12 @@ main =
       in bgroup "sum"
          [ bench "naive" $ nf VU.sum vec'
          , bench "C impl" $ nf sumUnboxedVector' vec'
+         ]
+    , let vec :: V.Vector IntervalDouble
+          vec = V.generate 100000 $ \i -> fromRational (1 % (1 + fromIntegral i))
+      in bgroup "interval sum"
+         [ bench "naive" $ nf V.sum vec
+         , bench "naive 2" $ nf (V.foldl' (+) 0) vec
+         , bench "ghc prim" $ nf (V.foldl' fastAdd 0) vec
          ]
     ]

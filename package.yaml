@@ -37,6 +37,7 @@ library:
   source-dirs: src
   c-sources:
   - cbits/rounded.c
+  - cbits/interval-prim-x86_64.s
   when:
   - condition: flag(sse2)
     then:
