@@ -5,7 +5,10 @@
 module Numeric.Rounded.Hardware.Interval where
 import Numeric.Rounded.Hardware.Rounding
 import Numeric.Rounded.Hardware.Internal
+import Numeric.Rounded.Hardware.Util.RoundedResult
+import Data.Ratio
 import Data.Coerce
+import Data.Functor.Product
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData(..))
 
@@ -46,7 +49,9 @@ instance Num IntervalDouble where
     | otherwise = I 0 (max (negate (coerce a)) b)
   abs Empty = Empty
   signum = increasing signum
-  fromInteger = I <$> fromInteger <*> fromInteger
+  -- fromInteger = I <$> fromInteger <*> fromInteger
+  fromInteger n = case fromIntF n :: Product (Rounded TowardNegInf) (Rounded TowardInf) Double of
+                    Pair (Rounded a) (Rounded b) -> I (RoundedDouble a) (RoundedDouble b)
 
 increasing :: (forall r. Rounding r => RoundedDouble r -> RoundedDouble r) -> IntervalDouble -> IntervalDouble
 increasing f (I a b) = I (f a) (f b)
@@ -67,4 +72,6 @@ instance Fractional IntervalDouble where
                           | otherwise = error "divide by zero"
   _ / Empty = Empty
   Empty / _ = Empty
-  fromRational = I <$> fromRational <*> fromRational
+  -- fromRational = I <$> fromRational <*> fromRational
+  fromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded TowardNegInf) (Rounded TowardInf) Double of
+                     Pair (Rounded a) (Rounded b) -> I (RoundedDouble a) (RoundedDouble b)

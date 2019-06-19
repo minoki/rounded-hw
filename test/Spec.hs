@@ -50,7 +50,7 @@ prop_fromRational_nearest_stock x
   = ShowHexFloat (getRoundedDouble (fromRational x :: RoundedDouble TowardNearest))
     === ShowHexFloat (fromRational x :: Double)
 
-prop_fromRational :: forall rn. RoundedPrim rn => Proxy rn -> Rational -> Property
+prop_fromRational :: forall rn. Rounding rn => Proxy rn -> Rational -> Property
 prop_fromRational proxy x
   = ShowHexFloat (fromRatio (rounding proxy) (numerator x) (denominator x))
     === ShowHexFloat (getRoundedDouble (fromRational x :: RoundedDouble rn))

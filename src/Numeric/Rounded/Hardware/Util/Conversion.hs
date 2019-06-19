@@ -1,63 +1,86 @@
 {-# LANGUAGE HexFloatLiterals #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
 module Numeric.Rounded.Hardware.Util.Conversion where
 import Numeric.Rounded.Hardware.Rounding
+import Numeric.Rounded.Hardware.Util.RoundedResult
 import Data.Bits
-import Math.NumberTheory.Logarithms -- (integerLog2')
+import Data.Functor.Product
+import Math.NumberTheory.Logarithms (integerLog2')
 -- import GHC.Integer.Logarithms.Internals (integerLog2IsPowerOf2#)
 -- integerLog2IsPowerOf2# :: Integer -> (# Int#, Int# #)
 
 fromInt :: RoundingMode -> Integer -> Double
-fromInt rn 0 = 0
-fromInt rn n | n < 0 = - fromPositiveInt (oppositeRoundingMode rn) (- n)
-             | otherwise = fromPositiveInt rn n
+fromInt rn n = withRoundingMode (fromIntF n) rn
+
+fromIntF :: Result f => Integer -> f Double
+fromIntF 0 = exact 0
+fromIntF n | n < 0 = negate <$> withOppositeRoundingMode (fromPositiveInt (- n))
+           | otherwise = fromPositiveInt n
   where
     -- n > 0
-    fromPositiveInt !rn !n
+    fromPositiveInt :: Result f => Integer -> f Double
+    fromPositiveInt !n
       = let !k = integerLog2' n -- floor (log2 n)
             -- 2^k <= n < 2^(k+1)
         in if k < 53
-           then fromInteger n
+           then exact (fromInteger n)
            else let e = k - 52
-                    (!q, !r) = n `quotRem` (2^e)
+                    -- (!q, !r) = n `quotRem` (1 `unsafeShiftL` e)
+                    q = n `unsafeShiftR` e
+                    r = n .&. ((1 `unsafeShiftL` e) - 1)
                     -- 2^52 <= q < 2^53, 0 <= r < 2^(k-52)
                     (expMin, expMax) = floatRange (undefined :: Double) -- (-1021, 1024) for Double
                 in if k >= expMax
                    then
                      -- infinity
-                     case rn of
-                       TowardNegInf  -> 0x1.fffffffffffffp+1023 -- max finite
-                       TowardZero    -> 0x1.fffffffffffffp+1023
-                       TowardInf     -> 1/0 -- infinity
-                       TowardNearest -> 1/0 -- infinity
+                     let maxFinite = 0x1.fffffffffffffp+1023
+                         inf = 1/0
+                     in inexact inf -- TowardNearest
+                                inf -- TowardInf
+                                maxFinite -- TowardNegInf
+                                maxFinite -- TowardZero
                    else
                      if r == 0
-                     then encodeFloat q e -- exact
+                     then exact $ encodeFloat q e -- exact
                      else
                        -- inexact
-                       case rn of
-                         TowardNegInf -> encodeFloat q e
-                         TowardZero   -> encodeFloat q e
-                         TowardInf    -> encodeFloat (q + 1) e
-                         TowardNearest -> case compare r (2^(e-1)) of
-                           LT -> encodeFloat q e
-                           EQ | even q -> encodeFloat q e
-                              | otherwise -> encodeFloat (q + 1) e
-                           GT -> encodeFloat (q + 1) e
+                       let down = encodeFloat q e
+                           up = encodeFloat (q + 1) e
+                           toNearest = case compare r (1 `unsafeShiftL` (e-1)) of
+                             LT -> down
+                             EQ | even q -> down
+                                | otherwise -> up
+                             GT -> up
+                       in inexact toNearest up down down
+    {-# SPECIALIZE fromPositiveInt :: Integer -> DynamicRoundingMode Double #-}
+    {-# SPECIALIZE fromPositiveInt :: Integer -> OppositeRoundingMode DynamicRoundingMode Double #-}
+    {-# SPECIALIZE fromPositiveInt :: Rounding rn => Integer -> Rounded rn Double #-}
+    {-# SPECIALIZE fromPositiveInt :: Rounding rn => Integer -> OppositeRoundingMode (Rounded rn) Double #-}
+    {-# SPECIALIZE fromPositiveInt :: Integer -> Product (Rounded TowardNegInf) (Rounded TowardInf) Double #-}
+    {-# SPECIALIZE fromPositiveInt :: Integer -> OppositeRoundingMode (Product (Rounded TowardNegInf) (Rounded TowardInf)) Double #-}
+{-# INLINE fromIntF #-}
 
 fromRatio :: RoundingMode
           -> Integer -- ^ numerator
           -> Integer -- ^ denominator
           -> Double
-fromRatio _rn 0 _ = 0
-fromRatio rn n 0 | n > 0 = 1/0 -- positive infinity
-                 | otherwise = -1/0 -- negative infinity
-fromRatio rn n d | d < 0 = error "fromRatio: negative denominator"
-                 | n < 0 = - fromPositiveRatio (oppositeRoundingMode rn) (- n) d
-                 | otherwise = fromPositiveRatio rn n d
+fromRatio rn n d = withRoundingMode (fromRatioF n d) rn
+
+fromRatioF :: Result f
+           => Integer -- ^ numerator
+           -> Integer -- ^ denominator
+           -> f Double
+fromRatioF 0 _ = exact 0
+fromRatioF n 0 | n > 0 = exact (1/0) -- positive infinity
+               | otherwise = exact (-1/0) -- negative infinity
+fromRatioF n d | d < 0 = error "fromRatio: negative denominator"
+               | n < 0 = negate <$> withOppositeRoundingMode (fromPositiveRatio (- n) d)
+               | otherwise = fromPositiveRatio n d
   where
     -- n > 0, d > 0
-    fromPositiveRatio !rn !n !d
+    fromPositiveRatio :: Result f => Integer -> Integer -> f Double
+    fromPositiveRatio !n !d
       = let ln = integerLog2' n
             ld = integerLog2' d
             e = ln - ld - 53
@@ -67,7 +90,7 @@ fromRatio rn n d | d < 0 = error "fromRatio: negative denominator"
             -- e <= 0: n * 2^(-e) = q * d + r, 0 <= r < d
             -- n / d * 2^^(-e) = q + r / d
             -- 52 <= log2 q < 54
-            (!q', !r', !d', !e') | q < 2^53 = (q, r, d, e)
+            (!q', !r', !d', !e') | q < (1 `unsafeShiftL` 53) = (q, r, d, e)
                                  | e >= 0 = let (q'', r'') = q `quotRem` 2
                                             in (q'', r'' * (d `shiftL` e) + r, d, e + 1)
                                  | otherwise = let (q'', r'') = q `quotRem` 2
@@ -86,29 +109,28 @@ fromRatio rn n d | d < 0 = error "fromRatio: negative denominator"
            -- normal
            if r' == 0
            then
-             encodeFloat q' e' -- exact
+             exact $ encodeFloat q' e' -- exact
            else
              -- inexact
-             -- encodeFloat (q' + 1) e' may be infinity
-             case rn of
-               TowardNegInf  -> encodeFloat q' e'
-               TowardZero    -> encodeFloat q' e'
-               TowardInf     -> encodeFloat (q' + 1) e'
-               TowardNearest -> case compare (2 * r') d' of
-                 LT -> encodeFloat q' e'
-                 EQ | even q' -> encodeFloat q' e'
-                    | otherwise -> encodeFloat (q' + 1) e' -- q' + 1 is even
-                 GT -> encodeFloat (q' + 1) e'
+             let down = encodeFloat q' e'
+                 up = encodeFloat (q' + 1) e' -- may be infinity
+                 toNearest = case compare (2 * r') d' of
+                   LT -> down
+                   EQ | even q' -> down
+                      | otherwise -> up -- q' + 1 is even
+                   GT -> up
+             in inexact toNearest up down down
          else
            -- infinity or subnormal
            if expMax <= e'+53
            then
              -- infinity
-             case rn of
-               TowardNegInf  -> 0x1.fffffffffffffp+1023 -- max finite
-               TowardZero    -> 0x1.fffffffffffffp+1023
-               TowardInf     -> 1/0 -- infinity
-               TowardNearest -> 1/0 -- infinity
+             let maxFinite = 0x1.fffffffffffffp+1023
+                 inf = 1/0
+             in inexact inf -- TowardNearest
+                        inf -- TowardInf
+                        maxFinite -- TowardNegInf
+                        maxFinite -- TowardZero
            else
              -- e'+53 < expMin (e' < expMin - 53 = -1074)
              -- subnormal: 0 <= rounded(n/d) <= 0x1p-1022, minimum (positive) subnormal: 0x1p-1074
@@ -119,14 +141,20 @@ fromRatio rn n d | d < 0 = error "fromRatio: negative denominator"
              --            = q'' * 2^^(-1074) + r'' * 2^^e'
              let (!q'', !r'') = q' `quotRem` (1 `unsafeShiftL` (expMin-53-e'))
              in if r == 0 && r'' == 0
-                then encodeFloat q'' (expMin-53) -- exact
-                else case rn of
-                       TowardNegInf -> encodeFloat q'' (expMin-53)
-                       TowardZero   -> encodeFloat q'' (expMin-53)
-                       TowardInf    -> encodeFloat (q'' + 1) (expMin-53)
-                       TowardNearest -> case compare r' (2^(expMin - 53 - e' - 1)) of
-                         LT -> encodeFloat q'' (expMin-53)
-                         GT -> encodeFloat (q'' + 1) (expMin-53)
-                         EQ | r /= 0    -> encodeFloat (q'' + 1) (expMin-53)
-                            | even q'   -> encodeFloat q'' (expMin-53)
-                            | otherwise -> encodeFloat (q'' + 1) (expMin-53)
+                then exact $ encodeFloat q'' (expMin-53) -- exact
+                else let down = encodeFloat q'' (expMin-53)
+                         up = encodeFloat (q'' + 1) (expMin-53)
+                         toNearest = case compare r' (2^(expMin - 53 - e' - 1)) of
+                           LT -> down
+                           GT -> up
+                           EQ | r /= 0    -> up
+                              | even q'   -> down
+                              | otherwise -> up
+                     in inexact toNearest up down down
+    {-# SPECIALIZE fromPositiveRatio :: Integer -> Integer -> DynamicRoundingMode Double #-}
+    {-# SPECIALIZE fromPositiveRatio :: Integer -> Integer -> OppositeRoundingMode DynamicRoundingMode Double #-}
+    {-# SPECIALIZE fromPositiveRatio :: Rounding rn => Integer -> Integer -> Rounded rn Double #-}
+    {-# SPECIALIZE fromPositiveRatio :: Rounding rn => Integer -> Integer -> OppositeRoundingMode (Rounded rn) Double #-}
+    {-# SPECIALIZE fromPositiveRatio :: Integer -> Integer -> Product (Rounded TowardNegInf) (Rounded TowardInf) Double #-}
+    {-# SPECIALIZE fromPositiveRatio :: Integer -> Integer -> OppositeRoundingMode (Product (Rounded TowardNegInf) (Rounded TowardInf)) Double #-}
+{-# INLINE fromRatioF #-}
