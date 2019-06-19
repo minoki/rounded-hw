@@ -6,6 +6,7 @@ module Numeric.Rounded.Hardware.Rounding where
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData(..))
 import Data.Proxy
+import Data.Tagged
 
 -- See cbits/rounded.c for the ordering
 data RoundingMode
@@ -24,19 +25,23 @@ oppositeRoundingMode TowardInf = TowardNegInf
 oppositeRoundingMode TowardNegInf = TowardInf
 
 class Rounding (rn :: RoundingMode) where
-  rounding :: proxy rn -> RoundingMode
+  roundingT :: Tagged rn RoundingMode
 
 instance Rounding TowardNearest where
-  rounding _ = TowardNearest
+  roundingT = Tagged TowardNearest
 
 instance Rounding TowardInf where
-  rounding _ = TowardInf
+  roundingT = Tagged TowardInf
 
 instance Rounding TowardNegInf where
-  rounding _ = TowardNegInf
+  roundingT = Tagged TowardNegInf
 
 instance Rounding TowardZero where
-  rounding _ = TowardZero
+  roundingT = Tagged TowardZero
+
+rounding :: Rounding rn => proxy rn -> RoundingMode
+rounding = Data.Tagged.proxy roundingT
+{-# INLINE rounding #-}
 
 reifyRounding :: RoundingMode -> (forall s. Rounding s => Proxy s -> r) -> r
 reifyRounding TowardNearest f = f (Proxy :: Proxy TowardNearest)

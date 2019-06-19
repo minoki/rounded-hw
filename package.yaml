@@ -46,6 +46,8 @@ library:
     else:
       cc-options:
       - -DUSE_C99
+  dependencies:
+  - tagged
 
 tests:
   rounded-hw-test:
