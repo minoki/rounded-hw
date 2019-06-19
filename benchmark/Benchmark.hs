@@ -55,19 +55,37 @@ main :: IO ()
 main =
   defaultMain
     [ let smallInteger = -2^50+2^13+127 :: Integer
+          mediumInteger = -2^60 + 42 * 2^53 - 137 * 2^24 + 3 :: Integer
           largeInteger = -2^100-37*2^80+2^13+127 :: Integer
       in bgroup "fromInteger"
          [ bench "Double/small" $ nf (fromInteger :: Integer -> Double) smallInteger
+         , bench "Double/medium" $ nf (fromInteger :: Integer -> Double) mediumInteger
          , bench "Double/large" $ nf (fromInteger :: Integer -> Double) largeInteger
+         , bench "RoundedDouble/TowardNearest/small" $ nf (fromInteger :: Integer -> RoundedDouble TowardNearest) smallInteger
+         , bench "RoundedDouble/TowardNearest/medium" $ nf (fromInteger :: Integer -> RoundedDouble TowardNearest) mediumInteger
+         , bench "RoundedDouble/TowardNearest/large" $ nf (fromInteger :: Integer -> RoundedDouble TowardNearest) largeInteger
+         , bench "RoundedDouble/TowardInf/small" $ nf (fromInteger :: Integer -> RoundedDouble TowardInf) smallInteger
+         , bench "RoundedDouble/TowardInf/medium" $ nf (fromInteger :: Integer -> RoundedDouble TowardInf) mediumInteger
+         , bench "RoundedDouble/TowardInf/large" $ nf (fromInteger :: Integer -> RoundedDouble TowardInf) largeInteger
          , bench "IntervalDouble/small" $ nf (fromInteger :: Integer -> IntervalDouble) smallInteger
+         , bench "IntervalDouble/medium" $ nf (fromInteger :: Integer -> IntervalDouble) mediumInteger
          , bench "IntervalDouble/large" $ nf (fromInteger :: Integer -> IntervalDouble) largeInteger
          ]
     , let pi' = 3.14159265358979323846264338327950 :: Rational
+          smallRational = 22 % 7 :: Rational
           largeRational = 78326489123342523452342137498719847192 % 348912374981749170413424213275017 :: Rational
       in bgroup "fromRational"
          [ bench "Double/decimal" $ nf (fromRational :: Rational -> Double) pi'
+         , bench "Double/small" $ nf (fromRational :: Rational -> Double) smallRational
          , bench "Double/large" $ nf (fromRational :: Rational -> Double) largeRational
-         , bench "IntervalDouble/decimal" $ nf (fromRational :: Rational -> Double) pi'
+         , bench "RoundedDouble/TowardNearest/decimal" $ nf (fromRational :: Rational -> RoundedDouble TowardNearest) pi'
+         , bench "RoundedDouble/TowardNearest/small" $ nf (fromRational :: Rational -> RoundedDouble TowardNearest) smallRational
+         , bench "RoundedDouble/TowardNearest/large" $ nf (fromRational :: Rational -> RoundedDouble TowardNearest) largeRational
+         , bench "RoundedDouble/TowardInf/decimal" $ nf (fromRational :: Rational -> RoundedDouble TowardInf) pi'
+         , bench "RoundedDouble/TowardInf/small" $ nf (fromRational :: Rational -> RoundedDouble TowardInf) smallRational
+         , bench "RoundedDouble/TowardInf/large" $ nf (fromRational :: Rational -> RoundedDouble TowardInf) largeRational
+         , bench "IntervalDouble/decimal" $ nf (fromRational :: Rational -> IntervalDouble) pi'
+         , bench "IntervalDouble/small" $ nf (fromRational :: Rational -> IntervalDouble) smallRational
          , bench "IntervalDouble/large" $ nf (fromRational :: Rational -> IntervalDouble) largeRational
          ]
     , let arr :: Fractional a => Array (Int,Int) a
