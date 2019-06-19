@@ -3,6 +3,12 @@
 
 #pragma STDC FENV_ACCESS ON
 
+#if defined(__GNUC__)
+#define ALWAYS_INLINE __attribute__((always_inline))
+#else
+#define ALWAYS_INLINE
+#endif
+
 #if defined(USE_SSE2)
 
 #include <x86intrin.h>
@@ -14,7 +20,7 @@ static const native_rounding_mode ROUND_DOWNWARD   = 1;
 static const native_rounding_mode ROUND_UPWARD     = 2;
 static const native_rounding_mode ROUND_TOWARDZERO = 3;
 
-static inline __attribute__((always_inline))
+static inline ALWAYS_INLINE
 native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
 {
     /*
@@ -24,17 +30,17 @@ native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
     return (native_rounding_mode)mode;
 }
 
-static inline __attribute__((always_inline))
-fp_reg get_fp_reg()
+static inline ALWAYS_INLINE
+fp_reg get_fp_reg(void)
 {
     return _mm_getcsr();
 }
-static inline __attribute__((always_inline))
+static inline ALWAYS_INLINE
 void set_rounding(fp_reg reg, native_rounding_mode mode)
 {
     _mm_setcsr((reg & ~(3u << 13)) | (mode << 13));
 }
-static inline __attribute__((always_inline))
+static inline ALWAYS_INLINE
 void restore_fp_reg(fp_reg reg)
 {
     _mm_setcsr(reg);
@@ -51,7 +57,7 @@ static const native_rounding_mode ROUND_DOWNWARD   = FE_DOWNWARD;
 static const native_rounding_mode ROUND_UPWARD     = FE_UPWARD;
 static const native_rounding_mode ROUND_TOWARDZERO = FE_TOWARDZERO;
 
-static inline __attribute__((always_inline))
+static inline ALWAYS_INLINE
 native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
 {
     switch (mode) {
@@ -63,17 +69,17 @@ native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
     }
 }
 
-static inline __attribute__((always_inline))
-fp_reg get_fp_reg()
+static inline ALWAYS_INLINE
+fp_reg get_fp_reg(void)
 {
     return fegetround();
 }
-static inline __attribute__((always_inline))
+static inline ALWAYS_INLINE
 void set_rounding(fp_reg reg, native_rounding_mode mode)
 {
     fesetround(mode);
 }
-static inline __attribute__((always_inline))
+static inline ALWAYS_INLINE
 void restore_fp_reg(fp_reg oldmode)
 {
     fesetround(oldmode);
