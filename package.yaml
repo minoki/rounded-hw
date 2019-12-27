@@ -28,28 +28,49 @@ dependencies:
 # - rounded
 
 flags:
+  pure-hs:
+    description: Disable FFI
+    manual: true
+    default: false
+
   sse2:
     description: Use SSE2
     manual: true
     default: false
 
+  ghc-prim:
+    description: Use GHC foreign prim
+    manual: true
+    default: false
+
 library:
   source-dirs: src
-  other-modules:
-  - FFIImports
-  - FFIWrapper.Float
-  - FFIWrapper.Double
-  c-sources:
-  - cbits/rounded.c
-  - cbits/interval-prim-x86_64.s
   when:
+  - condition: "!flag(pure-hs)"
+    c-sources:
+    - cbits/rounded.c
+    cpp-options:
+    - -DUSE_FFI
+    exposed-modules:
+    - Numeric.Rounded.Hardware.Backend.C
+    other-modules:
+    - FFIImports
+    - FFIWrapper.Float
+    - FFIWrapper.Double
   - condition: flag(sse2)
     then:
-      cc-options:
+      cpp-options:
       - -DUSE_SSE2
     else:
-      cc-options:
+      cpp-options:
       - -DUSE_C99
+  - condition: "!flag(pure-hs) && flag(ghc-prim) && arch(x86_64)"
+    exposed-modules:
+    - Numeric.Rounded.Hardware.Backend.FastFFI
+    c-sources:
+    - cbits/interval-prim-x86_64.s
+    cpp-options:
+    - -DUSE_GHC_PRIM
   dependencies:
   - tagged
 
