@@ -22,66 +22,7 @@ import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Unboxed.Mutable as UM
 import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Generic.Mutable as GM
-
-foreign import ccall unsafe "rounded_hw_add"
-  c_rounded_add :: Int -> Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_add_up"
-  c_rounded_add_up :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_add_down"
-  c_rounded_add_down :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_add_zero"
-  c_rounded_add_zero :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sub"
-  c_rounded_sub :: Int -> Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sub_up"
-  c_rounded_sub_up :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sub_down"
-  c_rounded_sub_down :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sub_zero"
-  c_rounded_sub_zero :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_mul"
-  c_rounded_mul :: Int -> Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_mul_up"
-  c_rounded_mul_up :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_mul_down"
-  c_rounded_mul_down :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_mul_zero"
-  c_rounded_mul_zero :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_div"
-  c_rounded_div :: Int -> Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_div_up"
-  c_rounded_div_up :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_div_down"
-  c_rounded_div_down :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_div_zero"
-  c_rounded_div_zero :: Double -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sqrt"
-  c_rounded_sqrt :: Int -> Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sqrt_up"
-  c_rounded_sqrt_up :: Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sqrt_down"
-  c_rounded_sqrt_down :: Double -> Double
-
-foreign import ccall unsafe "rounded_hw_sqrt_zero"
-  c_rounded_sqrt_zero :: Double -> Double
+import FFIImports
 
 newtype RoundedDouble (rn :: RoundingMode) = RoundedDouble Double
   deriving (Eq, Ord, Show, Generic)
@@ -92,26 +33,26 @@ getRoundedDouble :: RoundedDouble rn -> Double
 getRoundedDouble (RoundedDouble x) = x
 
 addDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-addDouble proxy x y = c_rounded_add (fromEnum (rounding proxy)) x y
+addDouble proxy x y = c_rounded_add_double (fromEnum (rounding proxy)) x y
 {-# INLINE [1] addDouble #-}
 subDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-subDouble proxy x y = c_rounded_sub (fromEnum (rounding proxy)) x y
+subDouble proxy x y = c_rounded_sub_double (fromEnum (rounding proxy)) x y
 {-# INLINE [1] subDouble #-}
 mulDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-mulDouble proxy x y = c_rounded_mul (fromEnum (rounding proxy)) x y
+mulDouble proxy x y = c_rounded_mul_double (fromEnum (rounding proxy)) x y
 {-# INLINE [1] mulDouble #-}
 divDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-divDouble proxy x y = c_rounded_div (fromEnum (rounding proxy)) x y
+divDouble proxy x y = c_rounded_div_double (fromEnum (rounding proxy)) x y
 {-# INLINE [1] divDouble #-}
 {-# RULES
-"addDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). addDouble proxy = c_rounded_add_down
-"addDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    addDouble proxy = c_rounded_add_up
-"subDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). subDouble proxy = c_rounded_sub_down
-"subDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    subDouble proxy = c_rounded_sub_up
-"mulDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). mulDouble proxy = c_rounded_mul_down
-"mulDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    mulDouble proxy = c_rounded_mul_up
-"divDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). divDouble proxy = c_rounded_div_down
-"divDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    divDouble proxy = c_rounded_div_up
+"addDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). addDouble proxy = c_rounded_add_double_down
+"addDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    addDouble proxy = c_rounded_add_double_up
+"subDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). subDouble proxy = c_rounded_sub_double_down
+"subDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    subDouble proxy = c_rounded_sub_double_up
+"mulDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). mulDouble proxy = c_rounded_mul_double_down
+"mulDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    mulDouble proxy = c_rounded_mul_double_up
+"divDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). divDouble proxy = c_rounded_div_double_down
+"divDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    divDouble proxy = c_rounded_div_double_up
 #-}
 
 instance (Rounding rn) => Num (RoundedDouble rn) where

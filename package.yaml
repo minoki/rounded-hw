@@ -35,6 +35,8 @@ flags:
 
 library:
   source-dirs: src
+  other-modules:
+  - FFIImports
   c-sources:
   - cbits/rounded.c
   - cbits/interval-prim-x86_64.s
