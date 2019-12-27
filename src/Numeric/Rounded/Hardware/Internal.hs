@@ -22,7 +22,7 @@ import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Unboxed.Mutable as UM
 import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Generic.Mutable as GM
-import FFIImports
+import qualified FFIWrapper.Double as D
 
 newtype RoundedDouble (rn :: RoundingMode) = RoundedDouble Double
   deriving (Eq, Ord, Show, Generic)
@@ -32,33 +32,10 @@ instance NFData (RoundedDouble rn)
 getRoundedDouble :: RoundedDouble rn -> Double
 getRoundedDouble (RoundedDouble x) = x
 
-addDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-addDouble proxy x y = c_rounded_add_double (fromEnum (rounding proxy)) x y
-{-# INLINE [1] addDouble #-}
-subDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-subDouble proxy x y = c_rounded_sub_double (fromEnum (rounding proxy)) x y
-{-# INLINE [1] subDouble #-}
-mulDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-mulDouble proxy x y = c_rounded_mul_double (fromEnum (rounding proxy)) x y
-{-# INLINE [1] mulDouble #-}
-divDouble :: (Rounding rn) => proxy rn -> Double -> Double -> Double
-divDouble proxy x y = c_rounded_div_double (fromEnum (rounding proxy)) x y
-{-# INLINE [1] divDouble #-}
-{-# RULES
-"addDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). addDouble proxy = c_rounded_add_double_down
-"addDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    addDouble proxy = c_rounded_add_double_up
-"subDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). subDouble proxy = c_rounded_sub_double_down
-"subDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    subDouble proxy = c_rounded_sub_double_up
-"mulDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). mulDouble proxy = c_rounded_mul_double_down
-"mulDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    mulDouble proxy = c_rounded_mul_double_up
-"divDouble/TowardNegInf" [~1] forall (proxy :: Proxy TowardNegInf). divDouble proxy = c_rounded_div_double_down
-"divDouble/TowardInf"    [~1] forall (proxy :: Proxy TowardInf).    divDouble proxy = c_rounded_div_double_up
-#-}
-
 instance (Rounding rn) => Num (RoundedDouble rn) where
-  lhs@(RoundedDouble x) + RoundedDouble y = RoundedDouble (addDouble lhs x y)
-  lhs@(RoundedDouble x) - RoundedDouble y = RoundedDouble (subDouble lhs x y)
-  lhs@(RoundedDouble x) * RoundedDouble y = RoundedDouble (mulDouble lhs x y)
+  lhs@(RoundedDouble x) + RoundedDouble y = RoundedDouble (D.roundedAdd (rounding lhs) x y)
+  lhs@(RoundedDouble x) - RoundedDouble y = RoundedDouble (D.roundedSub (rounding lhs) x y)
+  lhs@(RoundedDouble x) * RoundedDouble y = RoundedDouble (D.roundedMul (rounding lhs) x y)
   negate = coerce (negate :: Double -> Double)
   abs = coerce (abs :: Double -> Double)
   signum = coerce (signum :: Double -> Double)
@@ -69,10 +46,10 @@ instance (Rounding rn) => Fractional (RoundedDouble rn) where
     | abs (numerator x) <= 2^53 && abs (denominator x) <= 2^53
     = let n' = fromInteger (numerator x)
           d' = fromInteger (denominator x)
-      in RoundedDouble (divDouble (Proxy :: Proxy rn) n' d')
+      in RoundedDouble (D.roundedDiv (rounding (Proxy :: Proxy rn)) n' d')
     | otherwise = RoundedDouble $ fromRatio (rounding (Proxy :: Proxy rn)) (numerator x) (denominator x)
-  recip a@(RoundedDouble x) = RoundedDouble (divDouble a 1 x)
-  lhs@(RoundedDouble x) / RoundedDouble y = RoundedDouble (divDouble lhs x y)
+  recip a@(RoundedDouble x) = RoundedDouble (D.roundedDiv (rounding a) 1 x)
+  lhs@(RoundedDouble x) / RoundedDouble y = RoundedDouble (D.roundedDiv (rounding lhs) x y)
 
 foreign import ccall unsafe "nextafter" c_nextafter :: Double -> Double -> Double
 

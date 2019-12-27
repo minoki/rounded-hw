@@ -37,6 +37,8 @@ library:
   source-dirs: src
   other-modules:
   - FFIImports
+  - FFIWrapper.Float
+  - FFIWrapper.Double
   c-sources:
   - cbits/rounded.c
   - cbits/interval-prim-x86_64.s
