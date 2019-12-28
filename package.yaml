@@ -56,7 +56,6 @@ library:
   - Numeric.Rounded.Hardware.Base.Conversion
   - Numeric.Rounded.Hardware.Base.RoundedResult
   - Numeric.Rounded.Hardware.Base.Show
-  - Numeric.Rounded.Hardware.Backend.Default
   when:
   - condition: "!flag(pure-hs)"
     c-sources:

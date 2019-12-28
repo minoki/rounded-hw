@@ -3,9 +3,11 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-orphans -Wno-unused-imports #-}
-module Numeric.Rounded.Hardware.Backend.Default () where
+module Numeric.Rounded.Hardware.Backend.Default
+  ( backendName
+  ) where
 import           Numeric.Rounded.Hardware.Base.Class
-import           Numeric.Rounded.Hardware.Backend.ViaRational
+import qualified Numeric.Rounded.Hardware.Backend.ViaRational as VR
 #ifdef USE_FFI
 import qualified Numeric.Rounded.Hardware.Backend.C as C
 #ifdef USE_GHC_PRIM
@@ -13,17 +15,22 @@ import qualified Numeric.Rounded.Hardware.Backend.FastFFI as FastFFI
 #endif
 #endif
 
+backendName :: String
+
 #ifdef USE_FFI
 #ifdef USE_GHC_PRIM
 type FloatImpl = C.CFloat -- TODO: Provide FastFFI.CFloat
 type DoubleImpl = FastFFI.CDouble
+backendName = FastFFI.backendName
 #else
 type FloatImpl = C.CFloat
 type DoubleImpl = C.CDouble
+backendName = C.backendName
 #endif
 #else
-type FloatImpl = ViaRational Float
-type DoubleImpl = ViaRational Double
+type FloatImpl = VR.ViaRational Float
+type DoubleImpl = VR.ViaRational Double
+backendName = VR.backendName
 #endif
 
 deriving via FloatImpl instance RoundedRing Float

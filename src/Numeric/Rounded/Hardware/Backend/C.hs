@@ -2,7 +2,11 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
-module Numeric.Rounded.Hardware.Backend.C where
+module Numeric.Rounded.Hardware.Backend.C
+  ( CFloat(..)
+  , CDouble(..)
+  , backendName
+  ) where
 import           Control.DeepSeq                             (NFData (..))
 import           Data.Coerce
 import           Data.Functor.Product
@@ -10,10 +14,12 @@ import           Data.Ratio
 import           FFIImports
 import qualified FFIWrapper.Double                           as D
 import qualified FFIWrapper.Float                            as F
+import           Foreign.C.String
 import           GHC.Generics                                (Generic)
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
+import           System.IO.Unsafe
 
 --
 -- Float
@@ -93,3 +99,13 @@ instance RoundedFractional CDouble where
 instance RoundedSqrt CDouble where
   roundedSqrt = coerce D.roundedSqrt
   {-# INLINE roundedSqrt #-}
+
+--
+-- Backend name
+--
+
+foreign import ccall unsafe "rounded_hw_backend_name"
+  c_backend_name :: CString
+
+backendName :: String
+backendName = unsafePerformIO (peekCString c_backend_name)

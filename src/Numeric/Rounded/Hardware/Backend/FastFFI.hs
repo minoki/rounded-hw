@@ -7,10 +7,11 @@
 {-# LANGUAGE UnboxedTuples              #-}
 {-# LANGUAGE UnliftedFFITypes           #-}
 module Numeric.Rounded.Hardware.Backend.FastFFI
-  (CDouble(..)
-  ,fastIntervalAdd
-  ,fastIntervalSub
-  ,fastIntervalRecip
+  ( CDouble(..)
+  , fastIntervalAdd
+  , fastIntervalSub
+  , fastIntervalRecip
+  , backendName
   ) where
 import           Control.DeepSeq                             (NFData (..))
 import           Data.Coerce
@@ -21,6 +22,7 @@ import qualified FFIWrapper.Double                           as D
 import qualified FFIWrapper.Float                            as F
 import           GHC.Exts
 import           GHC.Generics                                (Generic)
+import qualified Numeric.Rounded.Hardware.Backend.C          as C (backendName)
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
@@ -115,3 +117,10 @@ fastIntervalRecip :: Double -> Double -> (Double, Double)
 fastIntervalRecip (D# l1) (D# h1) = case c_rounded_interval_recip l1 h1 of
   (# l2, h2 #) -> (D# l2, D# h2)
 {-# INLINE fastIntervalRecip #-}
+
+--
+-- Backend name
+--
+
+backendName :: String
+backendName = "FastFFI+" ++ C.backendName

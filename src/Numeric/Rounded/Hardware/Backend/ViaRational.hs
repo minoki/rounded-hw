@@ -57,3 +57,6 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
   {-# INLINE intervalFromRational #-}
   {-# SPECIALIZE instance RoundedFractional (ViaRational Float) #-}
   {-# SPECIALIZE instance RoundedFractional (ViaRational Double) #-}
+
+backendName :: String
+backendName = "via Rational"

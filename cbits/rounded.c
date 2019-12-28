@@ -136,3 +136,13 @@ void restore_fp_reg(fp_reg oldmode)
 #undef FMIN
 
 // TODO: remainder, double -> int
+
+extern const char *rounded_hw_backend_name(void) {
+#if defined(USE_SSE2)
+    return "SSE2";
+#elif defined(USE_C99)
+    return "C99";
+#else
+#error Please define USE_C99 or USE_SSE2
+#endif
+}
