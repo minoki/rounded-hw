@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 import Numeric.Rounded.Hardware.Interval
 import Gauge.Main
 import Data.Array
@@ -13,7 +14,6 @@ import Control.Monad.ST
 import Data.Ratio
 import Numeric.Rounded.Hardware.Sum
 import Numeric.Rounded.Hardware.Internal
-import Numeric.Rounded.Hardware.Prim
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
 thawST = thaw
@@ -61,15 +61,15 @@ main =
          [ bench "Double/small" $ nf (fromInteger :: Integer -> Double) smallInteger
          , bench "Double/medium" $ nf (fromInteger :: Integer -> Double) mediumInteger
          , bench "Double/large" $ nf (fromInteger :: Integer -> Double) largeInteger
-         , bench "RoundedDouble/TowardNearest/small" $ nf (fromInteger :: Integer -> RoundedDouble TowardNearest) smallInteger
-         , bench "RoundedDouble/TowardNearest/medium" $ nf (fromInteger :: Integer -> RoundedDouble TowardNearest) mediumInteger
-         , bench "RoundedDouble/TowardNearest/large" $ nf (fromInteger :: Integer -> RoundedDouble TowardNearest) largeInteger
-         , bench "RoundedDouble/TowardInf/small" $ nf (fromInteger :: Integer -> RoundedDouble TowardInf) smallInteger
-         , bench "RoundedDouble/TowardInf/medium" $ nf (fromInteger :: Integer -> RoundedDouble TowardInf) mediumInteger
-         , bench "RoundedDouble/TowardInf/large" $ nf (fromInteger :: Integer -> RoundedDouble TowardInf) largeInteger
-         , bench "IntervalDouble/small" $ nf (fromInteger :: Integer -> IntervalDouble) smallInteger
-         , bench "IntervalDouble/medium" $ nf (fromInteger :: Integer -> IntervalDouble) mediumInteger
-         , bench "IntervalDouble/large" $ nf (fromInteger :: Integer -> IntervalDouble) largeInteger
+         , bench "RoundedDouble/TowardNearest/small" $ nf (fromInteger :: Integer -> Rounded 'TowardNearest Double) smallInteger
+         , bench "RoundedDouble/TowardNearest/medium" $ nf (fromInteger :: Integer -> Rounded 'TowardNearest Double) mediumInteger
+         , bench "RoundedDouble/TowardNearest/large" $ nf (fromInteger :: Integer -> Rounded 'TowardNearest Double) largeInteger
+         , bench "RoundedDouble/TowardInf/small" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) smallInteger
+         , bench "RoundedDouble/TowardInf/medium" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) mediumInteger
+         , bench "RoundedDouble/TowardInf/large" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) largeInteger
+         , bench "IntervalDouble/small" $ nf (fromInteger :: Integer -> Interval Double) smallInteger
+         , bench "IntervalDouble/medium" $ nf (fromInteger :: Integer -> Interval Double) mediumInteger
+         , bench "IntervalDouble/large" $ nf (fromInteger :: Integer -> Interval Double) largeInteger
          ]
     , let pi' = 3.14159265358979323846264338327950 :: Rational
           smallRational = 22 % 7 :: Rational
@@ -78,15 +78,15 @@ main =
          [ bench "Double/decimal" $ nf (fromRational :: Rational -> Double) pi'
          , bench "Double/small" $ nf (fromRational :: Rational -> Double) smallRational
          , bench "Double/large" $ nf (fromRational :: Rational -> Double) largeRational
-         , bench "RoundedDouble/TowardNearest/decimal" $ nf (fromRational :: Rational -> RoundedDouble TowardNearest) pi'
-         , bench "RoundedDouble/TowardNearest/small" $ nf (fromRational :: Rational -> RoundedDouble TowardNearest) smallRational
-         , bench "RoundedDouble/TowardNearest/large" $ nf (fromRational :: Rational -> RoundedDouble TowardNearest) largeRational
-         , bench "RoundedDouble/TowardInf/decimal" $ nf (fromRational :: Rational -> RoundedDouble TowardInf) pi'
-         , bench "RoundedDouble/TowardInf/small" $ nf (fromRational :: Rational -> RoundedDouble TowardInf) smallRational
-         , bench "RoundedDouble/TowardInf/large" $ nf (fromRational :: Rational -> RoundedDouble TowardInf) largeRational
-         , bench "IntervalDouble/decimal" $ nf (fromRational :: Rational -> IntervalDouble) pi'
-         , bench "IntervalDouble/small" $ nf (fromRational :: Rational -> IntervalDouble) smallRational
-         , bench "IntervalDouble/large" $ nf (fromRational :: Rational -> IntervalDouble) largeRational
+         , bench "RoundedDouble/TowardNearest/decimal" $ nf (fromRational :: Rational -> Rounded 'TowardNearest Double) pi'
+         , bench "RoundedDouble/TowardNearest/small" $ nf (fromRational :: Rational -> Rounded 'TowardNearest Double) smallRational
+         , bench "RoundedDouble/TowardNearest/large" $ nf (fromRational :: Rational -> Rounded 'TowardNearest Double) largeRational
+         , bench "RoundedDouble/TowardInf/decimal" $ nf (fromRational :: Rational -> Rounded 'TowardInf Double) pi'
+         , bench "RoundedDouble/TowardInf/small" $ nf (fromRational :: Rational -> Rounded 'TowardInf Double) smallRational
+         , bench "RoundedDouble/TowardInf/large" $ nf (fromRational :: Rational -> Rounded 'TowardInf Double) largeRational
+         , bench "IntervalDouble/decimal" $ nf (fromRational :: Rational -> Interval Double) pi'
+         , bench "IntervalDouble/small" $ nf (fromRational :: Rational -> Interval Double) smallRational
+         , bench "IntervalDouble/large" $ nf (fromRational :: Rational -> Interval Double) largeRational
          ]
     , let arr :: Fractional a => Array (Int,Int) a
           arr = listArray ((0,0),(4,4))
@@ -100,24 +100,22 @@ main =
           vec = V.fromList [1,0,0,0,0]
       in bgroup "(Interval) Gaussian Elimination"
          [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
-         , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector IntervalDouble)
-         , bench "fast add/sub" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector FastIntervalDouble)
+         , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector (Interval Double))
          ]
     , let vec :: VU.Vector Double
-          vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral i)
-          vec' :: VU.Vector (RoundedDouble TowardInf)
-          vec' = VU.drop 1234 $ VU.take 78245 $ VU.map RoundedDouble vec
-          vec'' :: VU.Vector (RoundedDouble TowardNegInf)
-          vec'' = VU.drop 1234 $ VU.take 78245 $ VU.map RoundedDouble vec
+          vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral (i+1))
+          vec' :: VU.Vector (Rounded 'TowardInf Double)
+          vec' = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
+          vec'' :: VU.Vector (Rounded 'TowardNegInf Double)
+          vec'' = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
       in bgroup "sum"
          [ bench "naive" $ nf VU.sum vec'
          , bench "C impl" $ nf sumUnboxedVector' vec'
          ]
-    , let vec :: V.Vector IntervalDouble
+    , let vec :: V.Vector (Interval Double)
           vec = V.generate 100000 $ \i -> fromRational (1 % (1 + fromIntegral i))
       in bgroup "interval sum"
          [ bench "naive" $ nf V.sum vec
          , bench "naive 2" $ nf (V.foldl' (+) 0) vec
-         , bench "ghc prim" $ nf (V.foldl' fastAdd 0) vec
          ]
     ]

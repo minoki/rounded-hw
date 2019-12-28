@@ -85,6 +85,7 @@ instance RoundedFractional CDouble where
   roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
   intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
     Pair a b -> (CDouble <$> a, CDouble <$> b)
+  -- TODO: Specialize small case in ***FromRational?
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE roundedFromRational #-}
