@@ -9,6 +9,7 @@ copyright:           "2019 ARATA Mizuki"
 extra-source-files:
 - README.md
 - ChangeLog.md
+- cbits/rounded-common.inl
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -37,9 +38,12 @@ flags:
     description: Use SSE2
     manual: true
     default: false
+    # Isn't something like
+    #   default: arch(x86_64)
+    # possible?
 
   ghc-prim:
-    description: Use GHC foreign prim
+    description: "Use GHC's \"foreign import prim\""
     manual: true
     default: false
 
@@ -67,10 +71,10 @@ library:
     - FFIWrapper.Double
   - condition: flag(sse2)
     then:
-      cpp-options:
+      cc-options:
       - -DUSE_SSE2
     else:
-      cpp-options:
+      cc-options:
       - -DUSE_C99
   - condition: "!flag(pure-hs) && flag(ghc-prim) && arch(x86_64)"
     exposed-modules:
