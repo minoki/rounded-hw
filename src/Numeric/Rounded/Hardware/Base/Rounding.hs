@@ -5,7 +5,7 @@
 {-# LANGUAGE RankNTypes     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
-module Numeric.Rounded.Hardware.Rounding where
+module Numeric.Rounded.Hardware.Base.Rounding where
 import           Control.DeepSeq (NFData (..))
 import           Data.Coerce
 import           Data.Proxy

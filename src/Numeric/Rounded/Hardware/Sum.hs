@@ -2,7 +2,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MagicHash #-}
 module Numeric.Rounded.Hardware.Sum where
-import Numeric.Rounded.Hardware.Class
+import Numeric.Rounded.Hardware.Internal
 import qualified Data.Vector.Primitive as VP
 import qualified Data.Vector.Unboxed.Base as VU
 import Data.Primitive.ByteArray

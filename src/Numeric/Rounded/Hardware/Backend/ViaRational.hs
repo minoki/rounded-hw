@@ -7,10 +7,9 @@ import           Control.DeepSeq                             (NFData (..))
 import           Data.Functor.Product
 import           Data.Ratio
 import           GHC.Generics                                (Generic)
-import           Numeric.Rounded.Hardware.Class
-import           Numeric.Rounded.Hardware.Rounding
-import           Numeric.Rounded.Hardware.Util.Constants
-import           Numeric.Rounded.Hardware.Util.Conversion
+import           Numeric.Rounded.Hardware.Base.Class
+import           Numeric.Rounded.Hardware.Base.Constants
+import           Numeric.Rounded.Hardware.Base.Conversion
 
 newtype ViaRational a = ViaRational a
   deriving (Eq,Ord,Show,Generic,Num)

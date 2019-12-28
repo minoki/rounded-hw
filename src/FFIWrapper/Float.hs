@@ -6,7 +6,7 @@ module FFIWrapper.Float where
 import Data.Int
 import Data.Word
 import GHC.Exts
-import Numeric.Rounded.Hardware.Rounding
+import Numeric.Rounded.Hardware.Base.Rounding
 import FFIImports
 
 roundedAdd :: RoundingMode -> Float -> Float -> Float

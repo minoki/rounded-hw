@@ -5,8 +5,7 @@ module Numeric.Rounded.Hardware.Interval where
 import           Control.DeepSeq                          (NFData (..))
 import           Data.Coerce
 import           GHC.Generics                             (Generic)
-import           Numeric.Rounded.Hardware.Backend.Default ()
-import           Numeric.Rounded.Hardware.Class
+import           Numeric.Rounded.Hardware.Internal
 
 data Interval a
   = I !(Rounded 'TowardNegInf a) !(Rounded 'TowardInf a)

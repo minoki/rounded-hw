@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-orphans -Wno-unused-imports #-}
 module Numeric.Rounded.Hardware.Backend.Default () where
-import           Numeric.Rounded.Hardware.Class
+import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Backend.ViaRational
 #ifdef USE_FFI
 import qualified Numeric.Rounded.Hardware.Backend.C as C

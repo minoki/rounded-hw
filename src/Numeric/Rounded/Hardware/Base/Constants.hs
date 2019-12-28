@@ -1,5 +1,5 @@
 {-# LANGUAGE HexFloatLiterals #-}
-module Numeric.Rounded.Hardware.Util.Constants where
+module Numeric.Rounded.Hardware.Base.Constants where
 
 class RealFloatConstants a where
   positiveInfinity :: a

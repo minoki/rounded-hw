@@ -6,14 +6,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Numeric.Rounded.Hardware.Class
-  ( module Numeric.Rounded.Hardware.Class
-  , module Numeric.Rounded.Hardware.Rounding
+module Numeric.Rounded.Hardware.Base.Class
+  ( module Numeric.Rounded.Hardware.Base.Class
+  , module Numeric.Rounded.Hardware.Base.Rounding
   ) where
 import           Data.Coerce
 import           Data.Proxy
 import           Data.Ratio
-import           Numeric.Rounded.Hardware.Rounding
+import           Numeric.Rounded.Hardware.Base.Rounding
 
 class Ord a => RoundedRing a where
   roundedAdd :: RoundingMode -> a -> a -> a

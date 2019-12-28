@@ -11,10 +11,9 @@ import           FFIImports
 import qualified FFIWrapper.Double                           as D
 import qualified FFIWrapper.Float                            as F
 import           GHC.Generics                                (Generic)
-import           Numeric.Rounded.Hardware.Class
-import           Numeric.Rounded.Hardware.Rounding
-import           Numeric.Rounded.Hardware.Util.Constants
-import           Numeric.Rounded.Hardware.Util.Conversion
+import           Numeric.Rounded.Hardware.Base.Class
+import           Numeric.Rounded.Hardware.Base.Constants
+import           Numeric.Rounded.Hardware.Base.Conversion
 
 --
 -- Float

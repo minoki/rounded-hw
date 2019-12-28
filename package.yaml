@@ -45,6 +45,14 @@ flags:
 
 library:
   source-dirs: src
+  other-modules:
+  - Numeric.Rounded.Hardware.Base.Rounding
+  - Numeric.Rounded.Hardware.Base.Class
+  - Numeric.Rounded.Hardware.Base.Constants
+  - Numeric.Rounded.Hardware.Base.Conversion
+  - Numeric.Rounded.Hardware.Base.RoundedResult
+  - Numeric.Rounded.Hardware.Base.Show
+  - Numeric.Rounded.Hardware.Backend.Default
   when:
   - condition: "!flag(pure-hs)"
     c-sources:

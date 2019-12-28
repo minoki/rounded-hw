@@ -33,7 +33,7 @@ main = do
     ,"import Data.Int"
     ,"import Data.Word"
     ,"import GHC.Exts"
-    ,"import Numeric.Rounded.Hardware.Rounding"
+    ,"import Numeric.Rounded.Hardware.Base.Rounding"
     ,"import FFIImports"
     ,""
     ,oneDecl "roundedAdd" "c_rounded_add" "FLOAT -> FLOAT -> FLOAT"
