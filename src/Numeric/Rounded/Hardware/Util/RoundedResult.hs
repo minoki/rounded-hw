@@ -17,8 +17,6 @@ class Functor f => Result f where
 
 newtype Exactness a = Exactness { getExactness :: Bool }
   deriving (Eq, Ord, Show, Functor)
-newtype Rounded (rn :: RoundingMode) a = Rounded { getRounded :: a }
-  deriving (Eq, Ord, Show, Functor)
 
 instance Rounding rn => Result (Rounded rn) where
   exact x = Rounded x

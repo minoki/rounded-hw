@@ -25,7 +25,6 @@ import           Numeric.Rounded.Hardware.Class
 import           Numeric.Rounded.Hardware.Rounding
 import           Numeric.Rounded.Hardware.Util.Constants
 import           Numeric.Rounded.Hardware.Util.Conversion
-import qualified Numeric.Rounded.Hardware.Util.RoundedResult as RR
 
 --
 -- Double
@@ -44,8 +43,8 @@ instance RoundedRing CDouble where
   intervalSub x x' y y' = coerce fastIntervalSub x x' y y'
   intervalMul x x' y y' = (coerce c_interval_mul_double_down x x' y y', coerce c_interval_mul_double_up x x' y y')
   roundedFromInteger rn x = CDouble (fromInt rn x)
-  intervalFromInteger x = case fromIntF x :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) Double of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (CDouble a), Rounded (CDouble b))
+  intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
+    Pair a b -> (CDouble <$> a, CDouble <$> b)
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -60,8 +59,8 @@ instance RoundedFractional CDouble where
   intervalDiv x x' y y' = (coerce c_interval_div_double_down x x' y y', coerce c_interval_div_double_up x x' y y')
   intervalRecip x x' = coerce fastIntervalRecip x x'
   roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
-  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) Double of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (CDouble a), Rounded (CDouble b))
+  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
+    Pair a b -> (CDouble <$> a, CDouble <$> b)
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE intervalRecip #-}

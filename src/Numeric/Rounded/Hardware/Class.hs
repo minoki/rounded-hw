@@ -1,16 +1,18 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DefaultSignatures   #-}
-{-# LANGUAGE DeriveFunctor       #-}
-{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Numeric.Rounded.Hardware.Class where
-import           Control.DeepSeq                   (NFData (..))
+{-# LANGUAGE StandaloneDeriving  #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+module Numeric.Rounded.Hardware.Class
+  ( module Numeric.Rounded.Hardware.Class
+  , module Numeric.Rounded.Hardware.Rounding
+  ) where
 import           Data.Coerce
 import           Data.Proxy
 import           Data.Ratio
-import           GHC.Generics                      (Generic)
 import           Numeric.Rounded.Hardware.Rounding
 
 class Ord a => RoundedRing a where
@@ -84,11 +86,6 @@ class RoundedRing a => RoundedFractional a where
 class RoundedRing a => RoundedSqrt a where
   roundedSqrt :: RoundingMode -> a -> a
 
-newtype Rounded (rn :: RoundingMode) a = Rounded a
-  deriving (Eq,Ord,Show,Generic,Functor,Real,RealFrac)
-
-instance NFData a => NFData (Rounded rn a)
-
 instance (Rounding rn, Num a, RoundedRing a) => Num (Rounded rn a) where
   Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy rn)) x y)
   Rounded x - Rounded y = Rounded (roundedSub (rounding (Proxy :: Proxy rn)) x y)
@@ -97,13 +94,24 @@ instance (Rounding rn, Num a, RoundedRing a) => Num (Rounded rn a) where
   abs = coerce (abs :: a -> a)
   signum = coerce (signum :: a -> a)
   fromInteger x = Rounded (roundedFromInteger (rounding (Proxy :: Proxy rn)) x)
-  {-# INLINE (+), (-), (*), negate, abs, signum, fromInteger #-}
+  {-# INLINE (+) #-}
+  {-# INLINE (-) #-}
+  {-# INLINE (*) #-}
+  {-# INLINE negate #-}
+  {-# INLINE abs #-}
+  {-# INLINE signum #-}
+  {-# INLINE fromInteger #-}
 
 instance (Rounding rn, Num a, RoundedFractional a) => Fractional (Rounded rn a) where
   Rounded x / Rounded y = Rounded (roundedDiv (rounding (Proxy :: Proxy rn)) x y)
   recip (Rounded x) = Rounded (roundedRecip (rounding (Proxy :: Proxy rn)) x)
   fromRational x = Rounded (roundedFromRational (rounding (Proxy :: Proxy rn)) x)
-  {-# INLINE (/), recip, fromRational #-}
+  {-# INLINE (/) #-}
+  {-# INLINE recip #-}
+  {-# INLINE fromRational #-}
+
+deriving newtype instance (Rounding rn, Real a, RoundedFractional a) => Real (Rounded rn a)
+deriving newtype instance (Rounding rn, RealFrac a, RoundedFractional a) => RealFrac (Rounded rn a)
 
 -- These instances are provided in Numeric.Rounded.Hardware.Backend.Default:
 --   instance RoundedRing Float

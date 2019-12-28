@@ -11,7 +11,6 @@ import           Numeric.Rounded.Hardware.Class
 import           Numeric.Rounded.Hardware.Rounding
 import           Numeric.Rounded.Hardware.Util.Constants
 import           Numeric.Rounded.Hardware.Util.Conversion
-import qualified Numeric.Rounded.Hardware.Util.RoundedResult as RR
 
 newtype ViaRational a = ViaRational a
   deriving (Eq,Ord,Show,Generic,Num)
@@ -41,8 +40,8 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
     | isNaN x || isNaN y || isInfinite x || isInfinite y || isNegativeZero x || isNegativeZero y = ViaRational (x * y)
     | otherwise = roundedFromRational rn (toRational x * toRational y)
   roundedFromInteger rn x = ViaRational (fromInt rn x)
-  intervalFromInteger x = case fromIntF x :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) a of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (ViaRational a), Rounded (ViaRational b))
+  intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
+    Pair a b -> (ViaRational <$> a, ViaRational <$> b)
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
   {-# SPECIALIZE instance RoundedRing (ViaRational Float) #-}
@@ -53,8 +52,8 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
     | isNaN x || isNaN y || isInfinite x || isInfinite y || x == 0 || y == 0 = ViaRational (x / y)
     | otherwise = roundedFromRational rn (toRational x / toRational y)
   roundedFromRational rn x = ViaRational $ fromRatio rn (numerator x) (denominator x)
-  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) a of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (ViaRational a), Rounded (ViaRational b))
+  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
+    Pair a b -> (ViaRational <$> a, ViaRational <$> b)
   {-# INLINE roundedFromRational #-}
   {-# INLINE intervalFromRational #-}
   {-# SPECIALIZE instance RoundedFractional (ViaRational Float) #-}
