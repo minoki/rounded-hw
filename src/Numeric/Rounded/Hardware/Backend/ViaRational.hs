@@ -42,20 +42,20 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
     | otherwise = roundedFromRational rn (toRational x * toRational y)
   roundedFromInteger rn x = ViaRational (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) a of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (ViaRational a, ViaRational b)
+    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (ViaRational a), Rounded (ViaRational b))
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
   {-# SPECIALIZE instance RoundedRing (ViaRational Float) #-}
   {-# SPECIALIZE instance RoundedRing (ViaRational Double) #-}
 
-instance (RealFloat a, Num a, RealFloatConstants a) => RoundedField (ViaRational a) where
+instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRational a) where
   roundedDiv rn (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y || x == 0 || y == 0 = ViaRational (x / y)
     | otherwise = roundedFromRational rn (toRational x / toRational y)
   roundedFromRational rn x = ViaRational $ fromRatio rn (numerator x) (denominator x)
   intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) a of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (ViaRational a, ViaRational b)
+    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (ViaRational a), Rounded (ViaRational b))
   {-# INLINE roundedFromRational #-}
   {-# INLINE intervalFromRational #-}
-  {-# SPECIALIZE instance RoundedField (ViaRational Float) #-}
-  {-# SPECIALIZE instance RoundedField (ViaRational Double) #-}
+  {-# SPECIALIZE instance RoundedFractional (ViaRational Float) #-}
+  {-# SPECIALIZE instance RoundedFractional (ViaRational Double) #-}

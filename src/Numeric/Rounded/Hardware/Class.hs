@@ -1,6 +1,8 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DefaultSignatures   #-}
+{-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Numeric.Rounded.Hardware.Class where
@@ -19,58 +21,71 @@ class Ord a => RoundedRing a where
   -- roundedToFloat :: RoundingMode -> a -> Float
   -- roundedToDouble :: RoundingMode -> a -> Double
 
-  intervalAdd :: a -> a -> a -> a -> (a, a)
-  intervalAdd x_lo x_hi y_lo y_hi = (roundedAdd TowardNegInf x_lo y_lo, roundedAdd TowardInf x_hi y_hi)
-  intervalSub :: a -> a -> a -> a -> (a, a)
-  intervalSub x_lo x_hi y_lo y_hi = (roundedSub TowardNegInf x_lo y_hi, roundedSub TowardInf x_hi y_lo)
-  intervalMul :: a -> a -> a -> a -> (a, a)
+  intervalAdd :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalAdd :: Num a => Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalAdd x_lo x_hi y_lo y_hi = (x_lo + y_lo, x_hi + y_hi)
+  intervalSub :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalSub :: Num a => Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalSub x_lo x_hi y_lo y_hi = (x_lo - coerce y_hi, x_hi - coerce y_lo)
+  intervalMul :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalMul :: Num a => Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalMul x_lo x_hi y_lo y_hi
-    = ( minimum [ roundedMul TowardNegInf x_lo y_lo
-                , roundedMul TowardNegInf x_lo y_hi
-                , roundedMul TowardNegInf x_hi y_lo
-                , roundedMul TowardNegInf x_hi y_hi
+    = ( minimum [        x_lo *        y_lo
+                ,        x_lo * coerce y_hi
+                , coerce x_hi *        y_lo
+                , coerce x_hi * coerce y_hi
                 ]
-      , maximum [ roundedMul TowardInf x_lo y_lo
-                , roundedMul TowardInf x_lo y_hi
-                , roundedMul TowardInf x_hi y_lo
-                , roundedMul TowardInf x_hi y_hi
+      , maximum [ coerce x_lo * coerce y_lo
+                , coerce x_lo *        y_hi
+                ,        x_hi * coerce y_lo
+                ,        x_hi *        y_hi
                 ]
       )
-  intervalFromInteger :: Integer -> (a, a)
-  intervalFromInteger x = (roundedFromInteger TowardNegInf x, roundedFromInteger TowardInf x)
+  intervalFromInteger :: Integer -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalFromInteger :: Num a => Integer -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalFromInteger x = (fromInteger x, fromInteger x)
+  {-# INLINE intervalAdd #-}
+  {-# INLINE intervalSub #-}
+  {-# INLINE intervalMul #-}
+  {-# INLINE intervalFromInteger #-}
 
-class RoundedRing a => RoundedField a where
+class RoundedRing a => RoundedFractional a where
   roundedDiv :: RoundingMode -> a -> a -> a
   roundedRecip :: RoundingMode -> a -> a
   default roundedRecip :: Num a => RoundingMode -> a -> a
   roundedRecip r = roundedDiv r 1
   roundedFromRational :: RoundingMode -> Rational -> a
-  intervalDiv :: a -> a -> a -> a -> (a, a)
+  intervalDiv :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalDiv :: Num a => Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalDiv x_lo x_hi y_lo y_hi
-    = ( minimum [ roundedDiv TowardNegInf x_lo y_lo
-                , roundedDiv TowardNegInf x_lo y_hi
-                , roundedDiv TowardNegInf x_hi y_lo
-                , roundedDiv TowardNegInf x_hi y_hi
+    = ( minimum [        x_lo /        y_lo
+                ,        x_lo / coerce y_hi
+                , coerce x_hi /        y_lo
+                , coerce x_hi / coerce y_hi
                 ]
-      , maximum [ roundedDiv TowardInf x_lo y_lo
-                , roundedDiv TowardInf x_lo y_hi
-                , roundedDiv TowardInf x_hi y_lo
-                , roundedDiv TowardInf x_hi y_hi
+      , maximum [ coerce x_lo / coerce y_lo
+                , coerce x_lo /        y_hi
+                ,        x_hi / coerce y_lo
+                ,        x_hi /        y_hi
                 ]
       )
-  intervalRecip :: a -> a -> (a, a)
-  default intervalRecip :: (Num a) => a -> a -> (a, a)
+  intervalRecip :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalRecip :: Num a => Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalRecip x_lo x_hi
-    | 0 < x_lo || x_hi < 0 = (roundedRecip TowardNegInf x_hi, roundedRecip TowardNegInf x_lo)
+    | 0 < x_lo || x_hi < 0 = (recip (coerce x_hi), recip (coerce x_lo))
     | otherwise = error "divide by zero"
-  intervalFromRational :: Rational -> (a, a)
-  intervalFromRational x = (roundedFromRational TowardNegInf x, roundedFromRational TowardInf x)
+  intervalFromRational :: Rational -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  default intervalFromRational :: Num a => Rational -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalFromRational x = (fromRational x, fromRational x)
+  {-# INLINE intervalDiv #-}
+  {-# INLINE intervalRecip #-}
+  {-# INLINE intervalFromRational #-}
 
 class RoundedRing a => RoundedSqrt a where
   roundedSqrt :: RoundingMode -> a -> a
 
 newtype Rounded (rn :: RoundingMode) a = Rounded a
-  deriving (Eq,Ord,Show,Generic)
+  deriving (Eq,Ord,Show,Generic,Functor,Real,RealFrac)
 
 instance NFData a => NFData (Rounded rn a)
 
@@ -82,18 +97,20 @@ instance (Rounding rn, Num a, RoundedRing a) => Num (Rounded rn a) where
   abs = coerce (abs :: a -> a)
   signum = coerce (signum :: a -> a)
   fromInteger x = Rounded (roundedFromInteger (rounding (Proxy :: Proxy rn)) x)
+  {-# INLINE (+), (-), (*), negate, abs, signum, fromInteger #-}
 
-instance (Rounding rn, Num a, RoundedField a) => Fractional (Rounded rn a) where
+instance (Rounding rn, Num a, RoundedFractional a) => Fractional (Rounded rn a) where
   Rounded x / Rounded y = Rounded (roundedDiv (rounding (Proxy :: Proxy rn)) x y)
   recip (Rounded x) = Rounded (roundedRecip (rounding (Proxy :: Proxy rn)) x)
   fromRational x = Rounded (roundedFromRational (rounding (Proxy :: Proxy rn)) x)
+  {-# INLINE (/), recip, fromRational #-}
 
 -- These instances are provided in Numeric.Rounded.Hardware.Backend.Default:
 --   instance RoundedRing Float
---   instance RoundedField Float
+--   instance RoundedFractional Float
 --   instance RoundedSqrt Float
 --   instance RoundedRing Double
---   instance RoundedField Double
+--   instance RoundedFractional Double
 --   instance RoundedSqrt Double
 
 instance RoundedRing Integer where
@@ -102,7 +119,7 @@ instance RoundedRing Integer where
   roundedMul _ = (*)
   roundedFromInteger _ = id
 
-instance RoundedField Integer where
+instance RoundedFractional Integer where
   roundedDiv r x y = roundedFromRational r (x % y)
   roundedFromRational TowardNearest = round
   roundedFromRational TowardNegInf  = floor
@@ -117,7 +134,7 @@ instance Integral a => RoundedRing (Ratio a) where
   roundedMul _ = (*)
   roundedFromInteger _ = fromInteger
 
-instance Integral a => RoundedField (Ratio a) where
+instance Integral a => RoundedFractional (Ratio a) where
   roundedDiv _ = (/)
   roundedRecip _ = recip
   roundedFromRational _ = fromRational

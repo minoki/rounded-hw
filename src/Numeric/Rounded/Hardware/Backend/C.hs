@@ -33,7 +33,7 @@ instance RoundedRing CFloat where
   intervalMul x x' y y' = (coerce c_interval_mul_float_down x x' y y', coerce c_interval_mul_float_up x x' y y')
   roundedFromInteger rn x = CFloat (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) Float of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (CFloat a, CFloat b)
+    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (CFloat a), Rounded (CFloat b))
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -41,12 +41,12 @@ instance RoundedRing CFloat where
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
 
-instance RoundedField CFloat where
+instance RoundedFractional CFloat where
   roundedDiv = coerce F.roundedDiv
   intervalDiv x x' y y' = (coerce c_interval_div_float_down x x' y y', coerce c_interval_div_float_up x x' y y')
   roundedFromRational rn x = CFloat $ fromRatio rn (numerator x) (denominator x)
   intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) Float of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (CFloat a, CFloat b)
+    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (CFloat a), Rounded (CFloat b))
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE roundedFromRational #-}
@@ -72,7 +72,7 @@ instance RoundedRing CDouble where
   intervalMul x x' y y' = (coerce c_interval_mul_double_down x x' y y', coerce c_interval_mul_double_up x x' y y')
   roundedFromInteger rn x = CDouble (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) Double of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (CDouble a, CDouble b)
+    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (CDouble a), Rounded (CDouble b))
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -80,12 +80,12 @@ instance RoundedRing CDouble where
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
 
-instance RoundedField CDouble where
+instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
   intervalDiv x x' y y' = (coerce c_interval_div_double_down x x' y y', coerce c_interval_div_double_up x x' y y')
   roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
   intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (RR.Rounded TowardNegInf) (RR.Rounded TowardInf) Double of
-    Pair (RR.Rounded a) (RR.Rounded b) -> (CDouble a, CDouble b)
+    Pair (RR.Rounded a) (RR.Rounded b) -> (Rounded (CDouble a), Rounded (CDouble b))
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE roundedFromRational #-}
