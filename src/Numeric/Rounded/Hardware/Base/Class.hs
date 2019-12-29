@@ -90,6 +90,13 @@ class RoundedRing a => RoundedFractional a where
 
 class RoundedRing a => RoundedSqrt a where
   roundedSqrt :: RoundingMode -> a -> a
+  intervalSqrt :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalSqrt x y = (sqrt' x, sqrt' y)
+  {-# INLINE intervalSqrt #-}
+
+sqrt' :: forall rn a. (Rounding rn, RoundedSqrt a) => Rounded rn a -> Rounded rn a
+sqrt' (Rounded x) = Rounded (roundedSqrt (rounding (Proxy :: Proxy rn)) x)
+{-# INLINE sqrt' #-}
 
 class RoundedRing a => RoundedVectorOperation a where
   roundedSum_StorableVector :: Storable a => RoundingMode -> VS.Vector a -> a
