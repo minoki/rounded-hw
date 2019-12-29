@@ -1,22 +1,31 @@
-{-# LANGUAGE DataKinds      #-}
-{-# LANGUAGE DeriveFunctor  #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RankNTypes     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
-module Numeric.Rounded.Hardware.Base.Rounding where
-import           Control.DeepSeq (NFData (..))
+{-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE TypeFamilies               #-}
+module Numeric.Rounded.Hardware.Base.Rounding
+  ( RoundingMode(..)
+  , oppositeRoundingMode
+  , Rounding
+  , rounding
+  , reifyRounding
+  , Rounded(..)
+  , VUM.MVector(MV_Rounded)
+  , VU.Vector(V_Rounded)
+  ) where
+import           Control.DeepSeq             (NFData (..))
 import           Data.Coerce
 import           Data.Proxy
 import           Data.Tagged
-import qualified Data.Vector.Generic as G
-import qualified Data.Vector.Generic.Mutable as GM
-import qualified Data.Vector.Unboxed as U
-import qualified Data.Vector.Unboxed.Mutable as UM
-import           GHC.Generics    (Generic)
+import qualified Data.Vector.Generic         as VG
+import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Unboxed         as VU
+import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Foreign.Storable            (Storable)
+import           GHC.Generics                (Generic)
 
 -- See cbits/rounded.c for the ordering
 data RoundingMode
@@ -72,31 +81,31 @@ instance NFData a => NFData (Rounded rn a)
 -- instance RealFrac (Rounded rn a) is defined in Numeric.Rounded.Hardware.Class.
 -- instance Floating (Rounded rn a) is not implemented yet...
 
-newtype instance UM.MVector s (Rounded rn a) = MV_Rounded (UM.MVector s a)
-newtype instance U.Vector (Rounded rn a) = V_Rounded (U.Vector a)
+newtype instance VUM.MVector s (Rounded rn a) = MV_Rounded (VUM.MVector s a)
+newtype instance VU.Vector (Rounded rn a) = V_Rounded (VU.Vector a)
 
-instance U.Unbox a => GM.MVector UM.MVector (Rounded rn a) where
-  basicLength (MV_Rounded mv) = GM.basicLength mv
-  basicUnsafeSlice i l (MV_Rounded mv) = MV_Rounded (GM.basicUnsafeSlice i l mv)
-  basicOverlaps (MV_Rounded mv) (MV_Rounded mv') = GM.basicOverlaps mv mv'
-  basicUnsafeNew l = MV_Rounded <$> GM.basicUnsafeNew l
-  basicInitialize (MV_Rounded mv) = GM.basicInitialize mv
-  basicUnsafeReplicate i x = MV_Rounded <$> GM.basicUnsafeReplicate i (coerce x)
-  basicUnsafeRead (MV_Rounded mv) i = coerce <$> GM.basicUnsafeRead mv i
-  basicUnsafeWrite (MV_Rounded mv) i x = GM.basicUnsafeWrite mv i (coerce x)
-  basicClear (MV_Rounded mv) = GM.basicClear mv
-  basicSet (MV_Rounded mv) x = GM.basicSet mv (coerce x)
-  basicUnsafeCopy (MV_Rounded mv) (MV_Rounded mv') = GM.basicUnsafeCopy mv mv'
-  basicUnsafeMove (MV_Rounded mv) (MV_Rounded mv') = GM.basicUnsafeMove mv mv'
-  basicUnsafeGrow (MV_Rounded mv) n = MV_Rounded <$> GM.basicUnsafeGrow mv n
+instance VU.Unbox a => VGM.MVector VUM.MVector (Rounded rn a) where
+  basicLength (MV_Rounded mv) = VGM.basicLength mv
+  basicUnsafeSlice i l (MV_Rounded mv) = MV_Rounded (VGM.basicUnsafeSlice i l mv)
+  basicOverlaps (MV_Rounded mv) (MV_Rounded mv') = VGM.basicOverlaps mv mv'
+  basicUnsafeNew l = MV_Rounded <$> VGM.basicUnsafeNew l
+  basicInitialize (MV_Rounded mv) = VGM.basicInitialize mv
+  basicUnsafeReplicate i x = MV_Rounded <$> VGM.basicUnsafeReplicate i (coerce x)
+  basicUnsafeRead (MV_Rounded mv) i = coerce <$> VGM.basicUnsafeRead mv i
+  basicUnsafeWrite (MV_Rounded mv) i x = VGM.basicUnsafeWrite mv i (coerce x)
+  basicClear (MV_Rounded mv) = VGM.basicClear mv
+  basicSet (MV_Rounded mv) x = VGM.basicSet mv (coerce x)
+  basicUnsafeCopy (MV_Rounded mv) (MV_Rounded mv') = VGM.basicUnsafeCopy mv mv'
+  basicUnsafeMove (MV_Rounded mv) (MV_Rounded mv') = VGM.basicUnsafeMove mv mv'
+  basicUnsafeGrow (MV_Rounded mv) n = MV_Rounded <$> VGM.basicUnsafeGrow mv n
 
-instance U.Unbox a => G.Vector U.Vector (Rounded rn a) where
-  basicUnsafeFreeze (MV_Rounded mv) = V_Rounded <$> G.basicUnsafeFreeze mv
-  basicUnsafeThaw (V_Rounded v) = MV_Rounded <$> G.basicUnsafeThaw v
-  basicLength (V_Rounded v) = G.basicLength v
-  basicUnsafeSlice i l (V_Rounded v) = V_Rounded (G.basicUnsafeSlice i l v)
-  basicUnsafeIndexM (V_Rounded v) i = coerce <$> G.basicUnsafeIndexM v i
-  basicUnsafeCopy (MV_Rounded mv) (V_Rounded v) = G.basicUnsafeCopy mv v
-  elemseq (V_Rounded v) x y = G.elemseq v (coerce x) y
+instance VU.Unbox a => VG.Vector VU.Vector (Rounded rn a) where
+  basicUnsafeFreeze (MV_Rounded mv) = V_Rounded <$> VG.basicUnsafeFreeze mv
+  basicUnsafeThaw (V_Rounded v) = MV_Rounded <$> VG.basicUnsafeThaw v
+  basicLength (V_Rounded v) = VG.basicLength v
+  basicUnsafeSlice i l (V_Rounded v) = V_Rounded (VG.basicUnsafeSlice i l v)
+  basicUnsafeIndexM (V_Rounded v) i = coerce <$> VG.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_Rounded mv) (V_Rounded v) = VG.basicUnsafeCopy mv v
+  elemseq (V_Rounded v) x y = VG.elemseq v (coerce x) y
 
-instance U.Unbox a => U.Unbox (Rounded rn a)
+instance VU.Unbox a => VU.Unbox (Rounded rn a)

@@ -1,16 +1,24 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
 module Numeric.Rounded.Hardware.Backend.C
   ( CFloat(..)
   , CDouble(..)
   , backendName
+  , VUM.MVector(..)
+  , VU.Vector(..)
   ) where
 import           Control.DeepSeq                             (NFData (..))
 import           Data.Coerce
 import           Data.Functor.Product
 import           Data.Ratio
+import qualified Data.Vector.Generic                      as VG
+import qualified Data.Vector.Generic.Mutable              as VGM
+import qualified Data.Vector.Unboxed.Base                 as VU
+import qualified Data.Vector.Unboxed.Mutable              as VUM
 import           FFIImports
 import qualified FFIWrapper.Double                           as D
 import qualified FFIWrapper.Float                            as F
@@ -110,3 +118,65 @@ foreign import ccall unsafe "rounded_hw_backend_name"
 
 backendName :: String
 backendName = unsafePerformIO (peekCString c_backend_name)
+
+--
+-- instance for Data.Vector.Unboxed.Unbox
+--
+
+newtype instance VUM.MVector s CFloat = MV_CFloat (VUM.MVector s Float)
+newtype instance VU.Vector CFloat = V_CFloat (VU.Vector Float)
+
+instance VGM.MVector VUM.MVector CFloat where
+  basicLength (MV_CFloat mv) = VGM.basicLength mv
+  basicUnsafeSlice i l (MV_CFloat mv) = MV_CFloat (VGM.basicUnsafeSlice i l mv)
+  basicOverlaps (MV_CFloat mv) (MV_CFloat mv') = VGM.basicOverlaps mv mv'
+  basicUnsafeNew l = MV_CFloat <$> VGM.basicUnsafeNew l
+  basicInitialize (MV_CFloat mv) = VGM.basicInitialize mv
+  basicUnsafeReplicate i x = MV_CFloat <$> VGM.basicUnsafeReplicate i (coerce x)
+  basicUnsafeRead (MV_CFloat mv) i = coerce <$> VGM.basicUnsafeRead mv i
+  basicUnsafeWrite (MV_CFloat mv) i x = VGM.basicUnsafeWrite mv i (coerce x)
+  basicClear (MV_CFloat mv) = VGM.basicClear mv
+  basicSet (MV_CFloat mv) x = VGM.basicSet mv (coerce x)
+  basicUnsafeCopy (MV_CFloat mv) (MV_CFloat mv') = VGM.basicUnsafeCopy mv mv'
+  basicUnsafeMove (MV_CFloat mv) (MV_CFloat mv') = VGM.basicUnsafeMove mv mv'
+  basicUnsafeGrow (MV_CFloat mv) n = MV_CFloat <$> VGM.basicUnsafeGrow mv n
+
+instance VG.Vector VU.Vector CFloat where
+  basicUnsafeFreeze (MV_CFloat mv) = V_CFloat <$> VG.basicUnsafeFreeze mv
+  basicUnsafeThaw (V_CFloat v) = MV_CFloat <$> VG.basicUnsafeThaw v
+  basicLength (V_CFloat v) = VG.basicLength v
+  basicUnsafeSlice i l (V_CFloat v) = V_CFloat (VG.basicUnsafeSlice i l v)
+  basicUnsafeIndexM (V_CFloat v) i = coerce <$> VG.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_CFloat mv) (V_CFloat v) = VG.basicUnsafeCopy mv v
+  elemseq (V_CFloat v) x y = VG.elemseq v (coerce x) y
+
+instance VU.Unbox CFloat
+
+newtype instance VUM.MVector s CDouble = MV_CDouble (VUM.MVector s Double)
+newtype instance VU.Vector CDouble = V_CDouble (VU.Vector Double)
+
+instance VGM.MVector VUM.MVector CDouble where
+  basicLength (MV_CDouble mv) = VGM.basicLength mv
+  basicUnsafeSlice i l (MV_CDouble mv) = MV_CDouble (VGM.basicUnsafeSlice i l mv)
+  basicOverlaps (MV_CDouble mv) (MV_CDouble mv') = VGM.basicOverlaps mv mv'
+  basicUnsafeNew l = MV_CDouble <$> VGM.basicUnsafeNew l
+  basicInitialize (MV_CDouble mv) = VGM.basicInitialize mv
+  basicUnsafeReplicate i x = MV_CDouble <$> VGM.basicUnsafeReplicate i (coerce x)
+  basicUnsafeRead (MV_CDouble mv) i = coerce <$> VGM.basicUnsafeRead mv i
+  basicUnsafeWrite (MV_CDouble mv) i x = VGM.basicUnsafeWrite mv i (coerce x)
+  basicClear (MV_CDouble mv) = VGM.basicClear mv
+  basicSet (MV_CDouble mv) x = VGM.basicSet mv (coerce x)
+  basicUnsafeCopy (MV_CDouble mv) (MV_CDouble mv') = VGM.basicUnsafeCopy mv mv'
+  basicUnsafeMove (MV_CDouble mv) (MV_CDouble mv') = VGM.basicUnsafeMove mv mv'
+  basicUnsafeGrow (MV_CDouble mv) n = MV_CDouble <$> VGM.basicUnsafeGrow mv n
+
+instance VG.Vector VU.Vector CDouble where
+  basicUnsafeFreeze (MV_CDouble mv) = V_CDouble <$> VG.basicUnsafeFreeze mv
+  basicUnsafeThaw (V_CDouble v) = MV_CDouble <$> VG.basicUnsafeThaw v
+  basicLength (V_CDouble v) = VG.basicLength v
+  basicUnsafeSlice i l (V_CDouble v) = V_CDouble (VG.basicUnsafeSlice i l v)
+  basicUnsafeIndexM (V_CDouble v) i = coerce <$> VG.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_CDouble mv) (V_CDouble v) = VG.basicUnsafeCopy mv v
+  elemseq (V_CDouble v) x y = VG.elemseq v (coerce x) y
+
+instance VU.Unbox CDouble

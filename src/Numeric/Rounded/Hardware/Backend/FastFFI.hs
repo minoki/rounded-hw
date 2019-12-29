@@ -3,7 +3,9 @@
 {-# LANGUAGE GHCForeignImportPrim       #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MagicHash                  #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples              #-}
 {-# LANGUAGE UnliftedFFITypes           #-}
 module Numeric.Rounded.Hardware.Backend.FastFFI
@@ -12,6 +14,8 @@ module Numeric.Rounded.Hardware.Backend.FastFFI
   , fastIntervalSub
   , fastIntervalRecip
   , backendName
+  , VUM.MVector(MV_CFloat, MV_CDouble)
+  , VU.Vector(V_CFloat, V_CDouble)
   ) where
 import           Control.DeepSeq                             (NFData (..))
 import           Data.Coerce
@@ -27,6 +31,10 @@ import qualified Numeric.Rounded.Hardware.Backend.C          as C (backendName)
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Unboxed.Mutable as VUM
 
 --
 -- Double
@@ -125,3 +133,36 @@ fastIntervalRecip (D# l1) (D# h1) = case c_rounded_interval_recip l1 h1 of
 
 backendName :: String
 backendName = "FastFFI+" ++ C.backendName
+
+--
+-- instance for Data.Vector.Unboxed.Unbox
+--
+
+newtype instance VUM.MVector s CDouble = MV_CDouble (VUM.MVector s Double)
+newtype instance VU.Vector CDouble = V_CDouble (VU.Vector Double)
+
+instance VGM.MVector VUM.MVector CDouble where
+  basicLength (MV_CDouble mv) = VGM.basicLength mv
+  basicUnsafeSlice i l (MV_CDouble mv) = MV_CDouble (VGM.basicUnsafeSlice i l mv)
+  basicOverlaps (MV_CDouble mv) (MV_CDouble mv') = VGM.basicOverlaps mv mv'
+  basicUnsafeNew l = MV_CDouble <$> VGM.basicUnsafeNew l
+  basicInitialize (MV_CDouble mv) = VGM.basicInitialize mv
+  basicUnsafeReplicate i x = MV_CDouble <$> VGM.basicUnsafeReplicate i (coerce x)
+  basicUnsafeRead (MV_CDouble mv) i = coerce <$> VGM.basicUnsafeRead mv i
+  basicUnsafeWrite (MV_CDouble mv) i x = VGM.basicUnsafeWrite mv i (coerce x)
+  basicClear (MV_CDouble mv) = VGM.basicClear mv
+  basicSet (MV_CDouble mv) x = VGM.basicSet mv (coerce x)
+  basicUnsafeCopy (MV_CDouble mv) (MV_CDouble mv') = VGM.basicUnsafeCopy mv mv'
+  basicUnsafeMove (MV_CDouble mv) (MV_CDouble mv') = VGM.basicUnsafeMove mv mv'
+  basicUnsafeGrow (MV_CDouble mv) n = MV_CDouble <$> VGM.basicUnsafeGrow mv n
+
+instance VG.Vector VU.Vector CDouble where
+  basicUnsafeFreeze (MV_CDouble mv) = V_CDouble <$> VG.basicUnsafeFreeze mv
+  basicUnsafeThaw (V_CDouble v) = MV_CDouble <$> VG.basicUnsafeThaw v
+  basicLength (V_CDouble v) = VG.basicLength v
+  basicUnsafeSlice i l (V_CDouble v) = V_CDouble (VG.basicUnsafeSlice i l v)
+  basicUnsafeIndexM (V_CDouble v) i = coerce <$> VG.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_CDouble mv) (V_CDouble v) = VG.basicUnsafeCopy mv v
+  elemseq (V_CDouble v) x y = VG.elemseq v (coerce x) y
+
+instance VU.Unbox CDouble
