@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RankNTypes     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -15,6 +16,7 @@ import qualified Data.Vector.Generic.Mutable as GM
 import qualified Data.Vector.Unboxed as U
 import qualified Data.Vector.Unboxed.Mutable as UM
 import           GHC.Generics    (Generic)
+import           Foreign.Storable            (Storable)
 
 -- See cbits/rounded.c for the ordering
 data RoundingMode
@@ -59,7 +61,7 @@ reifyRounding TowardZero f    = f (Proxy :: Proxy 'TowardZero)
 {-# INLINE reifyRounding #-}
 
 newtype Rounded (rn :: RoundingMode) a = Rounded a
-  deriving (Eq,Ord,Show,Generic,Functor)
+  deriving (Eq,Ord,Show,Generic,Functor,Storable)
 
 instance NFData a => NFData (Rounded rn a)
 

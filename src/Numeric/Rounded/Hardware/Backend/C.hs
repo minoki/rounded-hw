@@ -16,6 +16,7 @@ import qualified FFIWrapper.Double                           as D
 import qualified FFIWrapper.Float                            as F
 import           Foreign.C.String
 import           GHC.Generics                                (Generic)
+import           Foreign.Storable                         (Storable)
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
@@ -26,7 +27,7 @@ import           System.IO.Unsafe
 --
 
 newtype CFloat = CFloat Float
-  deriving (Eq,Ord,Show,Generic,Num)
+  deriving (Eq,Ord,Show,Generic,Num,Storable)
 
 instance NFData CFloat
 
@@ -65,7 +66,7 @@ instance RoundedSqrt CFloat where
 --
 
 newtype CDouble = CDouble Double
-  deriving (Eq,Ord,Show,Generic,Num)
+  deriving (Eq,Ord,Show,Generic,Num,Storable)
 
 instance NFData CDouble
 

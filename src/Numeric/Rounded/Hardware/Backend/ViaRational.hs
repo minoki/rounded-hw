@@ -7,12 +7,13 @@ import           Control.DeepSeq                             (NFData (..))
 import           Data.Functor.Product
 import           Data.Ratio
 import           GHC.Generics                                (Generic)
+import           Foreign.Storable                         (Storable)
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
 
 newtype ViaRational a = ViaRational a
-  deriving (Eq,Ord,Show,Generic,Num)
+  deriving (Eq,Ord,Show,Generic,Num,Storable)
 
 instance NFData a => NFData (ViaRational a)
 

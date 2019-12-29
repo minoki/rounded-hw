@@ -20,6 +20,7 @@ import           Data.Ratio
 import           FFIImports
 import qualified FFIWrapper.Double                           as D
 import qualified FFIWrapper.Float                            as F
+import           Foreign.Storable                            (Storable)
 import           GHC.Exts
 import           GHC.Generics                                (Generic)
 import qualified Numeric.Rounded.Hardware.Backend.C          as C (backendName)
@@ -32,7 +33,7 @@ import           Numeric.Rounded.Hardware.Base.Conversion
 --
 
 newtype CDouble = CDouble Double
-  deriving (Eq,Ord,Show,Generic,Num)
+  deriving (Eq,Ord,Show,Generic,Num,Storable)
 
 instance NFData CDouble
 
