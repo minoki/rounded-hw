@@ -29,7 +29,6 @@ import           GHC.Exts
 import           GHC.Generics                                (Generic)
 import qualified Numeric.Rounded.Hardware.Backend.C          as C
 import           Numeric.Rounded.Hardware.Base.Class
-import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM

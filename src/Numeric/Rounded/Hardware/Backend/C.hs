@@ -30,7 +30,6 @@ import           Foreign.Ptr                              (castPtr)
 import           Foreign.Storable                         (Storable)
 import           GHC.Generics                             (Generic)
 import           Numeric.Rounded.Hardware.Base.Class
-import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
 import           System.IO.Unsafe                         (unsafePerformIO)
 
