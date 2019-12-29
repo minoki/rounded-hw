@@ -61,6 +61,15 @@ foreign import ccall unsafe "rounded_hw_fma_float_down"
 foreign import ccall unsafe "rounded_hw_fma_float_zero"
   c_rounded_fma_float_zero :: Float -> Float -> Float -> Float
 
+foreign import ccall unsafe "rounded_hw_fma_if_fast_float"
+  c_rounded_fma_if_fast_float :: Int -> Float -> Float -> Float -> Float
+foreign import ccall unsafe "rounded_hw_fma_if_fast_float_up"
+  c_rounded_fma_if_fast_float_up :: Float -> Float -> Float -> Float
+foreign import ccall unsafe "rounded_hw_fma_if_fast_float_down"
+  c_rounded_fma_if_fast_float_down :: Float -> Float -> Float -> Float
+foreign import ccall unsafe "rounded_hw_fma_if_fast_float_zero"
+  c_rounded_fma_if_fast_float_zero :: Float -> Float -> Float -> Float
+
 foreign import ccall unsafe "rounded_hw_int64_to_float"
   c_rounded_int64_to_float :: Int -> Int64 -> Float
 foreign import ccall unsafe "rounded_hw_int64_to_float_up"
@@ -160,6 +169,15 @@ foreign import ccall unsafe "rounded_hw_fma_double_down"
   c_rounded_fma_double_down :: Double -> Double -> Double -> Double
 foreign import ccall unsafe "rounded_hw_fma_double_zero"
   c_rounded_fma_double_zero :: Double -> Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_fma_if_fast_double"
+  c_rounded_fma_if_fast_double :: Int -> Double -> Double -> Double -> Double
+foreign import ccall unsafe "rounded_hw_fma_if_fast_double_up"
+  c_rounded_fma_if_fast_double_up :: Double -> Double -> Double -> Double
+foreign import ccall unsafe "rounded_hw_fma_if_fast_double_down"
+  c_rounded_fma_if_fast_double_down :: Double -> Double -> Double -> Double
+foreign import ccall unsafe "rounded_hw_fma_if_fast_double_zero"
+  c_rounded_fma_if_fast_double_zero :: Double -> Double -> Double -> Double
 
 foreign import ccall unsafe "rounded_hw_int64_to_double"
   c_rounded_int64_to_double :: Int -> Int64 -> Double

@@ -63,6 +63,15 @@ roundedFMA rn = c_rounded_fma_double (fromEnum rn)
 "roundedFMA/TowardZero" [~1] roundedFMA TowardZero = c_rounded_fma_double_zero
   #-}
 
+roundedFMAIfFast :: RoundingMode -> Double -> Double -> Double -> Double
+roundedFMAIfFast rn = c_rounded_fma_if_fast_double (fromEnum rn)
+{-# INLINE [1] roundedFMAIfFast #-}
+{-# RULES
+"roundedFMAIfFast/TowardNegInf" [~1] roundedFMAIfFast TowardNegInf = c_rounded_fma_if_fast_double_down
+"roundedFMAIfFast/TowardInf" [~1] roundedFMAIfFast TowardInf = c_rounded_fma_if_fast_double_up
+"roundedFMAIfFast/TowardZero" [~1] roundedFMAIfFast TowardZero = c_rounded_fma_if_fast_double_zero
+  #-}
+
 roundedFromInt64 :: RoundingMode -> Int64 -> Double
 roundedFromInt64 rn = c_rounded_int64_to_double (fromEnum rn)
 {-# INLINE [1] roundedFromInt64 #-}

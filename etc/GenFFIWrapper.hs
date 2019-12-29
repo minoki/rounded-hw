@@ -42,6 +42,7 @@ main = do
     ,oneDecl "roundedDiv" "c_rounded_div" "FLOAT -> FLOAT -> FLOAT"
     ,oneDecl "roundedSqrt" "c_rounded_sqrt" "FLOAT -> FLOAT"
     ,oneDecl "roundedFMA" "c_rounded_fma"  "FLOAT -> FLOAT -> FLOAT -> FLOAT"
+    ,oneDecl "roundedFMAIfFast" "c_rounded_fma_if_fast"  "FLOAT -> FLOAT -> FLOAT -> FLOAT"
     ,oneDecl "roundedFromInt64" "c_rounded_int64_to" "Int64 -> FLOAT"
     ,oneDecl "roundedFromWord64" "c_rounded_word64_to" "Word64 -> FLOAT"
     ,oneDecl "roundedSumPtr" "c_rounded_sum_ptr" "Int -> Int -> Ptr FLOAT -> IO FLOAT"

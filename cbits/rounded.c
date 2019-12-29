@@ -135,6 +135,34 @@ void restore_fp_reg(fp_reg oldmode)
 #undef FMAX
 #undef FMIN
 
+static inline float rounded_fma_if_fast_impl_float(native_rounding_mode mode, float a, float b, float c)
+{
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, mode);
+#ifdef FP_FAST_FMAF
+    float d = fmaf(a, b, c);
+#else
+    float d = a * b + c;
+#endif
+    restore_fp_reg(oldreg);
+    return d;
+}
+EACH_ROUNDING_MODE(rounded_hw_fma_if_fast_float, rounded_fma_if_fast_impl_float, float, (float a, float b, float c), a, b, c)
+
+static inline double rounded_fma_if_fast_impl_double(native_rounding_mode mode, double a, double b, double c)
+{
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, mode);
+#ifdef FP_FAST_FMA
+    double d = fma(a, b, c);
+#else
+    double d = a * b + c;
+#endif
+    restore_fp_reg(oldreg);
+    return d;
+}
+EACH_ROUNDING_MODE(rounded_hw_fma_if_fast_double, rounded_fma_if_fast_impl_double, double, (double a, double b, double c), a, b, c)
+
 // TODO: remainder, double -> int
 
 extern const char *rounded_hw_backend_name(void) {
