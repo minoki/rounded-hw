@@ -27,7 +27,7 @@ import qualified FFIWrapper.Float                            as F
 import           Foreign.Storable                            (Storable)
 import           GHC.Exts
 import           GHC.Generics                                (Generic)
-import qualified Numeric.Rounded.Hardware.Backend.C          as C (backendName)
+import qualified Numeric.Rounded.Hardware.Backend.C          as C
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
@@ -35,6 +35,7 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Unsafe.Coerce
 
 --
 -- Double
@@ -80,6 +81,12 @@ instance RoundedFractional CDouble where
 instance RoundedSqrt CDouble where
   roundedSqrt = coerce D.roundedSqrt
   {-# INLINE roundedSqrt #-}
+
+instance RoundedVectorOperation CDouble where
+  roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec) :: C.CDouble)
+  roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: C.CDouble)
+  {-# INLINE roundedSum_StorableVector #-}
+  {-# INLINE roundedSum_UnboxedVector #-}
 
 --
 -- FFI

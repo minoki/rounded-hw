@@ -66,6 +66,8 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
   {-# SPECIALIZE instance RoundedFractional (ViaRational Float) #-}
   {-# SPECIALIZE instance RoundedFractional (ViaRational Double) #-}
 
+instance (RealFloat a, Num a, RealFloatConstants a) => RoundedVectorOperation (ViaRational a)
+
 backendName :: String
 backendName = "via Rational"
 

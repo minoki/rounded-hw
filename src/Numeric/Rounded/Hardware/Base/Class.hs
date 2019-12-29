@@ -5,6 +5,8 @@
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE ConstrainedClassMethods #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Numeric.Rounded.Hardware.Base.Class
   ( module Numeric.Rounded.Hardware.Base.Class
@@ -13,6 +15,9 @@ module Numeric.Rounded.Hardware.Base.Class
 import           Data.Coerce
 import           Data.Proxy
 import           Data.Ratio
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed as VU
+import           Foreign.Storable (Storable)
 import           Numeric.Rounded.Hardware.Base.Rounding
 
 class Ord a => RoundedRing a where
@@ -85,6 +90,15 @@ class RoundedRing a => RoundedFractional a where
 
 class RoundedRing a => RoundedSqrt a where
   roundedSqrt :: RoundingMode -> a -> a
+
+class RoundedRing a => RoundedVectorOperation a where
+  roundedSum_StorableVector :: Storable a => RoundingMode -> VS.Vector a -> a
+  default roundedSum_StorableVector :: (Num a, Storable a) => RoundingMode -> VS.Vector a -> a
+  roundedSum_StorableVector mode = VS.foldl' (roundedAdd mode) 0
+
+  roundedSum_UnboxedVector :: VU.Unbox a => RoundingMode -> VU.Vector a -> a
+  default roundedSum_UnboxedVector :: (Num a, VU.Unbox a) => RoundingMode -> VU.Vector a -> a
+  roundedSum_UnboxedVector mode = VU.foldl' (roundedAdd mode) 0
 
 instance (Rounding rn, Num a, RoundedRing a) => Num (Rounded rn a) where
   Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy rn)) x y)

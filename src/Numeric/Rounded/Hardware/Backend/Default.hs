@@ -14,6 +14,9 @@ import qualified Numeric.Rounded.Hardware.Backend.C as C
 import qualified Numeric.Rounded.Hardware.Backend.FastFFI as FastFFI
 #endif
 #endif
+import qualified Data.Vector.Storable as VS
+import           Unsafe.Coerce
+import           Data.Coerce
 
 backendName :: String
 
@@ -44,3 +47,11 @@ deriving via DoubleImpl instance RoundedFractional Double
 #ifdef USE_FFI
 deriving via DoubleImpl instance RoundedSqrt Double
 #endif
+
+instance RoundedVectorOperation Float where
+  roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec :: VS.Vector FloatImpl))
+  roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: FloatImpl)
+
+instance RoundedVectorOperation Double where
+  roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec :: VS.Vector DoubleImpl))
+  roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: DoubleImpl)

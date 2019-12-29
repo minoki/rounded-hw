@@ -11,24 +11,28 @@ module Numeric.Rounded.Hardware.Backend.C
   , VUM.MVector(..)
   , VU.Vector(..)
   ) where
-import           Control.DeepSeq                             (NFData (..))
+import           Control.DeepSeq                          (NFData (..))
 import           Data.Coerce
 import           Data.Functor.Product
+import           Data.Primitive.ByteArray
 import           Data.Ratio
 import qualified Data.Vector.Generic                      as VG
 import qualified Data.Vector.Generic.Mutable              as VGM
+import qualified Data.Vector.Primitive                    as VP
+import qualified Data.Vector.Storable                     as VS
 import qualified Data.Vector.Unboxed.Base                 as VU
 import qualified Data.Vector.Unboxed.Mutable              as VUM
 import           FFIImports
-import qualified FFIWrapper.Double                           as D
-import qualified FFIWrapper.Float                            as F
-import           Foreign.C.String
-import           GHC.Generics                                (Generic)
+import qualified FFIWrapper.Double                        as D
+import qualified FFIWrapper.Float                         as F
+import           Foreign.C.String                         (CString, peekCString)
+import           Foreign.Ptr                              (castPtr)
 import           Foreign.Storable                         (Storable)
+import           GHC.Generics                             (Generic)
 import           Numeric.Rounded.Hardware.Base.Class
 import           Numeric.Rounded.Hardware.Base.Constants
 import           Numeric.Rounded.Hardware.Base.Conversion
-import           System.IO.Unsafe
+import           System.IO.Unsafe                         (unsafePerformIO)
 
 --
 -- Float
@@ -69,6 +73,12 @@ instance RoundedSqrt CFloat where
   roundedSqrt = coerce F.roundedSqrt
   {-# INLINE roundedSqrt #-}
 
+instance RoundedVectorOperation CFloat where
+  roundedSum_StorableVector mode vec = CFloat $ unsafePerformIO $
+    VS.unsafeWith vec $ \ptr -> F.roundedSumPtr mode 0 (VS.length vec) (castPtr ptr)
+  roundedSum_UnboxedVector mode (V_CFloat (VU.V_Float (VP.Vector off len (ByteArray arr)))) =
+    CFloat $ F.roundedSumByteArray mode off len arr
+
 --
 -- Double
 --
@@ -108,6 +118,12 @@ instance RoundedFractional CDouble where
 instance RoundedSqrt CDouble where
   roundedSqrt = coerce D.roundedSqrt
   {-# INLINE roundedSqrt #-}
+
+instance RoundedVectorOperation CDouble where
+  roundedSum_StorableVector mode vec = CDouble $ unsafePerformIO $
+    VS.unsafeWith vec $ \ptr -> D.roundedSumPtr mode 0 (VS.length vec) (castPtr ptr)
+  roundedSum_UnboxedVector mode (V_CDouble (VU.V_Double (VP.Vector off len (ByteArray arr)))) =
+    CDouble $ D.roundedSumByteArray mode off len arr
 
 --
 -- Backend name
