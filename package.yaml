@@ -26,6 +26,7 @@ dependencies:
 - deepseq
 - vector
 - primitive
+- array
 # - rounded
 
 flags:

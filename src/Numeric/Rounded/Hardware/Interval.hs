@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies  #-}
 module Numeric.Rounded.Hardware.Interval
   ( Interval(..)
@@ -11,7 +12,12 @@ module Numeric.Rounded.Hardware.Interval
   , powInt
   ) where
 import           Control.DeepSeq                          (NFData (..))
+import           Control.Monad
+import           Control.Monad.ST
+import qualified Data.Array.Base as A
 import           Data.Coerce
+import           Data.Ix
+import           Data.Primitive
 import qualified Data.Vector.Generic         as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed         as VU
@@ -155,3 +161,39 @@ instance (VU.Unbox a, Ord a, Fractional a) => VG.Vector VU.Vector (Interval a) w
   {-# INLINE elemseq #-}
 
 instance (VU.Unbox a, Ord a, Fractional a) => VU.Unbox (Interval a)
+
+--
+-- Instances for Data.Array.Unboxed
+--
+
+instance (Prim a, Ord a, Fractional a) => A.MArray (A.STUArray s) (Interval a) (ST s) where
+  getBounds (A.STUArray l u _ _) = return (l, u)
+  getNumElements (A.STUArray _ _ n _) = return n
+  -- newArray: Use default
+  unsafeNewArray_ = A.newArray_
+  newArray_ bounds@(l,u) = do
+    let n = rangeSize bounds
+    arr@(MutableByteArray arr_) <- newByteArray (2 * sizeOf (undefined :: a))
+    setByteArray arr 0 (2 * n) (0 :: a)
+    return (A.STUArray l u n arr_)
+  unsafeRead (A.STUArray _ _ _ byteArr) i = do
+    x <- readByteArray (MutableByteArray byteArr) (2 * i)
+    y <- readByteArray (MutableByteArray byteArr) (2 * i + 1)
+    return (pairToInterval (x, y))
+  unsafeWrite (A.STUArray _ _ _ byteArr) i e = do
+    let (x, y) = intervalToPair e
+    writeByteArray (MutableByteArray byteArr) (2 * i) x
+    writeByteArray (MutableByteArray byteArr) (2 * i + 1) y
+
+instance (Prim a, Ord a, Fractional a) => A.IArray A.UArray (Interval a) where
+  bounds (A.UArray l u _ _) = (l,u)
+  numElements (A.UArray _ _ n _) = n
+  unsafeArray bounds el = runST $ do
+    marr <- A.newArray_ bounds
+    forM_ el $ \(i,e) -> A.unsafeWrite marr i e
+    A.unsafeFreezeSTUArray marr
+  unsafeAt (A.UArray _ _ _ byteArr) i =
+    let x = indexByteArray (ByteArray byteArr) (2 * i)
+        y = indexByteArray (ByteArray byteArr) (2 * i + 1)
+    in pairToInterval (x, y)
+  -- unsafeReplace, unsafeAccum, unsafeAccumArray: Use default
