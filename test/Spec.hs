@@ -8,6 +8,9 @@ import Data.Proxy
 import Data.Int
 import Numeric
 
+getRoundedDouble :: Rounded rn Double -> Double
+getRoundedDouble (Rounded x) = x
+
 newtype ShowHexFloat a = ShowHexFloat a deriving (Eq,Ord)
 
 instance RealFloat a => Show (ShowHexFloat a) where
@@ -15,23 +18,23 @@ instance RealFloat a => Show (ShowHexFloat a) where
 
 prop_fromInteger_nearest_stock :: Integer -> Property
 prop_fromInteger_nearest_stock x
-  = ShowHexFloat (getRoundedDouble (fromInteger x :: RoundedDouble TowardNearest))
+  = ShowHexFloat (getRoundedDouble (fromInteger x :: Rounded 'TowardNearest Double))
     === ShowHexFloat (fromInteger x :: Double)
 
 prop_fromInt_order :: Integer -> Property
 prop_fromInt_order x
-  = let ne   = fromInt TowardNearest x
-        ze   = fromInt TowardZero    x
-        inf  = fromInt TowardInf     x
-        ninf = fromInt TowardNegInf  x
+  = let ne   = fromInt TowardNearest x :: Double
+        ze   = fromInt TowardZero    x :: Double
+        inf  = fromInt TowardInf     x :: Double
+        ninf = fromInt TowardNegInf  x :: Double
     in ninf <= inf
        .&&. (ne == ninf || ne == inf)
        .&&. (if x < 0 then ze == inf else ze == ninf)
 
 prop_fromInt_exact :: Integer -> Property
 prop_fromInt_exact x
-  = let inf  = fromInt TowardInf    x
-        ninf = fromInt TowardNegInf x
+  = let inf  = fromInt TowardInf    x :: Double
+        ninf = fromInt TowardNegInf x :: Double
     in if ninf == inf
        then not (isInfinite inf) .&&. toRational inf === fromInteger x
        else if isInfinite inf
@@ -47,28 +50,28 @@ prop_fromInt_exact x
 
 prop_fromRational_nearest_stock :: Rational -> Property
 prop_fromRational_nearest_stock x
-  = ShowHexFloat (getRoundedDouble (fromRational x :: RoundedDouble TowardNearest))
+  = ShowHexFloat (getRoundedDouble (fromRational x :: Rounded 'TowardNearest Double))
     === ShowHexFloat (fromRational x :: Double)
 
 prop_fromRational :: forall rn. Rounding rn => Proxy rn -> Rational -> Property
 prop_fromRational proxy x
   = ShowHexFloat (fromRatio (rounding proxy) (numerator x) (denominator x))
-    === ShowHexFloat (getRoundedDouble (fromRational x :: RoundedDouble rn))
+    === ShowHexFloat (getRoundedDouble (fromRational x :: Rounded rn Double))
 
 prop_fromRatio_order :: Rational -> Property
 prop_fromRatio_order x
-  = let ne   = fromRatio TowardNearest (numerator x) (denominator x)
-        ze   = fromRatio TowardZero    (numerator x) (denominator x)
-        inf  = fromRatio TowardInf     (numerator x) (denominator x)
-        ninf = fromRatio TowardNegInf  (numerator x) (denominator x)
+  = let ne   = fromRatio TowardNearest (numerator x) (denominator x) :: Double
+        ze   = fromRatio TowardZero    (numerator x) (denominator x) :: Double
+        inf  = fromRatio TowardInf     (numerator x) (denominator x) :: Double
+        ninf = fromRatio TowardNegInf  (numerator x) (denominator x) :: Double
     in ninf <= inf
        .&&. (ne == ninf || ne == inf)
        .&&. (if x < 0 then ze == inf else ze == ninf)
 
 prop_fromRatio_exact :: Rational -> Property
 prop_fromRatio_exact x
-  = let inf  = fromRatio TowardInf    (numerator x) (denominator x)
-        ninf = fromRatio TowardNegInf (numerator x) (denominator x)
+  = let inf  = fromRatio TowardInf    (numerator x) (denominator x) :: Double
+        ninf = fromRatio TowardNegInf (numerator x) (denominator x) :: Double
     in if ninf == inf
        then not (isInfinite inf) .&&. toRational inf === x
        else if isInfinite inf
