@@ -1,9 +1,21 @@
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes    #-}
-module Numeric.Rounded.Hardware.Interval where
+{-# LANGUAGE TypeFamilies  #-}
+module Numeric.Rounded.Hardware.Interval
+  ( Interval(..)
+  , increasing
+  , maxI
+  , minI
+  , powInt
+  ) where
 import           Control.DeepSeq                          (NFData (..))
 import           Data.Coerce
+import qualified Data.Vector.Generic         as VG
+import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Unboxed         as VU
+import qualified Data.Vector.Unboxed.Mutable as VUM
 import           GHC.Generics                             (Generic)
 import           Numeric.Rounded.Hardware.Internal
 
@@ -80,3 +92,66 @@ powInt (I a a') n | odd n || 0 <= a = I (a^n) (a'^n)
 powInt Empty _ = Empty
 {-# SPECIALIZE powInt :: Interval Float -> Int -> Interval Float #-}
 {-# SPECIALIZE powInt :: Interval Double -> Int -> Interval Double #-}
+
+--
+-- Instance for Data.Vector.Unboxed.Unbox
+--
+
+newtype instance VUM.MVector s (Interval a) = MV_Interval (VUM.MVector s (a, a))
+newtype instance VU.Vector (Interval a) = V_Interval (VU.Vector (a, a))
+
+intervalToPair :: Fractional a => Interval a -> (a, a)
+intervalToPair (I (Rounded x) (Rounded y)) = (x, y)
+intervalToPair Empty = (1/0, -1/0)
+{-# INLINE intervalToPair #-}
+
+pairToInterval :: Ord a => (a, a) -> Interval a
+pairToInterval (x, y) | y < x = Empty
+                      | otherwise = I (Rounded x) (Rounded y)
+{-# INLINE pairToInterval #-}
+
+instance (VU.Unbox a, Ord a, Fractional a) => VGM.MVector VUM.MVector (Interval a) where
+  basicLength (MV_Interval mv) = VGM.basicLength mv
+  basicUnsafeSlice i l (MV_Interval mv) = MV_Interval (VGM.basicUnsafeSlice i l mv)
+  basicOverlaps (MV_Interval mv) (MV_Interval mv') = VGM.basicOverlaps mv mv'
+  basicUnsafeNew l = MV_Interval <$> VGM.basicUnsafeNew l
+  basicInitialize (MV_Interval mv) = VGM.basicInitialize mv
+  basicUnsafeReplicate i x = MV_Interval <$> VGM.basicUnsafeReplicate i (intervalToPair x)
+  basicUnsafeRead (MV_Interval mv) i = pairToInterval <$> VGM.basicUnsafeRead mv i
+  basicUnsafeWrite (MV_Interval mv) i x = VGM.basicUnsafeWrite mv i (intervalToPair x)
+  basicClear (MV_Interval mv) = VGM.basicClear mv
+  basicSet (MV_Interval mv) x = VGM.basicSet mv (intervalToPair x)
+  basicUnsafeCopy (MV_Interval mv) (MV_Interval mv') = VGM.basicUnsafeCopy mv mv'
+  basicUnsafeMove (MV_Interval mv) (MV_Interval mv') = VGM.basicUnsafeMove mv mv'
+  basicUnsafeGrow (MV_Interval mv) n = MV_Interval <$> VGM.basicUnsafeGrow mv n
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicInitialize #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeMove #-}
+  {-# INLINE basicUnsafeGrow #-}
+
+instance (VU.Unbox a, Ord a, Fractional a) => VG.Vector VU.Vector (Interval a) where
+  basicUnsafeFreeze (MV_Interval mv) = V_Interval <$> VG.basicUnsafeFreeze mv
+  basicUnsafeThaw (V_Interval v) = MV_Interval <$> VG.basicUnsafeThaw v
+  basicLength (V_Interval v) = VG.basicLength v
+  basicUnsafeSlice i l (V_Interval v) = V_Interval (VG.basicUnsafeSlice i l v)
+  basicUnsafeIndexM (V_Interval v) i = pairToInterval <$> VG.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_Interval mv) (V_Interval v) = VG.basicUnsafeCopy mv v
+  elemseq (V_Interval _) x y = x `seq` y
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE elemseq #-}
+
+instance (VU.Unbox a, Ord a, Fractional a) => VU.Unbox (Interval a)
