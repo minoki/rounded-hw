@@ -2,10 +2,10 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Numeric.Rounded.Hardware.Base.RoundedResult where
+module Numeric.Rounded.Hardware.Internal.RoundedResult where
 import Data.Proxy
 import Data.Functor.Product
-import Numeric.Rounded.Hardware.Base.Rounding
+import Numeric.Rounded.Hardware.Internal.Rounding
 
 class Functor f => Result f where
   exact :: a -> f a

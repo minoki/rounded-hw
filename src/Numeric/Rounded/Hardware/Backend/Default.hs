@@ -6,7 +6,7 @@
 module Numeric.Rounded.Hardware.Backend.Default
   ( backendName
   ) where
-import           Numeric.Rounded.Hardware.Base.Class
+import           Numeric.Rounded.Hardware.Internal.Class
 import qualified Numeric.Rounded.Hardware.Backend.ViaRational as VR
 #ifdef USE_FFI
 import qualified Numeric.Rounded.Hardware.Backend.C as C

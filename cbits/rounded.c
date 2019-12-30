@@ -24,7 +24,7 @@ static inline ALWAYS_INLINE
 native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
 {
     /*
-     * The order of RoundingMode in Numeric.Rounded.Hardware.Rounding is
+     * The order of RoundingMode in Numeric.Rounded.Hardware.Internal.Rounding is
      * chosen so that the conversion here becomes trivial.
      */
     return (native_rounding_mode)mode;

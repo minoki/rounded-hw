@@ -2,15 +2,15 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Numeric.Rounded.Hardware.Base.Conversion
+module Numeric.Rounded.Hardware.Internal.Conversion
   ( fromInt
   , fromIntF
   , fromRatio
   , fromRatioF
   ) where
-import Numeric.Rounded.Hardware.Base.Rounding
-import Numeric.Rounded.Hardware.Base.RoundedResult
-import Numeric.Rounded.Hardware.Base.Constants
+import Numeric.Rounded.Hardware.Internal.Rounding
+import Numeric.Rounded.Hardware.Internal.RoundedResult
+import Numeric.Rounded.Hardware.Internal.Constants
 import Data.Bits
 import Data.Functor.Product
 import Math.NumberTheory.Logarithms (integerLog2')

@@ -6,7 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
-module Numeric.Rounded.Hardware.Base.Rounding
+module Numeric.Rounded.Hardware.Internal.Rounding
   ( RoundingMode(..)
   , oppositeRoundingMode
   , Rounding

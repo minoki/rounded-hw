@@ -15,9 +15,9 @@ import qualified Data.Vector.Unboxed                      as VU
 import qualified Data.Vector.Unboxed.Mutable              as VUM
 import           Foreign.Storable                         (Storable)
 import           GHC.Generics                             (Generic)
-import           Numeric.Rounded.Hardware.Base.Class
-import           Numeric.Rounded.Hardware.Base.Constants
-import           Numeric.Rounded.Hardware.Base.Conversion
+import           Numeric.Rounded.Hardware.Internal.Class
+import           Numeric.Rounded.Hardware.Internal.Constants
+import           Numeric.Rounded.Hardware.Internal.Conversion
 
 newtype ViaRational a = ViaRational a
   deriving (Eq,Ord,Show,Generic,Num,Storable)

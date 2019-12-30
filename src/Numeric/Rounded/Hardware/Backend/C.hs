@@ -29,9 +29,9 @@ import           Foreign.C.String                         (CString, peekCString)
 import           Foreign.Ptr                              (castPtr)
 import           Foreign.Storable                         (Storable)
 import           GHC.Generics                             (Generic)
-import           Numeric.Rounded.Hardware.Base.Class
-import           Numeric.Rounded.Hardware.Base.Conversion
 import           System.IO.Unsafe                         (unsafePerformIO)
+import           Numeric.Rounded.Hardware.Internal.Class
+import           Numeric.Rounded.Hardware.Internal.Conversion
 
 --
 -- Float

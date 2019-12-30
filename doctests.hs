@@ -1,7 +1,8 @@
 import Test.DocTest
 
+main :: IO ()
 main = doctest [ "-isrc"
-               , "src/Numeric/Rounded/Hardware/Rounding.hs"
-               , "src/Numeric/Rounded/Hardware/Util/Conversion.hs"
-               , "src/Numeric/Rounded/Hardware/Util/Show.hs"
+               , "src/Numeric/Rounded/Hardware/Internal/Rounding.hs"
+               , "src/Numeric/Rounded/Hardware/Internal/Conversion.hs"
+               , "src/Numeric/Rounded/Hardware/Internal/Show.hs"
                ]

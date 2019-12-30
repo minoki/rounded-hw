@@ -8,9 +8,9 @@
 {-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Numeric.Rounded.Hardware.Base.Class
-  ( module Numeric.Rounded.Hardware.Base.Class
-  , module Numeric.Rounded.Hardware.Base.Rounding
+module Numeric.Rounded.Hardware.Internal.Class
+  ( module Numeric.Rounded.Hardware.Internal.Class
+  , module Numeric.Rounded.Hardware.Internal.Rounding
   ) where
 import           Data.Coerce
 import           Data.Proxy
@@ -18,7 +18,7 @@ import           Data.Ratio
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import           Foreign.Storable (Storable)
-import           Numeric.Rounded.Hardware.Base.Rounding
+import           Numeric.Rounded.Hardware.Internal.Rounding
 
 class Ord a => RoundedRing a where
   roundedAdd :: RoundingMode -> a -> a -> a

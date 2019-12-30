@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
-module Numeric.Rounded.Hardware.Base.Show where
-import Numeric.Rounded.Hardware.Base.Rounding
+module Numeric.Rounded.Hardware.Internal.Show where
+import Numeric.Rounded.Hardware.Internal.Rounding
 import Data.Char (intToDigit)
 import Data.Bifunctor (first)
 import Data.Bits

@@ -28,12 +28,12 @@ import           Foreign.Storable                            (Storable)
 import           GHC.Exts
 import           GHC.Generics                                (Generic)
 import qualified Numeric.Rounded.Hardware.Backend.C          as C
-import           Numeric.Rounded.Hardware.Base.Class
-import           Numeric.Rounded.Hardware.Base.Conversion
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Numeric.Rounded.Hardware.Internal.Class
+import           Numeric.Rounded.Hardware.Internal.Conversion
 import           Unsafe.Coerce
 
 --
