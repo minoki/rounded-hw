@@ -13,6 +13,7 @@ module Numeric.Rounded.Hardware.Internal.Rounding
   , rounding
   , reifyRounding
   , Rounded(..)
+  , getRounded
   , VUM.MVector(MV_Rounded)
   , VU.Vector(V_Rounded)
   ) where
@@ -71,6 +72,9 @@ reifyRounding TowardZero f    = f (Proxy :: Proxy 'TowardZero)
 
 newtype Rounded (rn :: RoundingMode) a = Rounded a
   deriving (Eq,Ord,Show,Generic,Functor,Storable)
+
+getRounded :: Rounded rn a -> a
+getRounded (Rounded x) = x
 
 instance NFData a => NFData (Rounded rn a)
 
