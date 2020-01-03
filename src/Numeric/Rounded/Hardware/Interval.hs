@@ -1,29 +1,35 @@
-{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes    #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeFamilies #-}
 module Numeric.Rounded.Hardware.Interval
   ( Interval(..)
   , increasing
   , maxI
   , minI
   , powInt
+  , null
+  , inf
+  , sup
+  , width
+  , hull
   ) where
-import           Control.DeepSeq                          (NFData (..))
+import           Control.DeepSeq (NFData (..))
 import           Control.Monad
 import           Control.Monad.ST
 import qualified Data.Array.Base as A
 import           Data.Coerce
 import           Data.Ix
 import           Data.Primitive
-import qualified Data.Vector.Generic         as VG
+import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
-import qualified Data.Vector.Unboxed         as VU
+import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           GHC.Generics                             (Generic)
+import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal
+import           Prelude hiding (null)
 
 data Interval a
   = I !(Rounded 'TowardNegInf a) !(Rounded 'TowardInf a)
@@ -99,6 +105,27 @@ powInt Empty _ = Empty
 {-# SPECIALIZE powInt :: Interval Float -> Int -> Interval Float #-}
 {-# SPECIALIZE powInt :: Interval Double -> Int -> Interval Double #-}
 
+null :: Interval a -> Bool
+null Empty = True
+null _     = False
+
+inf :: Interval a -> Rounded 'TowardNegInf a
+inf (I x _) = x
+inf _       = error "empty interval"
+
+sup :: Interval a -> Rounded 'TowardInf a
+sup (I _ y) = y
+sup _       = error "empty interval"
+
+width :: (Num a, RoundedRing a) => Interval a -> Rounded 'TowardInf a
+width (I x y) = y - coerce x
+width Empty   = 0
+
+hull :: RoundedRing a => Interval a -> Interval a -> Interval a
+hull (I x y) (I x' y') = I (min x x') (max y y')
+hull Empty v           = v
+hull u Empty           = u
+
 --
 -- Instance for Data.Vector.Unboxed.Unbox
 --
@@ -108,7 +135,7 @@ newtype instance VU.Vector (Interval a) = V_Interval (VU.Vector (a, a))
 
 intervalToPair :: Fractional a => Interval a -> (a, a)
 intervalToPair (I (Rounded x) (Rounded y)) = (x, y)
-intervalToPair Empty = (1/0, -1/0)
+intervalToPair Empty                       = (1/0, -1/0)
 {-# INLINE intervalToPair #-}
 
 pairToInterval :: Ord a => (a, a) -> Interval a
