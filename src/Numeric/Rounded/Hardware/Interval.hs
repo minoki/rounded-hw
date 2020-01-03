@@ -15,6 +15,8 @@ module Numeric.Rounded.Hardware.Interval
   , sup
   , width
   , hull
+  , expI
+  , expm1I
   ) where
 import           Control.DeepSeq (NFData (..))
 import           Control.Monad
@@ -30,6 +32,7 @@ import qualified Data.Vector.Unboxed.Mutable as VUM
 import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal
 import qualified Numeric.Rounded.Hardware.Interval.Class as C
+import qualified Numeric.Rounded.Hardware.Interval.ElementaryFunctions as C
 import           Prelude hiding (null)
 
 data Interval a
@@ -126,6 +129,12 @@ hull :: RoundedRing a => Interval a -> Interval a -> Interval a
 hull (I x y) (I x' y') = I (min x x') (max y y')
 hull Empty v           = v
 hull u Empty           = u
+
+expI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
+expI = C.expI
+
+expm1I :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
+expm1I = C.expm1I
 
 instance (Num a, RoundedRing a) => C.IsInterval (Interval a) where
   type EndPoint (Interval a) = a

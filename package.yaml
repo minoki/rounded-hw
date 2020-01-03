@@ -57,6 +57,7 @@ library:
   - Numeric.Rounded.Hardware.Internal.Conversion
   - Numeric.Rounded.Hardware.Internal.RoundedResult
   - Numeric.Rounded.Hardware.Internal.Show
+  - Numeric.Rounded.Hardware.Interval.ElementaryFunctions
   when:
   - condition: "!flag(pure-hs)"
     c-sources:
