@@ -127,7 +127,7 @@ fromPositiveRatioF !n !d
         --                   = (q `quot` 2) * (2 * d) + (q `rem` 2) * d + r
         -- q' * 2^^e' <= n/d < (q'+1) * 2^^e', 2^52 <= q' < 2^53
         -- (q'/2^53) * 2^^(e'+53) <= n/d < (q'+1)/2^53 * 2^^(e'+53), 1/2 <= q'/2^53 < 1
-        (!expMin, !expMax) = floatRange (undefined :: Double) -- (-1021, 1024) for Double
+        (!expMin, !expMax) = floatRange (undefined :: a) -- (-1021, 1024) for Double
         -- normal: 0x1p-1022 <= x <= 0x1.fffffffffffffp+1023
     in if expMin <= e'+fDigits && e'+fDigits < expMax
        then
