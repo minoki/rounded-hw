@@ -29,6 +29,7 @@ import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal
+import qualified Numeric.Rounded.Hardware.Interval.Class as C
 import           Prelude hiding (null)
 
 data Interval a
@@ -125,6 +126,14 @@ hull :: RoundedRing a => Interval a -> Interval a -> Interval a
 hull (I x y) (I x' y') = I (min x x') (max y y')
 hull Empty v           = v
 hull u Empty           = u
+
+instance (Num a, RoundedRing a) => C.IsInterval (Interval a) where
+  type EndPoint (Interval a) = a
+  makeInterval = I
+  width = width
+  withEndPoints f (I x y) = f x y
+  withEndPoints _ Empty   = Empty
+  hull = hull
 
 --
 -- Instance for Data.Vector.Unboxed.Unbox
