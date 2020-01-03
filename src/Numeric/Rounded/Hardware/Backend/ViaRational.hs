@@ -27,22 +27,30 @@ instance NFData a => NFData (ViaRational a)
 instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational a) where
   roundedAdd rn (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y = ViaRational (x + y)
-    | x == 0 && y == 0 = ViaRational $ case rn of
-                                         _ | isNegativeZero x == isNegativeZero y -> x
-                                         TowardNearest -> 0
-                                         TowardNegInf -> -0
-                                         TowardInf -> 0
-                                         TowardZero -> 0
-    | otherwise = roundedFromRational rn (toRational x + toRational y)
+    | x == 0 && y == 0 = ViaRational $ if isNegativeZero x == isNegativeZero y
+                                       then x
+                                       else roundedZero
+    | otherwise = case toRational x + toRational y of
+                    0 -> ViaRational roundedZero
+                    z -> roundedFromRational rn z
+    where roundedZero = case rn of
+            TowardNearest ->  0
+            TowardNegInf  -> -0
+            TowardInf     ->  0
+            TowardZero    ->  0
   roundedSub rn (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y = ViaRational (x - y)
-    | x == 0 && y == 0 = ViaRational $ case rn of
-                                         _ | isNegativeZero x /= isNegativeZero y -> x
-                                         TowardNearest -> 0
-                                         TowardNegInf -> -0
-                                         TowardInf -> 0
-                                         TowardZero -> 0
-    | otherwise = roundedFromRational rn (toRational x - toRational y)
+    | x == 0 && y == 0 = ViaRational $ if isNegativeZero x /= isNegativeZero y
+                                       then x
+                                       else roundedZero
+    | otherwise = case toRational x - toRational y of
+                    0 -> ViaRational roundedZero
+                    z -> roundedFromRational rn z
+    where roundedZero = case rn of
+            TowardNearest ->  0
+            TowardNegInf  -> -0
+            TowardInf     ->  0
+            TowardZero    ->  0
   roundedMul rn (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y || isNegativeZero x || isNegativeZero y = ViaRational (x * y)
     | otherwise = roundedFromRational rn (toRational x * toRational y)
