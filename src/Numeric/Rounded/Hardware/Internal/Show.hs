@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Numeric.Rounded.Hardware.Internal.Show where
 import Numeric.Rounded.Hardware.Internal.Rounding
 import Data.Char (intToDigit)
@@ -22,24 +23,25 @@ countTrailingZerosInteger x
 
 -- ratToDigitsRn :: RoundingMode -> Int -> Int -> Rational -> ([Int], Int)
 
--- doubleToDecimalDigitsRn _ prec x = ([d1,d2,...,dn], e)
+-- binaryFloatToDecimalDigitsRn _ prec x = ([d1,d2,...,dn], e)
 -- 0 <= n <= prec + 1, x = 0.d1d2...dn * (10^^e) up to rounding
 -- 0 <= di < 10
-doubleToDecimalDigitsRn :: RoundingMode -- ^ rounding mode
-                        -> Int -- ^ prec
-                        -> Double -- ^ a non-negative number (zero, normal or subnormal)
-                        -> ([Int], Int)
-doubleToDecimalDigitsRn _rn _prec 0 = ([], 0)
--- doubleToDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "floatRadix x must be 2"
-doubleToDecimalDigitsRn rn prec x =
+binaryFloatToDecimalDigitsRn :: forall a. RealFloat a
+                             => RoundingMode -- ^ rounding mode
+                             -> Int -- ^ prec
+                             -> a -- ^ a non-negative number (zero, normal or subnormal)
+                             -> ([Int], Int)
+binaryFloatToDecimalDigitsRn _rn _prec 0 = ([], 0)
+binaryFloatToDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "radix must be 2"
+binaryFloatToDecimalDigitsRn rn prec x =
   -- x > 0
   let (m,n) = decodeFloat x
-      -- x = m*2^n, 2^52 <= m < 2^53
+      d = floatDigits x -- d=53 for Double
+      -- x = m*2^n, 2^(d-1) <= m < 2^d
       -- 2^(-1074) <= x < 2^1024
       -- => -1074-52=-1126 <= n < 1024-52=972
-      -- d = floatDigits x -- d=53 for Double
-      e0 = floor (fromIntegral (52 + n) * logBase 10 2 :: Double) - prec
-      -- TODO: precision?
+      e0 = floor (fromIntegral (d - 1 + n) * logBase 10 2 :: a) - prec
+      -- TODO: precision of logBase 10 2?
       -- TODO: Use rational approximation for logBase 10 2?
       (s,t) | n < 0,       0 <= e0 = (m,     2^(-n) * 10^e0)
             | {- n >= 0 -} 0 <= e0 = (m * 2^n,        10^e0)
@@ -86,15 +88,18 @@ doubleToDecimalDigitsRn rn prec x =
            EQ | even q' -> loop0 e' q'
               | otherwise -> loop0 e' (q' + 1)
            GT -> loop0 e' (q' + 1)
+{-# SPECIALIZE binaryFloatToDecimalDigitsRn :: RoundingMode -> Int -> Double -> ([Int], Int) #-}
 
--- doubleToFixedDecimalDigitsRn _ prec x = [d1,d2,...,dn]
+-- binaryFloatToFixedDecimalDigitsRn _ prec x = [d1,d2,...,dn]
 -- x = d1d2...dn * (10^^(-prec)) up to rounding
 -- 0 <= di < 10
-doubleToFixedDecimalDigitsRn :: RoundingMode -- ^ rounding mode
-                             -> Int -- ^ prec
-                             -> Double -- ^ a non-negative number (zero, normal or subnormal)
-                             -> [Int]
-doubleToFixedDecimalDigitsRn rn prec x =
+binaryFloatToFixedDecimalDigitsRn :: forall a. RealFloat a
+                                  => RoundingMode -- ^ rounding mode
+                                  -> Int -- ^ prec
+                                  -> a -- ^ a non-negative number (zero, normal or subnormal)
+                                  -> [Int]
+binaryFloatToFixedDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "radix must be 2"
+binaryFloatToFixedDecimalDigitsRn rn prec x =
   let (m,e) = decodeFloat x -- x = m*2^e
       (s,t) | prec >= 0, e + prec >= 0     = (m * 2^(e+prec) * 5^prec, 1)
             | prec >= 0 {- e + prec < 0 -} = (m * 5^prec, 2^(-e-prec))
@@ -120,14 +125,17 @@ doubleToFixedDecimalDigitsRn rn prec x =
            EQ | even q -> loop [] q
               | otherwise -> loop [] (q + 1)
            GT -> loop [] (q + 1)
+{-# SPECIALIZE binaryFloatToFixedDecimalDigitsRn :: RoundingMode -> Int -> Double -> [Int] #-}
 
--- doubleToDecimalDigits x = ([d1,d2,...,dn], e)
+-- binaryFloatToDecimalDigits x = ([d1,d2,...,dn], e)
 -- n >= 0, x = 0.d1d2...dn * (10^^e)
 -- 0 <= di < 10
-doubleToDecimalDigits :: Double -- ^ a non-negative number (zero, normal or subnormal)
-                      -> ([Int], Int)
-doubleToDecimalDigits 0 = ([], 0)
-doubleToDecimalDigits x =
+binaryFloatToDecimalDigits :: RealFloat a
+                           => a -- ^ a non-negative number (zero, normal or subnormal)
+                           -> ([Int], Int)
+binaryFloatToDecimalDigits 0 = ([], 0)
+binaryFloatToDecimalDigits x | floatRadix x /= 2 = error "radix must be 2"
+binaryFloatToDecimalDigits x =
   let (m,n) = decodeFloat x -- x = m*2^n
       z = countTrailingZerosInteger m
       (m',n') = (m `shiftR` z, n + z)
@@ -147,6 +155,7 @@ doubleToDecimalDigits x =
       loop !e acc n = case n `quotRem` 10 of
                         (q,r) -> loop (e+1) (fromInteger r : acc) q
   in loop0 e m''
+{-# SPECIALIZE binaryFloatToDecimalDigits :: Double -> ([Int], Int) #-}
 
 -- TODO: Maybe implement ByteString or Text versions
 
@@ -155,15 +164,15 @@ doubleToDecimalDigits x =
 -- "0e0"
 -- >>> showEFloatRn TowardNearest Nothing 0 ""
 -- "0.0e0"
-showEFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showEFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
 showEFloatRn rn mprec x
   | isNaN x = showString "NaN"
   | x < 0 || isNegativeZero x = showChar '-' . showEFloatRn (oppositeRoundingMode rn) mprec (-x)
   | isInfinite x = showString "Infinity"
   | otherwise = let (xs,e) = case mprec of
-                      Nothing -> doubleToDecimalDigits x
+                      Nothing -> binaryFloatToDecimalDigits x
                       Just prec -> let !prec' = max prec 0
-                                   in first (padRight0 (prec' + 1)) $ doubleToDecimalDigitsRn rn prec' x
+                                   in first (padRight0 (prec' + 1)) $ binaryFloatToDecimalDigitsRn rn prec' x
                     e' | all (== 0) xs = 0
                        | otherwise = e - 1
                 in case xs of
@@ -178,6 +187,7 @@ showEFloatRn rn mprec x
     padRight0 0 xs = xs
     padRight0 !n [] = replicate n 0
     padRight0 !n (x:xs) = x : padRight0 (n - 1) xs
+{-# SPECIALIZE showEFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 -- |
 -- >>> showFFloatRn TowardNearest (Just 0) 0 ""
@@ -186,13 +196,13 @@ showEFloatRn rn mprec x
 -- "0.0"
 -- >>> showFFloatRn TowardNearest Nothing (-0) ""
 -- "-0.0"
-showFFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showFFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
 showFFloatRn rn mprec x
   | isNaN x = showString "NaN"
   | x < 0 || isNegativeZero x = showChar '-' . showFFloatRn (oppositeRoundingMode rn) mprec (-x)
   | isInfinite x = showString "Infinity"
   | otherwise = case mprec of
-                  Nothing -> let (xs,e) = doubleToDecimalDigits x
+                  Nothing -> let (xs,e) = binaryFloatToDecimalDigits x
                                  l = length xs
                              in if e >= l
                                 then if null xs
@@ -208,7 +218,7 @@ showFFloatRn rn mprec x
                                      else -- e < 0
                                        showString ("0." ++ replicate (-e) '0' ++ map intToDigit xs)
                   Just prec -> let prec' = max prec 0
-                                   xs = doubleToFixedDecimalDigitsRn rn prec' x
+                                   xs = binaryFloatToFixedDecimalDigitsRn rn prec' x
                                    l = length xs
                                in if prec' == 0
                                   then if null xs
@@ -220,10 +230,12 @@ showFFloatRn rn mprec x
                                                 ys' | null ys = [0]
                                                     | otherwise = ys
                                             in showString $ map intToDigit ys' ++ "." ++ map intToDigit zs
+{-# SPECIALIZE showFFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
-showGFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS
+showGFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
 showGFloatRn rn mprec x | x == 0 || (0.1 <= abs x && abs x < 10^7) = showFFloatRn rn mprec x -- Note that 1%10 < toRational (0.1 :: Double)
                         | otherwise = showEFloatRn rn mprec x
+{-# SPECIALIZE showGFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 {-
 showFFloatAltRn :: RoundingMode -> Maybe Int -> Double -> ShowS
