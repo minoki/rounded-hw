@@ -48,6 +48,11 @@ flags:
     manual: true
     default: false
 
+  x87-long-double:
+    description: "Support x87 \"long double\""
+    manual: true
+    default: false
+
 library:
   source-dirs: src
   other-modules:
@@ -84,6 +89,12 @@ library:
     - cbits/interval-prim-x86_64.s
     cpp-options:
     - -DUSE_GHC_PRIM
+  - condition: flag(x87-long-double)
+    dependencies: long-double
+    c-sources:
+    - cbits/rounded-x87longdouble.c
+    exposed-modules:
+    - Numeric.Rounded.Hardware.Backend.X87LongDouble
   dependencies:
   - tagged
 

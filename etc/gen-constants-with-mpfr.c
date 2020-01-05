@@ -4,7 +4,7 @@
 
 int main(void)
 {
-    int precs[] = {53, 24};
+    int precs[] = {53, 24, 64};
     for (int i = 0; i < sizeof(precs)/sizeof(precs[0]); ++i) {
         int prec = precs[i];
 
