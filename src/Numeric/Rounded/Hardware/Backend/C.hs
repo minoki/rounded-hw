@@ -7,7 +7,6 @@
 module Numeric.Rounded.Hardware.Backend.C
   ( CFloat(..)
   , CDouble(..)
-  , backendName
   , VUM.MVector(..)
   , VU.Vector(..)
   ) where
@@ -16,6 +15,7 @@ import           Data.Coerce
 import           Data.Functor.Product
 import           Data.Primitive.ByteArray
 import           Data.Ratio
+import           Data.Tagged
 import qualified Data.Vector.Generic                      as VG
 import qualified Data.Vector.Generic.Mutable              as VGM
 import qualified Data.Vector.Primitive                    as VP
@@ -50,6 +50,7 @@ instance RoundedRing CFloat where
   roundedFromInteger rn x = CFloat (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Float of
     Pair a b -> (CFloat <$> a, CFloat <$> b)
+  backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -95,6 +96,7 @@ instance RoundedRing CDouble where
   roundedFromInteger rn x = CDouble (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
     Pair a b -> (CDouble <$> a, CDouble <$> b)
+  backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -131,8 +133,8 @@ instance RoundedVectorOperation CDouble where
 foreign import ccall unsafe "rounded_hw_backend_name"
   c_backend_name :: CString
 
-backendName :: String
-backendName = unsafePerformIO (peekCString c_backend_name)
+cBackendName :: String
+cBackendName = unsafePerformIO (peekCString c_backend_name)
 
 --
 -- instance for Data.Vector.Unboxed.Unbox

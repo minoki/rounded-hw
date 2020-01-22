@@ -6,6 +6,7 @@ module Numeric.Rounded.Hardware.Backend.X87LongDouble
   ) where
 import           Data.Functor.Product
 import           Data.Ratio
+import           Data.Tagged
 import           Foreign.Marshal (alloca, with)
 import           Foreign.Ptr (Ptr)
 import           Foreign.Storable (peek)
@@ -107,6 +108,7 @@ instance RoundedRing LongDouble where
   roundedFromInteger rn x = fromInt rn x
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) LongDouble of
     Pair a b -> (a, b)
+  backendNameT = Tagged "C FFI"
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}

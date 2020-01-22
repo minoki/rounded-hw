@@ -15,6 +15,7 @@ module Numeric.Rounded.Hardware.Internal.Class
 import           Data.Coerce
 import           Data.Proxy
 import           Data.Ratio
+import           Data.Tagged
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import           Foreign.Storable (Storable)
@@ -55,6 +56,12 @@ class Ord a => RoundedRing a where
   {-# INLINE intervalSub #-}
   {-# INLINE intervalMul #-}
   {-# INLINE intervalFromInteger #-}
+
+  backendNameT :: Tagged a String
+
+backendName :: RoundedRing a => proxy a -> String
+backendName = Data.Tagged.proxy backendNameT
+{-# INLINE backendName #-}
 
 class RoundedRing a => RoundedFractional a where
   roundedDiv :: RoundingMode -> a -> a -> a
@@ -147,6 +154,7 @@ instance RoundedRing Integer where
   roundedSub _ = (-)
   roundedMul _ = (*)
   roundedFromInteger _ = id
+  backendNameT = Tagged "Integer"
 
 instance RoundedFractional Integer where
   roundedDiv r x y = roundedFromRational r (x % y)
@@ -162,6 +170,7 @@ instance Integral a => RoundedRing (Ratio a) where
   roundedSub _ = (-)
   roundedMul _ = (*)
   roundedFromInteger _ = fromInteger
+  backendNameT = Tagged "Rational"
 
 instance Integral a => RoundedFractional (Ratio a) where
   roundedDiv _ = (/)

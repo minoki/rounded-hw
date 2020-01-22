@@ -20,6 +20,7 @@ module Numeric.Rounded.Hardware.Backend.FastFFI
 import           Control.DeepSeq                             (NFData (..))
 import           Data.Coerce
 import           Data.Functor.Product
+import           Data.Proxy
 import           Data.Ratio
 import           FFIImports
 import qualified FFIWrapper.Double                           as D
@@ -28,6 +29,7 @@ import           Foreign.Storable                            (Storable)
 import           GHC.Exts
 import           GHC.Generics                                (Generic)
 import qualified Numeric.Rounded.Hardware.Backend.C          as C
+import           Data.Tagged
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
@@ -55,6 +57,7 @@ instance RoundedRing CDouble where
   roundedFromInteger rn x = CDouble (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
     Pair a b -> (CDouble <$> a, CDouble <$> b)
+  backendNameT = Tagged $ "FastFFI+" ++ backendName (Proxy :: Proxy C.CDouble)
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -132,13 +135,6 @@ fastIntervalRecip :: Double -> Double -> (Double, Double)
 fastIntervalRecip (D# l1) (D# h1) = case c_rounded_interval_recip l1 h1 of
   (# l2, h2 #) -> (D# l2, D# h2)
 {-# INLINE fastIntervalRecip #-}
-
---
--- Backend name
---
-
-backendName :: String
-backendName = "FastFFI+" ++ C.backendName
 
 --
 -- instance for Data.Vector.Unboxed.Unbox

@@ -4,8 +4,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-orphans -Wno-unused-imports #-}
 module Numeric.Rounded.Hardware.Backend.Default
-  ( backendName
-  ) where
+  () where
 import           Numeric.Rounded.Hardware.Internal.Class
 import qualified Numeric.Rounded.Hardware.Backend.ViaRational as VR
 #ifdef USE_FFI
@@ -18,22 +17,17 @@ import qualified Data.Vector.Storable as VS
 import           Unsafe.Coerce
 import           Data.Coerce
 
-backendName :: String
-
 #ifdef USE_FFI
 #ifdef USE_GHC_PRIM
 type FloatImpl = C.CFloat -- TODO: Provide FastFFI.CFloat
 type DoubleImpl = FastFFI.CDouble
-backendName = FastFFI.backendName
 #else
 type FloatImpl = C.CFloat
 type DoubleImpl = C.CDouble
-backendName = C.backendName
 #endif
 #else
 type FloatImpl = VR.ViaRational Float
 type DoubleImpl = VR.ViaRational Double
-backendName = VR.backendName
 #endif
 
 deriving via FloatImpl instance RoundedRing Float

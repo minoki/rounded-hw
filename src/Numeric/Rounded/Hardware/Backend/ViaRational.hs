@@ -9,6 +9,7 @@ import           Control.DeepSeq                          (NFData (..))
 import           Data.Coerce
 import           Data.Functor.Product
 import           Data.Ratio
+import           Data.Tagged
 import qualified Data.Vector.Generic                      as VG
 import qualified Data.Vector.Generic.Mutable              as VGM
 import qualified Data.Vector.Unboxed                      as VU
@@ -57,6 +58,7 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
   roundedFromInteger rn x = ViaRational (fromInt rn x)
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
     Pair a b -> (ViaRational <$> a, ViaRational <$> b)
+  backendNameT = Tagged "via Rational"
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
   {-# SPECIALIZE instance RoundedRing (ViaRational Float) #-}
@@ -75,9 +77,6 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
   {-# SPECIALIZE instance RoundedFractional (ViaRational Double) #-}
 
 instance (RealFloat a, Num a, RealFloatConstants a) => RoundedVectorOperation (ViaRational a)
-
-backendName :: String
-backendName = "via Rational"
 
 --
 -- instance for Data.Vector.Unboxed.Unbox
