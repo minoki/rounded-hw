@@ -5,8 +5,10 @@
 module Numeric.Rounded.Hardware.Internal.Conversion
   ( fromInt
   , fromIntF
+  , intervalFromInteger_default
   , fromRatio
   , fromRatioF
+  , intervalFromRational_default
   ) where
 import Numeric.Rounded.Hardware.Internal.Rounding
 import Numeric.Rounded.Hardware.Internal.RoundedResult
@@ -14,8 +16,19 @@ import Numeric.Rounded.Hardware.Internal.Constants
 import Data.Bits
 import Data.Functor.Product
 import Math.NumberTheory.Logarithms (integerLog2')
+import Data.Ratio
 -- import GHC.Integer.Logarithms.Internals (integerLog2IsPowerOf2#)
 -- integerLog2IsPowerOf2# :: Integer -> (# Int#, Int# #)
+
+intervalFromInteger_default :: (RealFloat a, RealFloatConstants a) => Integer -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+intervalFromInteger_default x = case fromIntF x of Pair a b -> (a, b)
+{-# SPECIALIZE intervalFromInteger_default :: Integer -> (Rounded 'TowardNegInf Float, Rounded 'TowardInf Float) #-}
+{-# SPECIALIZE intervalFromInteger_default :: Integer -> (Rounded 'TowardNegInf Double, Rounded 'TowardInf Double) #-}
+
+intervalFromRational_default :: (RealFloat a, RealFloatConstants a) => Rational -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+intervalFromRational_default x = case fromRatioF (numerator x) (denominator x) of Pair a b -> (a, b)
+{-# SPECIALIZE intervalFromRational_default :: Rational -> (Rounded 'TowardNegInf Float, Rounded 'TowardInf Float) #-}
+{-# SPECIALIZE intervalFromRational_default :: Rational -> (Rounded 'TowardNegInf Double, Rounded 'TowardInf Double) #-}
 
 fromInt :: (RealFloat a, RealFloatConstants a)
         => RoundingMode -> Integer -> a
