@@ -11,7 +11,9 @@ import           Foreign.Marshal (alloca, with)
 import           Foreign.Ptr (Ptr)
 import           Foreign.Storable (peek)
 import           Numeric.LongDouble (LongDouble)
-import           Numeric.Rounded.Hardware.Internal
+import           Numeric.Rounded.Hardware.Internal.Class
+import           Numeric.Rounded.Hardware.Internal.Constants
+import           Numeric.Rounded.Hardware.Internal.Conversion
 import           System.IO.Unsafe
 
 foreign import ccall unsafe "rounded_hw_add_longdouble"
@@ -105,9 +107,8 @@ instance RoundedRing LongDouble where
   roundedAdd = roundedAdd_ld
   roundedSub = roundedSub_ld
   roundedMul = roundedMul_ld
-  roundedFromInteger rn x = fromInt rn x
-  intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) LongDouble of
-    Pair a b -> (a, b)
+  roundedFromInteger = fromInt
+  intervalFromInteger = intervalFromInteger_default
   backendNameT = Tagged "C FFI"
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
@@ -118,8 +119,7 @@ instance RoundedRing LongDouble where
 instance RoundedFractional LongDouble where
   roundedDiv = roundedDiv_ld
   roundedFromRational rn x = fromRatio rn (numerator x) (denominator x)
-  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) LongDouble of
-    Pair a b -> (a, b)
+  intervalFromRational = intervalFromRational_default
   {-# INLINE roundedDiv #-}
   {-# INLINE roundedFromRational #-}
   {-# INLINE intervalFromRational #-}

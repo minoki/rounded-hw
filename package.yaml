@@ -95,6 +95,8 @@ library:
     - cbits/rounded-x87longdouble.c
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.X87LongDouble
+    cpp-options:
+    - -DUSE_X87_LONG_DOUBLE
   dependencies:
   - tagged
 

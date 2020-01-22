@@ -12,6 +12,9 @@ import qualified Numeric.Rounded.Hardware.Backend.C as C
 #ifdef USE_GHC_PRIM
 import qualified Numeric.Rounded.Hardware.Backend.FastFFI as FastFFI
 #endif
+#ifdef USE_X87_LONG_DOUBLE
+import           Numeric.Rounded.Hardware.Backend.X87LongDouble ()
+#endif
 #endif
 import qualified Data.Vector.Storable as VS
 import           Unsafe.Coerce
