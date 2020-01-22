@@ -110,6 +110,13 @@ tests:
     - rounded-hw
     - hspec
     - QuickCheck
+    when:
+    - condition: flag(x87-long-double)
+      dependencies: long-double
+      other-modules:
+      - X87LongDoubleSpec
+      cpp-options:
+      - -DTEST_X87_LONG_DOUBLE
 
   rounded-hw-doctests:
     main: doctests.hs

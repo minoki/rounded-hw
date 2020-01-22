@@ -49,6 +49,7 @@ specT proxy = do
   prop "exactness" $
     prop_fromInt_exact proxy
 
+spec :: Spec
 spec = do
   describe "Double" $ specT (Proxy :: Proxy Double)
   describe "Float" $ specT (Proxy :: Proxy Float)

@@ -50,14 +50,8 @@ specT :: forall a. (RealFloat a, RoundedFractional a, RealFloatConstants a) => P
 specT proxy = do
   prop "fromRational (nearest) coincides with stock fromRational" $
     prop_fromRational_nearest_stock proxy
-  prop "fromRational for small numbers coincides with fromRationl (nearest)" $
-    prop_fromRational (Proxy :: Proxy 'TowardNearest) proxy
-  prop "fromRational for small numbers coincides with fromRationl (toward zero)" $
-    prop_fromRational (Proxy :: Proxy 'TowardZero) proxy
-  prop "fromRational for small numbers coincides with fromRationl (toward inf)" $
-    prop_fromRational (Proxy :: Proxy 'TowardInf) proxy
-  prop "fromRational for small numbers coincides with fromRationl (toward neg inf)" $
-    prop_fromRational (Proxy :: Proxy 'TowardNegInf) proxy
+  prop "fromRational for small numbers coincides with fromRationl" $ \r -> reifyRounding r $ \rProxy ->
+    prop_fromRational rProxy proxy
   prop "order" $
     prop_fromRatio_order proxy
   prop "exactness" $
