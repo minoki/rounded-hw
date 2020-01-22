@@ -4,14 +4,48 @@ module Numeric.Rounded.Hardware.Internal.Constants where
 import Numeric.Rounded.Hardware.Internal.Rounding
 
 class RealFloatConstants a where
+  -- | \(+\infty\)
   positiveInfinity :: a
+  -- | \(-\infty\)
   negativeInfinity :: a
   maxFinite :: a
   -- minPositiveNormal :: a
   minPositive :: a
-  pi_down, log2_down, exp1_down, exp1_2_down, expm1_2_down, sqrt2_down, sqrt2m1_down :: Rounded 'TowardNegInf a
-  pi_up, log2_up, exp1_up, exp1_2_up, expm1_2_up, sqrt2_up, sqrt2m1_up :: Rounded 'TowardInf a
-  -- log(2), exp(1), exp(1/2), exp(-1/2), sqrt(2), sqrt(2)-1
+
+  -- | The correctly-rounded value of \(\pi\)
+  pi_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\pi\)
+  pi_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(\log_e 2\)
+  log2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\log_e 2\)
+  log2_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(\exp(1)\)
+  exp1_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\exp(1)\)
+  exp1_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(\exp(1/2)\)
+  exp1_2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\exp(1/2)\)
+  exp1_2_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(\exp(-1/2)\)
+  expm1_2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\exp(-1/2)\)
+  expm1_2_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(\sqrt{2}\)
+  sqrt2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\sqrt{2}\)
+  sqrt2_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(\sqrt{2}-1\)
+  sqrt2m1_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(\sqrt{2}-1\)
+  sqrt2m1_up :: Rounded 'TowardInf a
 
 instance RealFloatConstants Double where
   positiveInfinity = 1/0

@@ -30,10 +30,10 @@ import           GHC.Generics                (Generic)
 
 -- See cbits/rounded.c for the ordering
 data RoundingMode
-  = TowardNearest
-  | TowardNegInf
-  | TowardInf
-  | TowardZero
+  = TowardNearest -- ^ IEEE754 roundTiesToEven
+  | TowardNegInf  -- ^ IEEE754 roundTowardNegative
+  | TowardInf     -- ^ IEEE754 roundTowardPositive
+  | TowardZero    -- ^ IEEE754 roundTowardZero
   deriving (Eq, Ord, Read, Show, Enum, Bounded, Generic)
 
 instance NFData RoundingMode
@@ -70,6 +70,10 @@ reifyRounding TowardNegInf f  = f (Proxy :: Proxy 'TowardNegInf)
 reifyRounding TowardZero f    = f (Proxy :: Proxy 'TowardZero)
 {-# INLINE reifyRounding #-}
 
+-- | A type tagged with a rounding mode.
+--
+-- The rounding mode is effective for a /single/ operation.
+-- You don't obtain the correctly-rounded result for a compound expression like @(a - b * c) :: Rounded 'TowardInf Double@.
 newtype Rounded (rn :: RoundingMode) a = Rounded a
   deriving (Eq,Ord,Show,Generic,Functor,Storable)
 
