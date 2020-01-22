@@ -40,22 +40,32 @@ binaryFloatToDecimalDigitsRn _rn _prec 0 = ([], 0)
 binaryFloatToDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "radix must be 2"
 binaryFloatToDecimalDigitsRn rn prec x =
   -- x > 0
-  let (m,n) = decodeFloat x
+  let m :: Integer
+      n, d, e0 :: Int
+      (m,n) = decodeFloat x
       d = floatDigits x -- d=53 for Double
-      -- x = m*2^n, 2^(d-1) <= m < 2^d
+      -- x = m * 2^n, 2^(d-1) <= m < 2^d
       -- 2^(-1074) <= x < 2^1024
       -- => -1074-52=-1126 <= n < 1024-52=972
+
       e0 = floor (fromIntegral (d - 1 + n) * logBase 10 2 :: a) - prec
       -- TODO: precision of logBase 10 2?
       -- TODO: Use rational approximation for logBase 10 2?
+
+      s, t :: Integer
       (s,t) | n < 0,       0 <= e0 = (m,     2^(-n) * 10^e0)
             | {- n >= 0 -} 0 <= e0 = (m * 2^n,        10^e0)
             | n < 0   {- e0 < 0 -} = (m * 10^(-e0),  2^(-n))
             | otherwise            = (m * 2^n * 10^(-e0), 1)
-      -- s/t = m * 2^n * 10^(-e0)
+      -- s/t = m * 2^n * 10^(-e0) = x * 10^(-e0)
+
+      q, r :: Integer
       (q,r) = s `quotRem` t
       -- s = q * t + r
       -- 10^prec <= q + r/t < 2 * 10^(prec+1)
+
+      q', r', t' :: Integer
+      e' :: Int
       (q',r',t',e') | 10^(prec+1) <= q = case q `quotRem` 10 of
                                            -- q = q'*10+r'
                                            -- s = (q'*10+r')*t + r = q'*10*t+(r'*t+r)
@@ -69,12 +79,14 @@ binaryFloatToDecimalDigitsRn rn prec x =
       --   = (q' + r'/t') * 10^^e'
 
       -- loop0 e n: x = n * 10^(e-prec-1)
+      loop0 :: Int -> Integer -> ([Int], Int)
       loop0 !e 0 = ([], 0) -- should not occur
       loop0 !e a = case a `quotRem` 10 of
                      (q,0) -> loop0 (e+1) q
                      (q,r) -> loop (e+1) [fromInteger r] q
 
       -- loop e acc a: (a + 0.<acc>)*10^(e-prec-1)
+      loop :: Int -> [Int] -> Integer -> ([Int], Int)
       loop !e acc 0 = (acc, e)
       loop !e acc a = case a `quotRem` 10 of
                         (q,r) -> loop (e+1) (fromInteger r : acc) q
@@ -227,7 +239,7 @@ showFFloatRn rn mprec x
                                 then if null xs
                                      then showString "0.0"
                                      else showString (map intToDigit xs ++ replicate (e - l) '0' ++ ".0")
-                                else if e >= 0 -- 0 <= e < l
+                                else if e > 0 -- 0 < e < l
                                      then if l == e -- null zs
                                           then showString (map intToDigit xs ++ ".0")
                                           else let (ys,zs) = splitAt (l - e) xs
