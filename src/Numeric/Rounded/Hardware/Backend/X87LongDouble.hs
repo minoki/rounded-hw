@@ -4,7 +4,6 @@
 module Numeric.Rounded.Hardware.Backend.X87LongDouble
   (
   ) where
-import           Data.Functor.Product
 import           Data.Ratio
 import           Data.Tagged
 import           Foreign.Marshal (alloca, with)
@@ -81,7 +80,7 @@ instance RealFloatConstants LongDouble where
   positiveInfinity = 1/0
   negativeInfinity = -1/0
   maxFinite = 0x1.fffffffffffffffep+16383
-  minPositive = (1/2)^16445 -- The literal 0x1p-16445 yields 0 on long-double-0.1
+  minPositive = (1/2)^(16445 :: Int) -- The literal 0x1p-16445 yields 0 on long-double-0.1
   pi_down = Rounded 0x3.243f6a8885a308dp+0
   pi_up   = Rounded 0x3.243f6a8885a308d4p+0
   -- log(2)
