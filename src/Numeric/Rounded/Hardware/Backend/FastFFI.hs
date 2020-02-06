@@ -19,14 +19,11 @@ module Numeric.Rounded.Hardware.Backend.FastFFI
   ) where
 import           Control.DeepSeq                             (NFData (..))
 import           Data.Coerce
-import           Data.Functor.Product
 import           Data.Proxy
-import           Data.Ratio
 import           FFIImports
 import qualified FFIWrapper.Double                           as D
-import qualified FFIWrapper.Float                            as F
 import           Foreign.Storable                            (Storable)
-import           GHC.Exts
+import           GHC.Exts (Double(D#), Double#)
 import           GHC.Generics                                (Generic)
 import qualified Numeric.Rounded.Hardware.Backend.C          as C
 import           Data.Tagged
@@ -35,7 +32,6 @@ import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Numeric.Rounded.Hardware.Internal.Class
-import           Numeric.Rounded.Hardware.Internal.Conversion
 import           Unsafe.Coerce
 
 --
@@ -54,9 +50,8 @@ instance RoundedRing CDouble where
   intervalAdd x x' y y' = coerce fastIntervalAdd x x' y y'
   intervalSub x x' y y' = coerce fastIntervalSub x x' y y'
   intervalMul x x' y y' = (coerce c_interval_mul_double_down x x' y y', coerce c_interval_mul_double_up x x' y y')
-  roundedFromInteger rn x = CDouble (fromInt rn x)
-  intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
-    Pair a b -> (CDouble <$> a, CDouble <$> b)
+  roundedFromInteger = coerce (roundedFromInteger :: RoundingMode -> Integer -> C.CDouble)
+  intervalFromInteger = coerce (intervalFromInteger :: Integer -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
   backendNameT = Tagged $ "FastFFI+" ++ backendName (Proxy :: Proxy C.CDouble)
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
@@ -71,9 +66,8 @@ instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
   intervalDiv x x' y y' = (coerce c_interval_div_double_down x x' y y', coerce c_interval_div_double_up x x' y y')
   intervalRecip x x' = coerce fastIntervalRecip x x'
-  roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
-  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
-    Pair a b -> (CDouble <$> a, CDouble <$> b)
+  roundedFromRational = coerce (roundedFromRational :: RoundingMode -> Rational -> C.CDouble)
+  intervalFromRational = coerce (intervalFromRational :: Rational -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE intervalRecip #-}
