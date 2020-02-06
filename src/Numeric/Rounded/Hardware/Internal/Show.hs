@@ -67,9 +67,9 @@ binaryFloatToDecimalDigitsRn rn prec x =
       q', r', t' :: Integer
       e' :: Int
       (q',r',t',e') | 10^(prec+1) <= q = case q `quotRem` 10 of
-                                           -- q = q'*10+r'
-                                           -- s = (q'*10+r')*t + r = q'*10*t+(r'*t+r)
-                                           (q',r') -> (q', r'*t+r, 10*t, e0+1)
+                                           -- q = q''*10+r''
+                                           -- s = (q''*10+r'')*t + r = q''*10*t+(r''*t+r)
+                                           (q'',r'') -> (q'', r''*t+r, 10*t, e0+1)
                     | otherwise = (q,r,t,e0)
       -- 10^prec <= q' + r'/t' < 10^(prec+1), 0 <= r' < t'
 
@@ -77,19 +77,6 @@ binaryFloatToDecimalDigitsRn rn prec x =
       --   = s/t * 10^^(e0)
       --   = (q + r/t) * 10^^(e0)
       --   = (q' + r'/t') * 10^^e'
-
-      -- loop0 e n: x = n * 10^(e-prec-1)
-      loop0 :: Int -> Integer -> ([Int], Int)
-      loop0 !e 0 = ([], 0) -- should not occur
-      loop0 !e a = case a `quotRem` 10 of
-                     (q,0) -> loop0 (e+1) q
-                     (q,r) -> loop (e+1) [fromInteger r] q
-
-      -- loop e acc a: (a + 0.<acc>)*10^(e-prec-1)
-      loop :: Int -> [Int] -> Integer -> ([Int], Int)
-      loop !e acc 0 = (acc, e)
-      loop !e acc a = case a `quotRem` 10 of
-                        (q,r) -> loop (e+1) (fromInteger r : acc) q
   in if r' == 0
      then
        -- exact
@@ -105,6 +92,19 @@ binaryFloatToDecimalDigitsRn rn prec x =
            EQ | even q' -> loop0 e' q'
               | otherwise -> loop0 e' (q' + 1)
            GT -> loop0 e' (q' + 1)
+  where
+    -- loop0 e n: x = n * 10^(e-prec-1)
+    loop0 :: Int -> Integer -> ([Int], Int)
+    loop0 !_ 0 = ([], 0) -- should not occur
+    loop0 !e a = case a `quotRem` 10 of
+                   (q,0) -> loop0 (e+1) q
+                   (q,r) -> loop (e+1) [fromInteger r] q
+
+    -- loop e acc a: (a + 0.<acc>)*10^(e-prec-1)
+    loop :: Int -> [Int] -> Integer -> ([Int], Int)
+    loop !e acc 0 = (acc, e)
+    loop !e acc a = case a `quotRem` 10 of
+                      (q,r) -> loop (e+1) (fromInteger r : acc) q
 {-# SPECIALIZE binaryFloatToDecimalDigitsRn :: RoundingMode -> Int -> Double -> ([Int], Int) #-}
 
 -- binaryFloatToFixedDecimalDigitsRn _ prec x = [d1,d2,...,dn]
@@ -122,16 +122,15 @@ binaryFloatToFixedDecimalDigitsRn :: forall a. RealFloat a
                                   -> [Int]
 binaryFloatToFixedDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "radix must be 2"
 binaryFloatToFixedDecimalDigitsRn rn prec x =
-  let (m,e) = decodeFloat x -- x = m*2^e
+  let m, s, t, q, r :: Integer
+      e :: Int
+      (m,e) = decodeFloat x -- x = m*2^e
       (s,t) | prec >= 0, e + prec >= 0     = (m * 2^(e+prec) * 5^prec, 1)
             | prec >= 0 {- e + prec < 0 -} = (m * 5^prec, 2^(-e-prec))
             | {- prec < 0 -} e + prec >= 0 = (m * 2^(e+prec), 5^(-prec))
             | otherwise {- prec < 0, e + prec < 0 -} = (m, 2^(-e-prec) * 5^(-prec))
       -- x*10^^prec = s/t
       (q,r) = s `quotRem` t
-      loop acc 0 = acc
-      loop acc a = case a `quotRem` 10 of
-                     (q,r) -> loop (fromInteger r : acc) q
   in if r == 0
      then
        -- exact
@@ -147,6 +146,11 @@ binaryFloatToFixedDecimalDigitsRn rn prec x =
            EQ | even q -> loop [] q
               | otherwise -> loop [] (q + 1)
            GT -> loop [] (q + 1)
+  where
+    loop :: [Int] -> Integer -> [Int]
+    loop acc 0 = acc
+    loop acc a = case a `quotRem` 10 of
+                   (q,r) -> loop (fromInteger r : acc) q
 {-# SPECIALIZE binaryFloatToFixedDecimalDigitsRn :: RoundingMode -> Int -> Double -> [Int] #-}
 
 -- binaryFloatToDecimalDigits x = ([d1,d2,...,dn], e)
@@ -163,25 +167,29 @@ binaryFloatToDecimalDigits :: RealFloat a
 binaryFloatToDecimalDigits 0 = ([], 0)
 binaryFloatToDecimalDigits x | floatRadix x /= 2 = error "radix must be 2"
 binaryFloatToDecimalDigits x =
-  let (m,n) = decodeFloat x -- x = m*2^n
+  let m, m', m'' :: Integer
+      n, z, n', e :: Int
+      (m,n) = decodeFloat x -- x = m*2^n
       z = countTrailingZerosInteger m
       (m',n') = (m `shiftR` z, n + z)
       -- x = m*2^n = m'*2^n'
       (m'',e) | n' < 0 = (m' * 5^(-n'), n') -- x = m'/2^(-n') = m'*5^(-n') / 10^(-n')
               | otherwise = (m' * 2^n', 0)
       -- x = m''*10^e, m'' is an integer, e <= 0
-
-      -- x = a*10^e, a is an integer
-      loop0 !e 0 = ([0], 0) -- should not occur
-      loop0 !e a = case a `quotRem` 10 of
-                     (q,0) -> loop0 (e+1) q
-                     (q,r) -> loop (e+1) [fromInteger r] q
-
-      -- x = (a + 0.<acc>)*10^e, a is an integer
-      loop !e acc 0 = (acc, e)
-      loop !e acc n = case n `quotRem` 10 of
-                        (q,r) -> loop (e+1) (fromInteger r : acc) q
   in loop0 e m''
+  where
+    -- x = a*10^e, a is an integer
+    loop0 :: Int -> Integer -> ([Int], Int)
+    loop0 !_ 0 = ([0], 0) -- should not occur
+    loop0 !e a = case a `quotRem` 10 of
+                   (q,0) -> loop0 (e+1) q
+                   (q,r) -> loop (e+1) [fromInteger r] q
+
+    -- x = (a + 0.<acc>)*10^e, a is an integer
+    loop :: Int -> [Int] -> Integer -> ([Int], Int)
+    loop !e acc 0 = (acc, e)
+    loop !e acc n = case n `quotRem` 10 of
+                      (q,r) -> loop (e+1) (fromInteger r : acc) q
 {-# SPECIALIZE binaryFloatToDecimalDigits :: Double -> ([Int], Int) #-}
 
 -- TODO: Maybe implement ByteString or Text versions
@@ -213,9 +221,9 @@ showEFloatRn rn mprec x
                      (d:ds) -> showString $ (intToDigit d : '.' : map intToDigit ds) ++ ('e' : show e')
   where
     padRight0 :: Int -> [Int] -> [Int]
-    padRight0 0 xs = xs
+    padRight0 0 ys = ys
     padRight0 !n [] = replicate n 0
-    padRight0 !n (x:xs) = x : padRight0 (n - 1) xs
+    padRight0 !n (y:ys) = y : padRight0 (n - 1) ys
 {-# SPECIALIZE showEFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 -- |
@@ -264,7 +272,7 @@ showFFloatRn rn mprec x
 {-# SPECIALIZE showFFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 showGFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
-showGFloatRn rn mprec x | x == 0 || (0.1 <= abs x && abs x < 10^7) = showFFloatRn rn mprec x -- Note that 1%10 < toRational (0.1 :: Double)
+showGFloatRn rn mprec x | x == 0 || (0.1 <= abs x && abs x < 1e7) = showFFloatRn rn mprec x -- Note that 1%10 < toRational (0.1 :: Double)
                         | otherwise = showEFloatRn rn mprec x
 {-# SPECIALIZE showGFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
