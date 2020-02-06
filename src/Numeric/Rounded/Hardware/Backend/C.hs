@@ -11,8 +11,8 @@ module Numeric.Rounded.Hardware.Backend.C
   , VU.Vector(..)
   ) where
 import           Control.DeepSeq                          (NFData (..))
+import           Data.Bifunctor
 import           Data.Coerce
-import           Data.Functor.Product
 import           Data.Primitive.ByteArray
 import           Data.Ratio
 import           Data.Tagged
@@ -48,8 +48,7 @@ instance RoundedRing CFloat where
   roundedMul = coerce F.roundedMul
   intervalMul x x' y y' = (coerce c_interval_mul_float_down x x' y y', coerce c_interval_mul_float_up x x' y y')
   roundedFromInteger rn x = CFloat (fromInt rn x)
-  intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Float of
-    Pair a b -> (CFloat <$> a, CFloat <$> b)
+  intervalFromInteger = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
@@ -62,8 +61,7 @@ instance RoundedFractional CFloat where
   roundedDiv = coerce F.roundedDiv
   intervalDiv x x' y y' = (coerce c_interval_div_float_down x x' y y', coerce c_interval_div_float_up x x' y y')
   roundedFromRational rn x = CFloat $ fromRatio rn (numerator x) (denominator x)
-  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Float of
-    Pair a b -> (CFloat <$> a, CFloat <$> b)
+  intervalFromRational = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromRational_default
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE roundedFromRational #-}
@@ -94,8 +92,7 @@ instance RoundedRing CDouble where
   roundedMul = coerce D.roundedMul
   intervalMul x x' y y' = (coerce c_interval_mul_double_down x x' y y', coerce c_interval_mul_double_up x x' y y')
   roundedFromInteger rn x = CDouble (fromInt rn x)
-  intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
-    Pair a b -> (CDouble <$> a, CDouble <$> b)
+  intervalFromInteger = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
@@ -108,8 +105,7 @@ instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
   intervalDiv x x' y y' = (coerce c_interval_div_double_down x x' y y', coerce c_interval_div_double_up x x' y y')
   roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
-  intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double of
-    Pair a b -> (CDouble <$> a, CDouble <$> b)
+  intervalFromRational = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromRational_default
   -- TODO: Specialize small case in ***FromRational?
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
