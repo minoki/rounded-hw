@@ -1,37 +1,37 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 module Numeric.Rounded.Hardware.Backend.C
   ( CFloat(..)
   , CDouble(..)
   , VUM.MVector(..)
   , VU.Vector(..)
   ) where
-import           Control.DeepSeq                          (NFData (..))
+import           Control.DeepSeq (NFData (..))
 import           Data.Bifunctor
 import           Data.Coerce
 import           Data.Primitive.ByteArray
 import           Data.Ratio
 import           Data.Tagged
-import qualified Data.Vector.Generic                      as VG
-import qualified Data.Vector.Generic.Mutable              as VGM
-import qualified Data.Vector.Primitive                    as VP
-import qualified Data.Vector.Storable                     as VS
-import qualified Data.Vector.Unboxed.Base                 as VU
-import qualified Data.Vector.Unboxed.Mutable              as VUM
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Primitive as VP
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed.Base as VU
+import qualified Data.Vector.Unboxed.Mutable as VUM
 import           FFIImports
-import qualified FFIWrapper.Double                        as D
-import qualified FFIWrapper.Float                         as F
-import           Foreign.C.String                         (CString, peekCString)
-import           Foreign.Ptr                              (castPtr)
-import           Foreign.Storable                         (Storable)
-import           GHC.Generics                             (Generic)
-import           System.IO.Unsafe                         (unsafePerformIO)
+import qualified FFIWrapper.Double as D
+import qualified FFIWrapper.Float as F
+import           Foreign.C.String (CString, peekCString)
+import           Foreign.Ptr (castPtr)
+import           Foreign.Storable (Storable)
+import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal.Class
 import           Numeric.Rounded.Hardware.Internal.Conversion
+import           System.IO.Unsafe (unsafePerformIO)
 
 --
 -- Float
