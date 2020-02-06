@@ -1,13 +1,13 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GHCForeignImportPrim       #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GHCForeignImportPrim #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MagicHash                  #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE UnboxedTuples              #-}
-{-# LANGUAGE UnliftedFFITypes           #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE UnliftedFFITypes #-}
 module Numeric.Rounded.Hardware.Backend.FastFFI
   ( CDouble(..)
   , fastIntervalAdd
@@ -17,20 +17,20 @@ module Numeric.Rounded.Hardware.Backend.FastFFI
   , VUM.MVector(MV_CFloat, MV_CDouble)
   , VU.Vector(V_CFloat, V_CDouble)
   ) where
-import           Control.DeepSeq                             (NFData (..))
+import           Control.DeepSeq (NFData (..))
 import           Data.Coerce
 import           Data.Proxy
-import           FFIImports
-import qualified FFIWrapper.Double                           as D
-import           Foreign.Storable                            (Storable)
-import           GHC.Exts (Double(D#), Double#)
-import           GHC.Generics                                (Generic)
-import qualified Numeric.Rounded.Hardware.Backend.C          as C
 import           Data.Tagged
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import           FFIImports
+import qualified FFIWrapper.Double as D
+import           Foreign.Storable (Storable)
+import           GHC.Exts (Double (D#), Double#)
+import           GHC.Generics (Generic)
+import qualified Numeric.Rounded.Hardware.Backend.C as C
 import           Numeric.Rounded.Hardware.Internal.Class
 import           Unsafe.Coerce
 
