@@ -10,6 +10,8 @@ class IsInterval i where
   makeInterval :: Rounded 'TowardNegInf (EndPoint i) -> Rounded 'TowardInf (EndPoint i) -> i
   width :: i -> Rounded 'TowardInf (EndPoint i)
   hull :: i -> i -> i
+  intersection :: i -> i -> i
+  maybeIntersection :: i -> i -> Maybe i
 
   -- default definition
   singleton x = makeInterval (Rounded x) (Rounded x)

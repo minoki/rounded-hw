@@ -15,6 +15,7 @@ module Numeric.Rounded.Hardware.Interval
   , sup
   , width
   , hull
+  , intersection
   , expI
   , expm1I
   , logI
@@ -132,6 +133,12 @@ hull (I x y) (I x' y') = I (min x x') (max y y')
 hull Empty v           = v
 hull u Empty           = u
 
+intersection :: RoundedRing a => Interval a -> Interval a -> Interval a
+intersection (I x y) (I x' y') | getRounded x'' <= getRounded y'' = I x'' y''
+  where x'' = max x x'
+        y'' = min y y'
+intersection _ _ = Empty
+
 expI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
 expI = C.expI
 
@@ -151,6 +158,10 @@ instance (Num a, RoundedRing a) => C.IsInterval (Interval a) where
   withEndPoints f (I x y) = f x y
   withEndPoints _ Empty   = Empty
   hull = hull
+  intersection = intersection
+  maybeIntersection x y = case intersection x y of
+                            Empty -> Nothing
+                            z -> Just z
 
 --
 -- Instance for Data.Vector.Unboxed.Unbox
