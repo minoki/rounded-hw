@@ -31,3 +31,55 @@ expm1P x | -0.5 <= x && x <= 0.5 = let b' = singleton x
 
 expm1I :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
 expm1I = withEndPoints (\(Rounded x) (Rounded y) -> hull (expm1P x) (expm1P y))
+
+logP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+logP x
+  | floatRadix (undefined :: EndPoint i) /= 2 = error "Unsupported float radix"
+  | x < 0 = error "Negative logarithm"
+  | x == 0 = makeInterval (Rounded negativeInfinity) (Rounded (-maxFinite))
+  | isInfinite x = makeInterval (Rounded maxFinite) (Rounded positiveInfinity)
+  | isNaN x = error "NaN"
+  | otherwise = let m :: Integer
+                    n :: Int
+                    (m,n) = decodeFloat x
+                    -- x = m * 2^n, 2^(d-1) <= m < 2^d
+                    -- x = (m * 2^(-d)) * 2^(n+d)
+                    -- x = 2^a * b, a \in {.. -1.5, -1, -0.5, 0, 0.5, 1, 1.5 ..}, 1/\sqrt{2} < b < \sqrt{2}
+                    a0, b, bm1 :: i
+                    a0 = fromIntegral (n + d) -- fromIntegral (exponent x)
+                    x' :: EndPoint i
+                    x' = encodeFloat m (- d) -- significand x
+                    -- 0.5 <= x' < 1
+                    (a,b) | 0.5 <= x' && x' <= getRounded two_minus_sqrt2_down = (a0 - 1, singleton x' * 2) -- 1/2 <= x <= 2 - sqrt 2 => 1 <= 2*x <= 4 - 2 * sqrt 2
+                          | getRounded two_minus_sqrt2_up <= x' && x' <= 2 * getRounded sqrt2m1_down = (a0 - 0.5, singleton x' * sqrt2_iv) -- 2 - sqrt2 <= x <= 2 * sqrt 2 - 2, 2 * sqrt 2 - 2 <= sqrt 2 * x <= 4 - 2 * sqrt 2
+                          | 2 * getRounded sqrt2m1_up <= x' && x' < 1 = (a0, singleton x') -- 2 * sqrt 2 - 2 <= x
+                          | otherwise = error "interval log: internal error"
+                    -- 2 * sqrt 2 - 2 <= b <= 4 - 2 * sqrt 2
+                    -- 2 * sqrt 2 - 3 <= b-1 <= 3 - 2 * sqrt 2
+                    bm1 = b - 1
+                    series :: Int -> i -> i
+                    series k acc | k == 0 = bm1 * acc
+                                 | otherwise = series (k-1) $ recip (fromIntegral k) - bm1 * acc
+                in a * log2_iv + series 21 (hull 1 b ^^ (-22 :: Int) * bm1 / fromInteger 22)
+  where
+    d = floatDigits (undefined :: EndPoint i)
+    log2_iv :: i -- log_e 2
+    log2_iv = makeInterval log2_down log2_up
+    sqrt2_iv :: i -- sqrt 2
+    sqrt2_iv = makeInterval sqrt2_down sqrt2_up
+
+logI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+logI = withEndPoints (\(Rounded x) (Rounded y) -> hull (logP x) (logP y))
+
+log1pP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+log1pP x | - getRounded three_minus_2sqrt2_down <= x && x <= getRounded three_minus_2sqrt2_down =
+             let x' :: i
+                 x' = singleton x
+                 series :: Int -> i -> i
+                 series k acc | k == 0 = x' * acc
+                              | otherwise = series (k-1) $ recip (fromIntegral k) - x' * acc
+             in series 21 (hull 1 (x' + 1) ^^ (-22 :: Int) * x' / fromInteger 22)
+         | otherwise = logI (singleton x + 1)
+
+log1pI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+log1pI = withEndPoints (\(Rounded x) (Rounded y) -> hull (log1pP x) (log1pP y))

@@ -17,6 +17,8 @@ module Numeric.Rounded.Hardware.Interval
   , hull
   , expI
   , expm1I
+  , logI
+  , log1pI
   ) where
 import           Control.DeepSeq (NFData (..))
 import           Control.Monad
@@ -135,6 +137,12 @@ expI = C.expI
 
 expm1I :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
 expm1I = C.expm1I
+
+logI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
+logI = C.logI
+
+log1pI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
+log1pI = C.log1pI
 
 instance (Num a, RoundedRing a) => C.IsInterval (Interval a) where
   type EndPoint (Interval a) = a
