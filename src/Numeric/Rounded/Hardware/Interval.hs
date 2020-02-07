@@ -151,7 +151,7 @@ logI = C.logI
 log1pI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
 log1pI = C.log1pI
 
-instance (Num a, RoundedRing a) => C.IsInterval (Interval a) where
+instance (Num a, RoundedRing a, RealFloat a) => C.IsInterval (Interval a) where
   type EndPoint (Interval a) = a
   makeInterval = I
   width = width
@@ -162,6 +162,29 @@ instance (Num a, RoundedRing a) => C.IsInterval (Interval a) where
   maybeIntersection x y = case intersection x y of
                             Empty -> Nothing
                             z -> Just z
+  equalAsSet (I x y) (I x' y') = x == x' && y == y'
+  equalAsSet Empty Empty = True
+  equalAsSet _ _ = False
+  subset (I x y) (I x' y') = x' <= x && y <= y'
+  subset Empty _ = True
+  subset I{} Empty = False
+  weaklyLess (I x y) (I x' y') = x <= x' && y <= y'
+  weaklyLess Empty Empty = True
+  weaklyLess _ _ = False
+  precedes (I _ y) (I x' _) = getRounded y <= getRounded x'
+  precedes _ _ = True
+  interior (I x y) (I x' y') = getRounded x' <# getRounded x && getRounded y <# getRounded y'
+    where s <# t = s < t || (s == t && isInfinite s)
+  interior Empty _ = True
+  interior I{} Empty = False
+  strictLess (I x y) (I x' y') = getRounded x <# getRounded x' && getRounded y <# getRounded y'
+    where s <# t = s < t || (s == t && isInfinite s)
+  strictLess Empty Empty = True
+  strictLess _ _ = False
+  strictPrecedes (I _ y) (I x' _) = getRounded y < getRounded x'
+  strictPrecedes _ _ = True
+  disjoint (I x y) (I x' y') = getRounded y < getRounded x' || getRounded y' < getRounded x
+  disjoint _ _ = True
 
 --
 -- Instance for Data.Vector.Unboxed.Unbox
