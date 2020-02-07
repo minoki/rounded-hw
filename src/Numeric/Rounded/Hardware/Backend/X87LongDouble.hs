@@ -98,9 +98,18 @@ instance RealFloatConstants LongDouble where
   -- sqrt(2)
   sqrt2_down = Rounded 0x1.6a09e667f3bcc908p+0
   sqrt2_up   = Rounded 0x1.6a09e667f3bcc90ap+0
+  -- sqrt(1/2)
+  sqrt1_2_down = Rounded 0xb.504f333f9de6484p-4
+  sqrt1_2_up   = Rounded 0xb.504f333f9de6485p-4
   -- sqrt(2)-1
   sqrt2m1_down = Rounded 0x6.a09e667f3bcc9088p-4
   sqrt2m1_up   = Rounded 0x6.a09e667f3bcc909p-4
+  -- 3 - 2 * sqrt(2)
+  three_minus_2sqrt2_down = Rounded 0x2.bec333018866dee8p-4
+  three_minus_2sqrt2_up   = Rounded 0x2.bec333018866deecp-4
+  -- 2 - sqrt(2)
+  two_minus_sqrt2_down = Rounded 0x9.5f619980c4336f7p-4
+  two_minus_sqrt2_up   = Rounded 0x9.5f619980c4336f8p-4
 
 instance RoundedRing LongDouble where
   roundedAdd = roundedAdd_ld

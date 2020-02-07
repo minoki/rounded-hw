@@ -58,6 +58,14 @@ int main(void)
         mpfr_sqrt_ui(x, 2, MPFR_RNDU);
         mpfr_printf("  sqrt2_up   = Rounded %Ra\n", x);
 
+        puts("  -- sqrt(1/2)");
+        mpfr_set_ui(x, 2, MPFR_RNDN);
+        mpfr_rec_sqrt(x, x, MPFR_RNDD);
+        mpfr_printf("  sqrt1_2_down = Rounded %Ra\n", x);
+        mpfr_set_ui(x, 2, MPFR_RNDN);
+        mpfr_rec_sqrt(x, x, MPFR_RNDU);
+        mpfr_printf("  sqrt1_2_up   = Rounded %Ra\n", x);
+
         puts("  -- sqrt(2)-1");
         mpfr_set_prec(x, prec * 2);
         mpfr_sqrt_ui(x, 2, MPFR_RNDD);
@@ -69,6 +77,30 @@ int main(void)
         mpfr_sub_ui(x, x, 1, MPFR_RNDU);
         mpfr_prec_round(x, prec, MPFR_RNDU);
         mpfr_printf("  sqrt2m1_up   = Rounded %Ra\n", x);
+
+        puts("  -- 3 - 2 * sqrt(2)");
+        mpfr_set_prec(x, prec * 2);
+        mpfr_sqrt_ui(x, 8, MPFR_RNDU);
+        mpfr_ui_sub(x, 3, x, MPFR_RNDD);
+        mpfr_prec_round(x, prec, MPFR_RNDD);
+        mpfr_printf("  three_minus_2sqrt2_down = Rounded %Ra\n", x);
+        mpfr_set_prec(x, prec * 2);
+        mpfr_sqrt_ui(x, 8, MPFR_RNDD);
+        mpfr_ui_sub(x, 3, x, MPFR_RNDU);
+        mpfr_prec_round(x, prec, MPFR_RNDU);
+        mpfr_printf("  three_minus_2sqrt2_up   = Rounded %Ra\n", x);
+
+        puts("  -- 2 - sqrt(2)");
+        mpfr_set_prec(x, prec * 2);
+        mpfr_sqrt_ui(x, 2, MPFR_RNDU);
+        mpfr_ui_sub(x, 2, x, MPFR_RNDD);
+        mpfr_prec_round(x, prec, MPFR_RNDD);
+        mpfr_printf("  two_minus_sqrt2_down = Rounded %Ra\n", x);
+        mpfr_set_prec(x, prec * 2);
+        mpfr_sqrt_ui(x, 2, MPFR_RNDD);
+        mpfr_ui_sub(x, 2, x, MPFR_RNDU);
+        mpfr_prec_round(x, prec, MPFR_RNDU);
+        mpfr_printf("  two_minus_sqrt2_up   = Rounded %Ra\n", x);
 
         mpfr_clear(x);
         mpfr_clear(one);

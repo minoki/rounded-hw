@@ -47,6 +47,21 @@ class RealFloatConstants a where
   -- | The correctly-rounded value of \(\sqrt{2}-1\)
   sqrt2m1_up :: Rounded 'TowardInf a
 
+  -- | The correctly-rounded value of \(1/\sqrt{2}\)
+  sqrt1_2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(1/\sqrt{2}\)
+  sqrt1_2_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(3-2\sqrt{2}\)
+  three_minus_2sqrt2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(3-2\sqrt{2}\)
+  three_minus_2sqrt2_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(2-\sqrt{2}\)
+  two_minus_sqrt2_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(2-\sqrt{2}\)
+  two_minus_sqrt2_up :: Rounded 'TowardInf a
+
 instance RealFloatConstants Double where
   positiveInfinity = 1/0
   negativeInfinity = -1/0
@@ -73,9 +88,18 @@ instance RealFloatConstants Double where
   -- sqrt(2)
   sqrt2_down = Rounded 0x1.6a09e667f3bccp+0
   sqrt2_up   = Rounded 0x1.6a09e667f3bcdp+0
+  -- sqrt(1/2)
+  sqrt1_2_down = Rounded 0xb.504f333f9de6p-4
+  sqrt1_2_up   = Rounded 0xb.504f333f9de68p-4
   -- sqrt(2)-1
   sqrt2m1_down = Rounded 0x6.a09e667f3bcc8p-4
   sqrt2m1_up   = Rounded 0x6.a09e667f3bcccp-4
+  -- 3 - 2 * sqrt(2)
+  three_minus_2sqrt2_down = Rounded 0x2.bec333018866cp-4
+  three_minus_2sqrt2_up   = Rounded 0x2.bec333018866ep-4
+  -- 2 - sqrt(2)
+  two_minus_sqrt2_down = Rounded 0x9.5f619980c433p-4
+  two_minus_sqrt2_up   = Rounded 0x9.5f619980c4338p-4
   {-# INLINE positiveInfinity #-}
   {-# INLINE negativeInfinity #-}
   {-# INLINE maxFinite #-}
@@ -103,9 +127,18 @@ instance RealFloatConstants Float where
   -- sqrt(2)
   sqrt2_down = Rounded 0x1.6a09e6p+0
   sqrt2_up   = Rounded 0x1.6a09e8p+0
+  -- sqrt(1/2)
+  sqrt1_2_down = Rounded 0xb.504f3p-4
+  sqrt1_2_up   = Rounded 0xb.504f4p-4
   -- sqrt(2)-1
   sqrt2m1_down = Rounded 0x6.a09e6p-4
   sqrt2m1_up   = Rounded 0x6.a09e68p-4
+  -- 3 - 2 * sqrt(2)
+  three_minus_2sqrt2_down = Rounded 0x2.bec33p-4
+  three_minus_2sqrt2_up   = Rounded 0x2.bec334p-4
+  -- 2 - sqrt(2)
+  two_minus_sqrt2_down = Rounded 0x9.5f619p-4
+  two_minus_sqrt2_up   = Rounded 0x9.5f61ap-4
   {-# INLINE positiveInfinity #-}
   {-# INLINE negativeInfinity #-}
   {-# INLINE maxFinite #-}
