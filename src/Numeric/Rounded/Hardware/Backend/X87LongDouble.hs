@@ -83,6 +83,12 @@ instance RealFloatConstants LongDouble where
   minPositive = (1/2)^(16445 :: Int) -- The literal 0x1p-16445 yields 0 on long-double-0.1
   pi_down = Rounded 0x3.243f6a8885a308dp+0
   pi_up   = Rounded 0x3.243f6a8885a308d4p+0
+  -- 3*pi
+  three_pi_down = Rounded 0x9.6cbe3f9990e91a7p+0
+  three_pi_up   = Rounded 0x9.6cbe3f9990e91a8p+0
+  -- 5*pi
+  five_pi_down = Rounded 0xf.b53d14aa9c2f2c1p+0
+  five_pi_up   = Rounded 0xf.b53d14aa9c2f2c2p+0
   -- log(2)
   log2_down = Rounded 0xb.17217f7d1cf79abp-4
   log2_up   = Rounded 0xb.17217f7d1cf79acp-4

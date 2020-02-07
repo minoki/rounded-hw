@@ -28,6 +28,30 @@ int main(void)
         mpfr_const_pi(x, MPFR_RNDU);
         mpfr_printf("  pi_up   = Rounded %Ra\n", x);
 
+        puts("  -- 3*pi");
+        mpfr_set_prec(x, prec * 2);
+        mpfr_const_pi(x, MPFR_RNDD);
+        mpfr_mul_ui(x, x, 3, MPFR_RNDD);
+        mpfr_prec_round(x, prec, MPFR_RNDD);
+        mpfr_printf("  three_pi_down = Rounded %Ra\n", x);
+        mpfr_set_prec(x, prec * 2);
+        mpfr_const_pi(x, MPFR_RNDU);
+        mpfr_mul_ui(x, x, 3, MPFR_RNDU);
+        mpfr_prec_round(x, prec, MPFR_RNDU);
+        mpfr_printf("  three_pi_up   = Rounded %Ra\n", x);
+
+        puts("  -- 5*pi");
+        mpfr_set_prec(x, prec * 2);
+        mpfr_const_pi(x, MPFR_RNDD);
+        mpfr_mul_ui(x, x, 5, MPFR_RNDD);
+        mpfr_prec_round(x, prec, MPFR_RNDD);
+        mpfr_printf("  five_pi_down = Rounded %Ra\n", x);
+        mpfr_set_prec(x, prec * 2);
+        mpfr_const_pi(x, MPFR_RNDU);
+        mpfr_mul_ui(x, x, 5, MPFR_RNDU);
+        mpfr_prec_round(x, prec, MPFR_RNDU);
+        mpfr_printf("  five_pi_up   = Rounded %Ra\n", x);
+
         puts("  -- log(2)");
         mpfr_const_log2(x, MPFR_RNDD);
         mpfr_printf("  log2_down = Rounded %Ra\n", x);

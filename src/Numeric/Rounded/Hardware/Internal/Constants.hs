@@ -17,6 +17,16 @@ class RealFloatConstants a where
   -- | The correctly-rounded value of \(\pi\)
   pi_up :: Rounded 'TowardInf a
 
+  -- | The correctly-rounded value of \(3\pi\)
+  three_pi_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(3\pi\)
+  three_pi_up :: Rounded 'TowardInf a
+
+  -- | The correctly-rounded value of \(5\pi\)
+  five_pi_down :: Rounded 'TowardNegInf a
+  -- | The correctly-rounded value of \(5\pi\)
+  five_pi_up :: Rounded 'TowardInf a
+
   -- | The correctly-rounded value of \(\log_e 2\)
   log2_down :: Rounded 'TowardNegInf a
   -- | The correctly-rounded value of \(\log_e 2\)
@@ -73,6 +83,12 @@ instance RealFloatConstants Double where
   -- (pi :: Double) == 0x1.921fb54442d18p1
   pi_down = Rounded 0x3.243f6a8885a3p+0
   pi_up   = Rounded 0x3.243f6a8885a32p+0
+  -- 3*pi
+  three_pi_down = Rounded 0x9.6cbe3f9990e9p+0
+  three_pi_up   = Rounded 0x9.6cbe3f9990e98p+0
+  -- 5*pi
+  five_pi_down = Rounded 0xf.b53d14aa9c2fp+0
+  five_pi_up   = Rounded 0xf.b53d14aa9c2f8p+0
   -- log(2)
   log2_down = Rounded 0xb.17217f7d1cf78p-4
   log2_up   = Rounded 0xb.17217f7d1cf8p-4
@@ -112,6 +128,12 @@ instance RealFloatConstants Float where
   minPositive = 0x1p-149
   pi_down = Rounded 0x3.243f68p+0
   pi_up   = Rounded 0x3.243f6cp+0
+  -- 3*pi
+  three_pi_down = Rounded 0x9.6cbe3p+0
+  three_pi_up   = Rounded 0x9.6cbe4p+0
+  -- 5*pi
+  five_pi_down = Rounded 0xf.b53d1p+0
+  five_pi_up   = Rounded 0xf.b53d2p+0
   -- log(2)
   log2_down = Rounded 0xb.17217p-4
   log2_up   = Rounded 0xb.17218p-4
