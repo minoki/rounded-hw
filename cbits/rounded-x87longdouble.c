@@ -14,75 +14,145 @@ static_assert(sizeof(long double) >= 10, "long double must be 80 bits or greater
 #define ALWAYS_INLINE
 #endif
 
+#if defined(__GNUC__)
+#define UNREACHABLE() __builtin_unreachable()
+#else
+#define UNREACHABLE() do {} while (0)
+#endif
+
+#if defined(USE_C99)
+
+typedef int fp_reg;
+typedef int native_rounding_mode;
+static const native_rounding_mode ROUND_TONEAREST  = FE_TONEAREST;
+static const native_rounding_mode ROUND_DOWNWARD   = FE_DOWNWARD;
+static const native_rounding_mode ROUND_UPWARD     = FE_UPWARD;
+static const native_rounding_mode ROUND_TOWARDZERO = FE_TOWARDZERO;
+
 static inline ALWAYS_INLINE
-int hs_rounding_mode_to_c99(HsInt mode)
+native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
 {
     switch (mode) {
     case /* TowardNearest */ 0: return FE_TONEAREST;
     case /* TowardNegInf  */ 1: return FE_DOWNWARD;
     case /* TowardInf     */ 2: return FE_UPWARD;
     case /* TowardZero    */ 3: return FE_TOWARDZERO;
-    default: return FE_TONEAREST;
+    default: UNREACHABLE(); return FE_TONEAREST;
     }
 }
 
-/*
-TODO: Add an option to use inline assembly
-extern void rounded_hw_add_longdouble_2(HsInt mode, long double *result, const long double* a, const long double *b)
+static inline ALWAYS_INLINE
+fp_reg get_fp_reg(void)
 {
-    uint16_t oldcword;
-    asm("fstcw %0" : "=m"(oldcword));
-    uint16_t newcword = (oldcword & ~(3u << 10)) | ((uint16_t)mode << 10);
-    asm("fldcw %0" : : "m"(newcword));
-    *result = *a + *b;
-    asm("fldcw %0" : : "m"(oldcword));
+    return fegetround();
 }
-*/
+static inline ALWAYS_INLINE
+void set_rounding(fp_reg reg, native_rounding_mode mode)
+{
+    fesetround(mode);
+}
+static inline ALWAYS_INLINE
+void restore_fp_reg(fp_reg oldmode)
+{
+    fesetround(oldmode);
+}
+
+#else
+
+#if !defined(__GNUC__)
+#error "Unsupported compiler"
+#endif
+
+typedef uint16_t fp_reg;
+typedef uint16_t native_rounding_mode;
+static const native_rounding_mode ROUND_TONEAREST  = 0;
+static const native_rounding_mode ROUND_DOWNWARD   = 1;
+static const native_rounding_mode ROUND_UPWARD     = 2;
+static const native_rounding_mode ROUND_TOWARDZERO = 3;
+
+static inline ALWAYS_INLINE
+native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
+{
+    /*
+     * The order of RoundingMode in Numeric.Rounded.Hardware.Internal.Rounding is
+     * chosen so that the conversion here becomes trivial.
+     */
+    return (native_rounding_mode)mode;
+}
+
+static inline ALWAYS_INLINE
+fp_reg get_fp_reg(void)
+{
+    uint16_t cword;
+    asm("fstcw %0" : "=m"(cword));
+    return cword;
+}
+static inline ALWAYS_INLINE
+void set_rounding(fp_reg oldcword, native_rounding_mode mode)
+{
+    uint16_t newcword = (oldcword & ~(3u << 10)) | (mode << 10);
+    asm("fldcw %0" : : "m"(newcword));
+}
+static inline ALWAYS_INLINE
+void restore_fp_reg(fp_reg cword)
+{
+    asm("fldcw %0" : : "m"(cword));
+}
+
+#endif
 
 extern void rounded_hw_add_longdouble(HsInt mode, long double *result, const long double* a, const long double *b)
 {
-    int oldmode = fegetround();
-    fesetround(hs_rounding_mode_to_c99(mode));
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, hs_rounding_mode_to_native(mode));
     *result = *a + *b;
-    fesetround(oldmode);
+    restore_fp_reg(oldreg);
 }
 
 extern void rounded_hw_sub_longdouble(HsInt mode, long double *result, const long double* a, const long double *b)
 {
-    int oldmode = fegetround();
-    fesetround(hs_rounding_mode_to_c99(mode));
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, hs_rounding_mode_to_native(mode));
     *result = *a - *b;
-    fesetround(oldmode);
+    restore_fp_reg(oldreg);
 }
 
 extern void rounded_hw_mul_longdouble(HsInt mode, long double *result, const long double* a, const long double *b)
 {
-    int oldmode = fegetround();
-    fesetround(hs_rounding_mode_to_c99(mode));
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, hs_rounding_mode_to_native(mode));
     *result = *a * *b;
-    fesetround(oldmode);
+    restore_fp_reg(oldreg);
 }
 
 extern void rounded_hw_div_longdouble(HsInt mode, long double *result, const long double* a, const long double *b)
 {
-    int oldmode = fegetround();
-    fesetround(hs_rounding_mode_to_c99(mode));
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, hs_rounding_mode_to_native(mode));
     *result = *a / *b;
-    fesetround(oldmode);
+    restore_fp_reg(oldreg);
 }
 
 extern void rounded_hw_sqrt_longdouble(HsInt mode, long double *result, const long double* a)
 {
-    int oldmode = fegetround();
-    fesetround(hs_rounding_mode_to_c99(mode));
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, hs_rounding_mode_to_native(mode));
     *result = sqrtl(*a);
-    fesetround(oldmode);
+    restore_fp_reg(oldreg);
 }
 
 extern void rounded_hw_fma_longdouble(HsInt mode, long double *result, const long double* a, const long double *b, const long double *c)
 {
-    int oldmode = fegetround();
-    fesetround(hs_rounding_mode_to_c99(mode));
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, hs_rounding_mode_to_native(mode));
     *result = fmal(*a, *b, *c);
-    fesetround(oldmode);
+    restore_fp_reg(oldreg);
+}
+
+extern const char *rounded_hw_backend_name_longdouble(void) {
+#if defined(USE_C99)
+    return "C99";
+#else
+    return "inline assembly";
+#endif
 }

@@ -6,6 +6,7 @@ module Numeric.Rounded.Hardware.Backend.X87LongDouble
   ) where
 import           Data.Ratio
 import           Data.Tagged
+import           Foreign.C.String (CString, peekCString)
 import           Foreign.Marshal (alloca, with)
 import           Foreign.Ptr (Ptr)
 import           Foreign.Storable (peek)
@@ -123,7 +124,7 @@ instance RoundedRing LongDouble where
   roundedMul = roundedMul_ld
   roundedFromInteger = fromInt
   intervalFromInteger = intervalFromInteger_default
-  backendNameT = Tagged "C FFI"
+  backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -141,3 +142,13 @@ instance RoundedFractional LongDouble where
 instance RoundedSqrt LongDouble where
   roundedSqrt = roundedSqrt_ld
   {-# INLINE roundedSqrt #-}
+
+--
+-- Backend name
+--
+
+foreign import ccall unsafe "rounded_hw_backend_name_longdouble"
+  c_backend_name :: CString
+
+cBackendName :: String
+cBackendName = unsafePerformIO (peekCString c_backend_name)
