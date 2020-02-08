@@ -180,7 +180,7 @@ static inline {{TYPE}} rounded_sum_impl_{{NAME}}(native_rounding_mode mode, HsIn
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    {{TYPE}} s = 0;
+    {{TYPE}} s = 0.0{{LIT_SUFFIX}};
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
     }

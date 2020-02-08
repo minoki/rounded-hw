@@ -217,7 +217,7 @@ static inline double rounded_sum_impl_double(native_rounding_mode mode, HsInt of
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double s = 0;
+    double s = 0.0;
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
     }
@@ -450,7 +450,7 @@ static inline float rounded_sum_impl_float(native_rounding_mode mode, HsInt offs
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float s = 0;
+    float s = 0.0f;
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
     }
