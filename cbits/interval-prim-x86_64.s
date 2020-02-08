@@ -21,6 +21,7 @@ _rounded_hw_interval_add:
 	ldmxcsr -4(%rbp)
 	addsd %xmm3, %xmm1
 	xorl $0x6000, %ecx   # downward -> upward
+	movl %ecx, -4(%rbp)
 	ldmxcsr -4(%rbp)
 	addsd %xmm4, %xmm2
 	ldmxcsr -8(%rbp)
@@ -48,6 +49,7 @@ _rounded_hw_interval_sub:
 	ldmxcsr -4(%rbp)
 	subsd %xmm4, %xmm1
 	xorl $0x6000, %ecx   # downward -> upward
+	movl %ecx, -4(%rbp)
 	ldmxcsr -4(%rbp)
 	subsd %xmm3, %xmm2
 	ldmxcsr -8(%rbp)
