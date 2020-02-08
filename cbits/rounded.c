@@ -15,6 +15,29 @@
 #define UNREACHABLE() do {} while (0)
 #endif
 
+/* By default, we use SSE2 if available. Define USE_C99 to override.  */
+
+#if !defined(USE_C99) && !defined(USE_SSE2)
+// Detect what processor feature is available and make a decision.
+
+/*
+#if defined(__AVX512F__)
+#define USE_AVX512 // May implement in a future, but not now...
+#endif
+*/
+
+#if defined(__SSE2__)
+// If SSE2 is available, use it.
+#define USE_SSE2
+#else
+// Otherwise, use C99's fesetround.
+#define USE_C99
+#endif
+
+#elif defined(USE_C99) && defined(USE_SSE2)
+#error "Invalid configuration detected: USE_C99 and USE_SSE2 are exclusive"
+#endif
+
 #if defined(USE_SSE2)
 
 #include <x86intrin.h>
@@ -51,6 +74,8 @@ void restore_fp_reg(fp_reg reg)
 {
     _mm_setcsr(reg);
 }
+
+static const char backend_name[] = "SSE2";
 
 #elif defined(USE_C99)
 
@@ -90,6 +115,8 @@ void restore_fp_reg(fp_reg oldmode)
 {
     fesetround(oldmode);
 }
+
+static const char backend_name[] = "C99";
 
 #else
 #error Please define USE_C99 or USE_SSE2
@@ -172,11 +199,5 @@ EACH_ROUNDING_MODE(rounded_hw_fma_if_fast_double, rounded_fma_if_fast_impl_doubl
 // TODO: remainder, double -> int
 
 extern const char *rounded_hw_backend_name(void) {
-#if defined(USE_SSE2)
-    return "SSE2";
-#elif defined(USE_C99)
-    return "C99";
-#else
-#error Please define USE_C99 or USE_SSE2
-#endif
+    return backend_name;
 }

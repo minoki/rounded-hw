@@ -35,18 +35,15 @@ flags:
     manual: true
     default: false
 
-  sse2:
-    description: Use SSE2
+  c99:
+    description: "Restrict use of platform-dependent features (e.g. SSE2) and only use C99"
     manual: true
     default: false
-    # Isn't something like
-    #   default: arch(x86_64)
-    # possible?
 
   ghc-prim:
     description: "Use GHC's \"foreign import prim\""
     manual: true
-    default: false
+    default: true
 
   x87-long-double:
     description: "Support x87 \"long double\""
@@ -75,14 +72,10 @@ library:
     - FFIImports
     - FFIWrapper.Float
     - FFIWrapper.Double
-  - condition: flag(sse2)
-    then:
-      cc-options:
-      - -DUSE_SSE2
-    else:
-      cc-options:
-      - -DUSE_C99
-  - condition: "!flag(pure-hs) && flag(ghc-prim) && arch(x86_64)"
+  - condition: flag(c99)
+    cc-options:
+    - -DUSE_C99
+  - condition: "!flag(pure-hs) && !flag(c99) && flag(ghc-prim) && arch(x86_64)"
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.FastFFI
     c-sources:
