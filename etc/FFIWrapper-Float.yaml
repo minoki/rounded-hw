@@ -1,0 +1,67 @@
+---
+ModName: FFIWrapper.Float
+NAME: float
+HsType: Float
+each_function:
+- HsFnName: roundedAdd
+  CFnName: rounded_hw_add
+  CFnNameInHs: c_rounded_add
+  FnType: "Float -> Float -> Float"
+  first: true
+- HsFnName: roundedSub
+  CFnName: rounded_hw_sub
+  CFnNameInHs: c_rounded_sub
+  FnType: "Float -> Float -> Float"
+- HsFnName: roundedMul
+  CFnName: rounded_hw_mul
+  CFnNameInHs: c_rounded_mul
+  FnType: "Float -> Float -> Float"
+- HsFnName: roundedDiv
+  CFnName: rounded_hw_div
+  CFnNameInHs: c_rounded_div
+  FnType: "Float -> Float -> Float"
+- HsFnName: roundedSqrt
+  CFnName: rounded_hw_sqrt
+  CFnNameInHs: c_rounded_sqrt
+  FnType: "Float -> Float"
+- HsFnName: roundedFMA
+  CFnName: rounded_hw_fma
+  CFnNameInHs: c_rounded_fma
+  FnType: "Float -> Float -> Float -> Float"
+- HsFnName: roundedFMAIfFast
+  CFnName: rounded_hw_fma_if_fast
+  CFnNameInHs: c_rounded_fma_if_fast
+  FnType: "Float -> Float -> Float -> Float"
+- HsFnName: roundedFromInt64
+  CFnName: rounded_hw_int64_to
+  CFnNameInHs: c_rounded_from_int64
+  FnType: "Int64 -> Float"
+- HsFnName: roundedFromWord64
+  CFnName: rounded_hw_word64_to
+  CFnNameInHs: c_rounded_from_word64
+  FnType: "Word64 -> Float"
+- HsFnName: roundedSumPtr
+  CFnName: rounded_hw_sum
+  CFnNameInHs: c_rounded_sum_ptr
+  FnType: "Int -> Int -> Ptr Float -> IO Float"
+- HsFnName: roundedSumByteArray
+  CFnName: rounded_hw_sum
+  CFnNameInHs: c_rounded_sum_bytearr
+  FnType: "Int -> Int -> ByteArray# -> Float"
+each_rounding_mode:
+- MODE_PARAM: "Int -> "
+  MODE_SUFFIX: ""
+- MODE_PARAM: ""
+  MODE_SUFFIX: "_up"
+- MODE_PARAM: ""
+  MODE_SUFFIX: "_down"
+- MODE_PARAM: ""
+  MODE_SUFFIX: "_zero"
+each_directed_rounding_mode:
+- Mode: TowardNegInf
+  MODE_SUFFIX: "_down"
+- Mode: TowardInf
+  MODE_SUFFIX: "_up"
+- Mode: TowardZero
+  MODE_SUFFIX: "_zero"
+---

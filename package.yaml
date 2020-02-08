@@ -69,7 +69,6 @@ library:
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.C
     other-modules:
-    - FFIImports
     - FFIWrapper.Float
     - FFIWrapper.Double
   - condition: flag(c99)

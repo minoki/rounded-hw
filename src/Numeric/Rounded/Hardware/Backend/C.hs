@@ -22,7 +22,6 @@ import qualified Data.Vector.Primitive as VP
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed.Base as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           FFIImports
 import qualified FFIWrapper.Double as D
 import qualified FFIWrapper.Float as F
 import           Foreign.C.String (CString, peekCString)
@@ -46,7 +45,7 @@ instance RoundedRing CFloat where
   roundedAdd = coerce F.roundedAdd
   roundedSub = coerce F.roundedSub
   roundedMul = coerce F.roundedMul
-  intervalMul x x' y y' = (coerce c_interval_mul_float_down x x' y y', coerce c_interval_mul_float_up x x' y y')
+  intervalMul x x' y y' = (coerce F.intervalMul_down x x' y y', coerce F.intervalMul_up x x' y y')
   roundedFromInteger rn x = CFloat (fromInt rn x)
   intervalFromInteger = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
@@ -59,7 +58,7 @@ instance RoundedRing CFloat where
 
 instance RoundedFractional CFloat where
   roundedDiv = coerce F.roundedDiv
-  intervalDiv x x' y y' = (coerce c_interval_div_float_down x x' y y', coerce c_interval_div_float_up x x' y y')
+  intervalDiv x x' y y' = (coerce F.intervalDiv_down x x' y y', coerce F.intervalDiv_up x x' y y')
   roundedFromRational rn x = CFloat $ fromRatio rn (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromRational_default
   {-# INLINE roundedDiv #-}
@@ -90,7 +89,7 @@ instance RoundedRing CDouble where
   roundedAdd = coerce D.roundedAdd
   roundedSub = coerce D.roundedSub
   roundedMul = coerce D.roundedMul
-  intervalMul x x' y y' = (coerce c_interval_mul_double_down x x' y y', coerce c_interval_mul_double_up x x' y y')
+  intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
   roundedFromInteger rn x = CDouble (fromInt rn x)
   intervalFromInteger = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
@@ -103,7 +102,7 @@ instance RoundedRing CDouble where
 
 instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
-  intervalDiv x x' y y' = (coerce c_interval_div_double_down x x' y y', coerce c_interval_div_double_up x x' y y')
+  intervalDiv x x' y y' = (coerce D.intervalDiv_down x x' y y', coerce D.intervalDiv_up x x' y y')
   roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromRational_default
   -- TODO: Specialize small case in ***FromRational?

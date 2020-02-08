@@ -25,7 +25,6 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           FFIImports
 import qualified FFIWrapper.Double as D
 import           Foreign.Storable (Storable)
 import           GHC.Exts (Double (D#), Double#)
@@ -49,7 +48,7 @@ instance RoundedRing CDouble where
   roundedMul = coerce D.roundedMul
   intervalAdd x x' y y' = coerce fastIntervalAdd x x' y y'
   intervalSub x x' y y' = coerce fastIntervalSub x x' y y'
-  intervalMul x x' y y' = (coerce c_interval_mul_double_down x x' y y', coerce c_interval_mul_double_up x x' y y')
+  intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
   roundedFromInteger = coerce (roundedFromInteger :: RoundingMode -> Integer -> C.CDouble)
   intervalFromInteger = coerce (intervalFromInteger :: Integer -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
   backendNameT = Tagged $ "FastFFI+" ++ backendName (Proxy :: Proxy C.CDouble)
@@ -64,7 +63,7 @@ instance RoundedRing CDouble where
 
 instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
-  intervalDiv x x' y y' = (coerce c_interval_div_double_down x x' y y', coerce c_interval_div_double_up x x' y y')
+  intervalDiv x x' y y' = (coerce D.intervalDiv_down x x' y y', coerce D.intervalDiv_up x x' y y')
   intervalRecip x x' = coerce fastIntervalRecip x x'
   roundedFromRational = coerce (roundedFromRational :: RoundingMode -> Rational -> C.CDouble)
   intervalFromRational = coerce (intervalFromRational :: Rational -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
