@@ -9,6 +9,12 @@
 #define ALWAYS_INLINE
 #endif
 
+#if defined(__GNUC__)
+#define UNREACHABLE() __builtin_unreachable()
+#else
+#define UNREACHABLE() do {} while (0)
+#endif
+
 #if defined(USE_SSE2)
 
 #include <x86intrin.h>
@@ -65,7 +71,7 @@ native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
     case /* TowardNegInf  */ 1: return FE_DOWNWARD;
     case /* TowardInf     */ 2: return FE_UPWARD;
     case /* TowardZero    */ 3: return FE_TOWARDZERO;
-    default: return FE_TONEAREST;
+    default: UNREACHABLE(); return FE_TONEAREST;
     }
 }
 
