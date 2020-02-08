@@ -357,14 +357,30 @@ static inline double rounded_sum_impl_double(native_rounding_mode mode, HsInt of
     }
     return s;
 }
-extern double rounded_hw_sum_double(HsInt mode, HsInt offset, HsInt length, const double *a)
-{ return rounded_sum_impl_double(hs_rounding_mode_to_native(mode), offset, length, a); }
+static double rounded_hw_sum_double_nearest(HsInt offset, HsInt length, const double *a)
+{ return rounded_sum_impl_double(ROUND_TONEAREST, offset, length, a); }
 extern double rounded_hw_sum_double_up(HsInt offset, HsInt length, const double *a)
 { return rounded_sum_impl_double(ROUND_UPWARD, offset, length, a); }
 extern double rounded_hw_sum_double_down(HsInt offset, HsInt length, const double *a)
 { return rounded_sum_impl_double(ROUND_DOWNWARD, offset, length, a); }
 extern double rounded_hw_sum_double_zero(HsInt offset, HsInt length, const double *a)
 { return rounded_sum_impl_double(ROUND_TOWARDZERO, offset, length, a); }
+extern double rounded_hw_sum_double(HsInt mode, HsInt offset, HsInt length, const double *a)
+{
+    switch (hs_rounding_mode_to_native(mode)) {
+    case ROUND_TONEAREST:
+        return rounded_hw_sum_double_nearest(offset, length, a);
+    case ROUND_UPWARD:
+        return rounded_hw_sum_double_up(offset, length, a);
+    case ROUND_DOWNWARD:
+        return rounded_hw_sum_double_down(offset, length, a);
+    case ROUND_TOWARDZERO:
+        return rounded_hw_sum_double_zero(offset, length, a);
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
 
 //
 // float
@@ -723,11 +739,27 @@ static inline float rounded_sum_impl_float(native_rounding_mode mode, HsInt offs
     }
     return s;
 }
-extern float rounded_hw_sum_float(HsInt mode, HsInt offset, HsInt length, const float *a)
-{ return rounded_sum_impl_float(hs_rounding_mode_to_native(mode), offset, length, a); }
+static float rounded_hw_sum_float_nearest(HsInt offset, HsInt length, const float *a)
+{ return rounded_sum_impl_float(ROUND_TONEAREST, offset, length, a); }
 extern float rounded_hw_sum_float_up(HsInt offset, HsInt length, const float *a)
 { return rounded_sum_impl_float(ROUND_UPWARD, offset, length, a); }
 extern float rounded_hw_sum_float_down(HsInt offset, HsInt length, const float *a)
 { return rounded_sum_impl_float(ROUND_DOWNWARD, offset, length, a); }
 extern float rounded_hw_sum_float_zero(HsInt offset, HsInt length, const float *a)
 { return rounded_sum_impl_float(ROUND_TOWARDZERO, offset, length, a); }
+extern float rounded_hw_sum_float(HsInt mode, HsInt offset, HsInt length, const float *a)
+{
+    switch (hs_rounding_mode_to_native(mode)) {
+    case ROUND_TONEAREST:
+        return rounded_hw_sum_float_nearest(offset, length, a);
+    case ROUND_UPWARD:
+        return rounded_hw_sum_float_up(offset, length, a);
+    case ROUND_DOWNWARD:
+        return rounded_hw_sum_float_down(offset, length, a);
+    case ROUND_TOWARDZERO:
+        return rounded_hw_sum_float_zero(offset, length, a);
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}

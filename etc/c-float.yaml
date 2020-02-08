@@ -22,6 +22,7 @@ each_rounding_mode:
 - MODE_PARAM: "HsInt mode, "
   MODE_ARG: "hs_rounding_mode_to_native(mode)"
   MODE_SUFFIX: ""
+  is_dynamic: true
 - MODE_PARAM: ""
   MODE_ARG: ROUND_UPWARD
   MODE_SUFFIX: "_up"

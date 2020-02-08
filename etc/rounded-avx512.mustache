@@ -264,7 +264,27 @@ static inline {{TYPE}} rounded_sum_impl_{{NAME}}(native_rounding_mode mode, HsIn
     }
     return s;
 }
+static {{TYPE}} rounded_hw_sum_{{NAME}}_nearest(HsInt offset, HsInt length, const {{TYPE}} *a)
+{ return rounded_sum_impl_{{NAME}}(ROUND_TONEAREST, offset, length, a); }
 {{#each_rounding_mode}}
+{{^is_dynamic}}
 extern {{TYPE}} rounded_hw_sum_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}HsInt offset, HsInt length, const {{TYPE}} *a)
 { return rounded_sum_impl_{{NAME}}({{MODE_ARG}}, offset, length, a); }
+{{/is_dynamic}}
 {{/each_rounding_mode}}
+extern {{TYPE}} rounded_hw_sum_{{NAME}}(HsInt mode, HsInt offset, HsInt length, const {{TYPE}} *a)
+{
+    switch (hs_rounding_mode_to_native(mode)) {
+    case ROUND_TONEAREST:
+        return rounded_hw_sum_{{NAME}}_nearest(offset, length, a);
+    case ROUND_UPWARD:
+        return rounded_hw_sum_{{NAME}}_up(offset, length, a);
+    case ROUND_DOWNWARD:
+        return rounded_hw_sum_{{NAME}}_down(offset, length, a);
+    case ROUND_TOWARDZERO:
+        return rounded_hw_sum_{{NAME}}_zero(offset, length, a);
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
