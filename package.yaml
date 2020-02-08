@@ -87,8 +87,14 @@ library:
   - condition: "!flag(pure-hs) && !flag(c99) && flag(ghc-prim) && arch(x86_64)"
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.FastFFI
-    c-sources:
-    - cbits/interval-prim-x86_64.s
+    when:
+    - condition: flag(avx512)
+      then:
+        c-sources:
+        - cbits/interval-prim-x86_64-avx512.s
+      else:
+        c-sources:
+        - cbits/interval-prim-x86_64.s
     cpp-options:
     - -DUSE_GHC_PRIM
   - condition: flag(x87-long-double)
