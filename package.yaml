@@ -37,24 +37,24 @@ flags:
     default: false
 
   c99:
-    description: "Restrict use of platform-dependent features (e.g. SSE2) and only use C99"
+    description: "Restrict use of platform-dependent features (e.g. SSE2) and only use C99 features"
     manual: true
     default: false
 
   avx512:
-    description: "Use AVX512"
+    description: "Use AVX512 EVEX encoding"
     manual: true
     default: false
 
   ghc-prim:
-    description: "Use GHC's \"foreign import prim\""
+    description: "Use GHC's \"foreign import prim\" on the supported platform"
     manual: true
     default: true
 
   x87-long-double:
     description: "Support x87 \"long double\""
     manual: true
-    default: false
+    default: true
 
 library:
   source-dirs: src
@@ -66,7 +66,10 @@ library:
   - Numeric.Rounded.Hardware.Internal.RoundedResult
   - Numeric.Rounded.Hardware.Internal.Show
   - Numeric.Rounded.Hardware.Interval.ElementaryFunctions
+  dependencies:
+  - tagged
   when:
+  # Use FFI when flag(pure-hs) is off
   - condition: "!flag(pure-hs)"
     c-sources:
     - cbits/rounded.c
@@ -77,14 +80,20 @@ library:
     other-modules:
     - FFIWrapper.Float
     - FFIWrapper.Double
+
+  # flag(c99): Disable platform-dependent techniques and only use C99 fesetround
   - condition: flag(c99)
     cc-options:
     - -DUSE_C99
+
+  # flag(avx512): Use AVX512 EVEX encoding
   - condition: flag(avx512)
     cc-options:
     - -DUSE_AVX512
     - -mavx512f
-  - condition: "!flag(pure-hs) && !flag(c99) && flag(ghc-prim) && arch(x86_64)"
+
+  # flag(ghc-prim): We support "foreign import prim" on GHC/x86_64
+  - condition: "!flag(pure-hs) && !flag(c99) && flag(ghc-prim) && impl(ghc) && arch(x86_64)"
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.FastFFI
     when:
@@ -97,16 +106,16 @@ library:
         - cbits/interval-prim-x86_64.s
     cpp-options:
     - -DUSE_GHC_PRIM
-  - condition: flag(x87-long-double)
+
+  # flag(x87-long-double): Support LongDouble on x86
+  - condition: flag(x87-long-double) && (arch(i386) || arch(x86_64))
     dependencies: long-double
     c-sources:
     - cbits/rounded-x87longdouble.c
-    exposed-modules:
+    other-modules:
     - Numeric.Rounded.Hardware.Backend.X87LongDouble
     cpp-options:
     - -DUSE_X87_LONG_DOUBLE
-  dependencies:
-  - tagged
 
 tests:
   rounded-hw-test:
@@ -121,7 +130,7 @@ tests:
     - hspec
     - QuickCheck
     when:
-    - condition: flag(x87-long-double)
+    - condition: flag(x87-long-double) && (arch(i386) || arch(x86_64))
       dependencies: long-double
       other-modules:
       - X87LongDoubleSpec
