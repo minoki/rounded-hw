@@ -1,0 +1,34 @@
+---
+NAME: double
+TYPE: double
+LIT_SUFFIX: ""
+sqrt: sqrt
+fma: fma
+fmax: fmax
+fmin: fmin
+FP_FAST_FMA: FP_FAST_FMA
+VECTOR: __m128d
+SIMD_SUFFIX: _sd
+each_static_rounding_mode:
+- MODE: ROUND_TONEAREST
+  _MM_FROUND_MODE: _MM_FROUND_TO_NEAREST_INT
+- MODE: ROUND_DOWNWARD
+  _MM_FROUND_MODE: _MM_FROUND_TO_NEG_INF
+- MODE: ROUND_UPWARD
+  _MM_FROUND_MODE: _MM_FROUND_TO_POS_INF
+- MODE: ROUND_TOWARDZERO
+  _MM_FROUND_MODE: _MM_FROUND_TO_ZERO
+each_rounding_mode:
+- MODE_PARAM: "HsInt mode, "
+  MODE_ARG: "hs_rounding_mode_to_native(mode)"
+  MODE_SUFFIX: ""
+- MODE_PARAM: ""
+  MODE_ARG: ROUND_UPWARD
+  MODE_SUFFIX: "_up"
+- MODE_PARAM: ""
+  MODE_ARG: ROUND_DOWNWARD
+  MODE_SUFFIX: "_down"
+- MODE_PARAM: ""
+  MODE_ARG: ROUND_TOWARDZERO
+  MODE_SUFFIX: "_zero"
+---
