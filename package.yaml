@@ -10,6 +10,7 @@ extra-source-files:
 - README.md
 - ChangeLog.md
 - cbits/rounded-common.inl
+- cbits/rounded-avx512.inl
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -37,6 +38,11 @@ flags:
 
   c99:
     description: "Restrict use of platform-dependent features (e.g. SSE2) and only use C99"
+    manual: true
+    default: false
+
+  avx512:
+    description: "Use AVX512"
     manual: true
     default: false
 
@@ -74,6 +80,10 @@ library:
   - condition: flag(c99)
     cc-options:
     - -DUSE_C99
+  - condition: flag(avx512)
+    cc-options:
+    - -DUSE_AVX512
+    - -mavx512f
   - condition: "!flag(pure-hs) && !flag(c99) && flag(ghc-prim) && arch(x86_64)"
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.FastFFI

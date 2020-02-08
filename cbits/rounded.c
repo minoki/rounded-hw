@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <math.h>
 #include "HsFFI.h"
 
@@ -17,16 +18,13 @@
 
 /* By default, we use SSE2 if available. Define USE_C99 to override.  */
 
-#if !defined(USE_C99) && !defined(USE_SSE2)
+#if !defined(USE_C99) && !defined(USE_SSE2) && !defined(USE_AVX512)
 // Detect what processor feature is available and make a decision.
 
-/*
 #if defined(__AVX512F__)
-#define USE_AVX512 // May implement in a future, but not now...
-#endif
-*/
-
-#if defined(__SSE2__)
+// If AVX512 is available, use it.
+#define USE_AVX512
+#elif defined(__SSE2__)
 // If SSE2 is available, use it.
 #define USE_SSE2
 #else
@@ -35,10 +33,32 @@
 #endif
 
 #elif defined(USE_C99) && defined(USE_SSE2)
-#error "Invalid configuration detected: USE_C99 and USE_SSE2 are exclusive"
+#error "Invalid configuration detected: USE_C99 and USE_SSE2 are mutually exclusive"
+#elif defined(USE_C99) && defined(USE_AVX512)
+#error "Invalid configuration detected: USE_C99 and USE_AVX512 are mutually exclusive"
+#elif defined(USE_SSE2) && defined(USE_AVX512)
+#error "Invalid configuration detected: USE_SSE2 and USE_AVX512 are mutually exclusive"
 #endif
 
-#if defined(USE_SSE2)
+#if defined(USE_AVX512)
+
+#include <x86intrin.h>
+
+typedef enum {
+  /* The order is same as RoundingMode in Numeric.Rounded.Hardware.Internal.Rounding */
+  ROUND_TONEAREST = 0,
+  ROUND_DOWNWARD,
+  ROUND_UPWARD,
+  ROUND_TOWARDZERO
+} native_rounding_mode;
+
+static inline ALWAYS_INLINE
+native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
+{ return (native_rounding_mode)mode; }
+
+static const char backend_name[] = "AVX512";
+
+#elif defined(USE_SSE2)
 
 #include <x86intrin.h>
 
@@ -119,10 +139,14 @@ void restore_fp_reg(fp_reg oldmode)
 static const char backend_name[] = "C99";
 
 #else
-#error Please define USE_C99 or USE_SSE2
+#error Please define USE_C99 or USE_SSE2 or USE_AVX512
 #endif
 
+#if defined(USE_AVX512)
+#include "rounded-avx512.inl"
+#else
 #include "rounded-common.inl"
+#endif
 
 extern const char *rounded_hw_backend_name(void) {
     return backend_name;

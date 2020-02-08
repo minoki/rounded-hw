@@ -1,0 +1,270 @@
+
+//
+// {{TYPE}}
+//
+
+static inline ALWAYS_INLINE
+{{TYPE}} rounded_add_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a, {{TYPE}} b)
+{
+    {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
+    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(b);
+    {{VECTOR}} resultv;
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_add_round{{SIMD_SUFFIX}}(av, bv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_add_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a, {{TYPE}} b)
+{ return rounded_add_impl_{{NAME}}({{MODE_ARG}}, a, b); }
+{{/each_rounding_mode}}
+
+static inline ALWAYS_INLINE
+{{TYPE}} rounded_sub_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a, {{TYPE}} b)
+{
+    {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
+    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(b);
+    {{VECTOR}} resultv;
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_sub_round{{SIMD_SUFFIX}}(av, bv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_sub_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a, {{TYPE}} b)
+{ return rounded_sub_impl_{{NAME}}({{MODE_ARG}}, a, b); }
+{{/each_rounding_mode}}
+
+static inline ALWAYS_INLINE
+{{TYPE}} rounded_mul_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a, {{TYPE}} b)
+{
+    {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
+    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(b);
+    {{VECTOR}} resultv;
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_mul_round{{SIMD_SUFFIX}}(av, bv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_mul_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a, {{TYPE}} b)
+{ return rounded_mul_impl_{{NAME}}({{MODE_ARG}}, a, b); }
+{{/each_rounding_mode}}
+
+static inline ALWAYS_INLINE
+{{TYPE}} rounded_div_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a, {{TYPE}} b)
+{
+    {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
+    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(b);
+    {{VECTOR}} resultv;
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_div_round{{SIMD_SUFFIX}}(av, bv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_div_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a, {{TYPE}} b)
+{ return rounded_div_impl_{{NAME}}({{MODE_ARG}}, a, b); }
+{{/each_rounding_mode}}
+
+static inline ALWAYS_INLINE
+{{TYPE}} rounded_sqrt_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a)
+{
+    {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
+    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(0.0{{LIT_SUFFIX}});
+    {{VECTOR}} resultv;
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_sqrt_round{{SIMD_SUFFIX}}(av, bv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_sqrt_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a)
+{ return rounded_sqrt_impl_{{NAME}}({{MODE_ARG}}, a); }
+{{/each_rounding_mode}}
+
+static inline ALWAYS_INLINE
+{{TYPE}} rounded_fma_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a, {{TYPE}} b, {{TYPE}} c)
+{
+    {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
+    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(b);
+    {{VECTOR}} cv = _mm_set{{SIMD_SUFFIX}}(c);
+    {{VECTOR}} resultv;
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_fmadd_round{{SIMD_SUFFIX}}(av, bv, cv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_fma_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a, {{TYPE}} b, {{TYPE}} c)
+{ return rounded_fma_impl_{{NAME}}({{MODE_ARG}}, a, b, c); }
+{{/each_rounding_mode}}
+
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_fma_if_fast_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}{{TYPE}} a, {{TYPE}} b, {{TYPE}} c)
+{ return rounded_fma_impl_{{NAME}}({{MODE_ARG}}, a, b, c); }
+{{/each_rounding_mode}}
+
+//
+// Conversion
+//
+
+static inline {{TYPE}} rounded_int64_to_{{NAME}}_impl(native_rounding_mode mode, int64_t x)
+{
+    {{VECTOR}} resultv = _mm_set{{SIMD_SUFFIX}}(0.0{{LIT_SUFFIX}});
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_cvt_roundi64{{SIMD_SUFFIX}}(resultv, x, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_int64_to_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}int64_t x)
+{ return rounded_int64_to_{{NAME}}_impl({{MODE_ARG}}, x); }
+{{/each_rounding_mode}}
+
+static inline {{TYPE}} rounded_word64_to_{{NAME}}_impl(native_rounding_mode mode, uint64_t x)
+{
+    {{VECTOR}} resultv = _mm_set{{SIMD_SUFFIX}}(0.0{{LIT_SUFFIX}});
+    switch (mode) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        resultv = _mm_cvt_roundu64{{SIMD_SUFFIX}}(resultv, x, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+    {{TYPE}} result;
+    _mm_store{{SIMD_SUFFIX}}(&result, resultv);
+    return result;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_word64_to_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}uint64_t x)
+{ return rounded_word64_to_{{NAME}}_impl({{MODE_ARG}}, x); }
+{{/each_rounding_mode}}
+
+//
+// Interval arithmetic
+// TODO: Can we use MAXSS/MAXSD?
+//
+
+extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
+{
+    // TODO: zero and infinity
+    {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
+    {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
+    {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
+    {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
+    return {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+}
+
+extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
+{
+    // TODO: zero and infinity
+    {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
+    {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
+    {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
+    {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
+    return {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+}
+
+extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
+{
+    // TODO: zero and infinity
+    {{TYPE}} x = rounded_div_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
+    {{TYPE}} y = rounded_div_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
+    {{TYPE}} z = rounded_div_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
+    {{TYPE}} w = rounded_div_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
+    return {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+}
+
+extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
+{
+    // TODO: zero and infinity
+    {{TYPE}} x = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
+    {{TYPE}} y = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
+    {{TYPE}} z = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
+    {{TYPE}} w = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
+    return {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+}
+
+//
+// Summation
+//
+
+static inline {{TYPE}} rounded_sum_impl_{{NAME}}(native_rounding_mode mode, HsInt offset, HsInt length, const {{TYPE}} *a)
+{
+    {{TYPE}} s = 0.0{{LIT_SUFFIX}};
+    for (HsInt i = 0; i < length; ++i) {
+        s = rounded_add_impl_{{NAME}}(mode, s, a[offset + i]);
+    }
+    return s;
+}
+{{#each_rounding_mode}}
+extern {{TYPE}} rounded_hw_sum_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}HsInt offset, HsInt length, const {{TYPE}} *a)
+{ return rounded_sum_impl_{{NAME}}({{MODE_ARG}}, offset, length, a); }
+{{/each_rounding_mode}}
