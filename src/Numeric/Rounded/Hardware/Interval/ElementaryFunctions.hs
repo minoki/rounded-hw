@@ -193,3 +193,24 @@ cosI t = flip withEndPoints t $ \(Rounded x) (Rounded y) ->
     three_pi_iv = makeInterval three_pi_down three_pi_up
     wholeRange :: i
     wholeRange = makeInterval (-1) 1
+
+tanI :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+tanI t = flip withEndPoints t $ \(Rounded x) (Rounded y) ->
+  if isInfinite x || isInfinite y
+  then wholeRange
+  else flip withEndPoints (t / pi_iv) $ \(Rounded x0) (Rounded _) ->
+    let n = round x0 -- abs (x - n) <= 1/2
+        t' = t - pi_iv * fromInteger n
+    in flip withEndPoints t' $ \(Rounded x') (Rounded y') ->
+      -- -pi/2 < x' < pi/2
+      if y' >= getRounded pi_up / 2
+      then wholeRange
+      else let lb = sinP (singleton x') / cosP (singleton x')
+               ub = sinP (singleton y') / cosP (singleton y')
+               -- lb <= ub
+           in hull lb ub
+  where
+    pi_iv :: i
+    pi_iv = makeInterval pi_down pi_up
+    wholeRange :: i
+    wholeRange = makeInterval (Rounded negativeInfinity) (Rounded positiveInfinity)

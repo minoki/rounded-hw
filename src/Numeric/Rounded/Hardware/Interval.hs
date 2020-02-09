@@ -22,6 +22,7 @@ module Numeric.Rounded.Hardware.Interval
   , log1pI
   , sinI
   , cosI
+  , tanI
   ) where
 import           Control.DeepSeq (NFData (..))
 import           Control.Monad
@@ -158,6 +159,9 @@ sinI = C.sinI
 
 cosI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
 cosI = C.cosI
+
+tanI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
+tanI = C.tanI
 
 instance (Num a, RoundedRing a, RealFloat a) => C.IsInterval (Interval a) where
   type EndPoint (Interval a) = a
