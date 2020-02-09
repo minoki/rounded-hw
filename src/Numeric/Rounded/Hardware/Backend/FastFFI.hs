@@ -13,7 +13,6 @@ module Numeric.Rounded.Hardware.Backend.FastFFI
   , fastIntervalAdd
   , fastIntervalSub
   , fastIntervalRecip
-  , backendName
   , VUM.MVector(MV_CFloat, MV_CDouble)
   , VU.Vector(V_CFloat, V_CDouble)
   ) where

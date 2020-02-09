@@ -65,6 +65,7 @@ library:
   - Numeric.Rounded.Hardware.Internal.Conversion
   - Numeric.Rounded.Hardware.Internal.RoundedResult
   - Numeric.Rounded.Hardware.Internal.Show
+  - Numeric.Rounded.Hardware.Backend.Default
   - Numeric.Rounded.Hardware.Interval.ElementaryFunctions
   dependencies:
   - tagged
