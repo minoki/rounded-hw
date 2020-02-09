@@ -4,6 +4,10 @@ module Numeric.Rounded.Hardware.Interval.ElementaryFunctions where
 import Numeric.Rounded.Hardware.Internal
 import Numeric.Rounded.Hardware.Interval.Class
 
+sqrtI :: (IsInterval i, RoundedSqrt (EndPoint i)) => i -> i
+sqrtI = withEndPoints $ \x y -> case intervalSqrt x y of (u, v) -> makeInterval u v
+{-# INLINE sqrtI #-}
+
 expP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
 expP x | isInfinite x = if x > 0
                         then makeInterval (Rounded maxFinite) (Rounded positiveInfinity)
@@ -19,7 +23,7 @@ expP x = let a = round x
             else error "rounding error"
 
 expI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
-expI = withEndPoints (\(Rounded x) (Rounded y) -> hull (expP x) (expP y))
+expI = withEndPoints (\(Rounded x) (Rounded y) -> hull (expP x) (expP y)) -- increasing
 
 expm1P :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
 expm1P x | -0.5 <= x && x <= 0.5 = let b' = singleton x
@@ -30,7 +34,7 @@ expm1P x | -0.5 <= x && x <= 0.5 = let b' = singleton x
          | otherwise = expP x - 1
 
 expm1I :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
-expm1I = withEndPoints (\(Rounded x) (Rounded y) -> hull (expm1P x) (expm1P y))
+expm1I = withEndPoints (\(Rounded x) (Rounded y) -> hull (expm1P x) (expm1P y)) -- increasing
 
 logP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
 logP x
@@ -69,7 +73,7 @@ logP x
     sqrt2_iv = makeInterval sqrt2_down sqrt2_up
 
 logI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
-logI = withEndPoints (\(Rounded x) (Rounded y) -> hull (logP x) (logP y))
+logI = withEndPoints (\(Rounded x) (Rounded y) -> hull (logP x) (logP y)) -- increasing
 
 log1pP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
 log1pP x | - getRounded three_minus_2sqrt2_down <= x && x <= getRounded three_minus_2sqrt2_down =
@@ -82,7 +86,7 @@ log1pP x | - getRounded three_minus_2sqrt2_down <= x && x <= getRounded three_mi
          | otherwise = logI (singleton x + 1)
 
 log1pI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
-log1pI = withEndPoints (\(Rounded x) (Rounded y) -> hull (log1pP x) (log1pP y))
+log1pI = withEndPoints (\(Rounded x) (Rounded y) -> hull (log1pP x) (log1pP y)) -- increasing
 
 -- abs x <= pi / 4
 sin_small :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
@@ -208,9 +212,71 @@ tanI t = flip withEndPoints t $ \(Rounded x) (Rounded y) ->
       else let lb = sinP (singleton x') / cosP (singleton x')
                ub = sinP (singleton y') / cosP (singleton y')
                -- lb <= ub
-           in hull lb ub
+           in hull lb ub -- increasing in (-pi/2,pi/2)
   where
     pi_iv :: i
     pi_iv = makeInterval pi_down pi_up
     wholeRange :: i
     wholeRange = makeInterval (Rounded negativeInfinity) (Rounded positiveInfinity)
+
+-- abs x <= 1 / (1 + sqrt 2) = sqrt 2 - 1
+atan_small :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+atan_small x = let n = 39 -- odd
+               in series n (makeInterval (-1) 1 / fromIntegral n)
+  where
+    xx = x * x
+    series :: Int -> i -> i
+    series k acc | k == 1 = x * acc
+                 | otherwise = series (k-2) $ recip (fromIntegral (k-2)) - xx * acc
+
+atanP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+atanP x |   getRounded (1 + sqrt2_up)   <= x =   pi_iv / 2 - atan_small (recip x')
+        |   getRounded sqrt2m1_up       <= x =   pi_iv / 4 + atan_small ((x' - 1) / (x' + 1))
+        | - getRounded sqrt2m1_down     <= x =               atan_small x'
+        | - getRounded (sqrt2_down + 1) <= x = - pi_iv / 4 + atan_small ((1 + x') / (1 - x'))
+        |   otherwise                        = - pi_iv / 2 - atan_small (recip x')
+  where
+    x' = singleton x
+    pi_iv :: i
+    pi_iv = makeInterval pi_down pi_up
+
+atanI :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+atanI = withEndPoints (\(Rounded x) (Rounded y) -> hull (atanP x) (atanP y)) -- increasing
+
+asinP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RoundedSqrt (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+asinP x | x < -1 || 1 < x = error "asin"
+        | x == -1 = - pi_iv / 2
+        | x == 1  =   pi_iv / 2
+        | otherwise = atanI (x' / sqrtI (1 - x'*x')) -- TODO: Use sqrt ((1+x')*(1-x')) when |x| is near 1
+  where
+    x' = singleton x
+    pi_iv :: i
+    pi_iv = makeInterval pi_down pi_up
+
+asinI :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RoundedSqrt (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+asinI = withEndPoints (\(Rounded x) (Rounded y) -> hull (asinP x) (asinP y)) -- increasing
+
+acosP :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RoundedSqrt (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+acosP x | x < -1 || 1 < x = error "asin"
+        | x == -1 = pi_iv
+        | x == 1  = 0
+        | otherwise = case x' / sqrtI (1 - x'*x') of  -- TODO: Use sqrt ((1+x')*(1-x')) when |x| is near 1
+                        y' |   one_plus_sqrt2  `weaklyLess` y' -> atan_small (recip y')
+                           |   sqrt2_minus_one `weaklyLess` y' -> pi_iv / 4 - atan_small ((y' - 1) / (y' + 1))
+                           | - sqrt2_minus_one `weaklyLess` y' -> pi_iv / 2 -  atan_small y'
+                           | - one_plus_sqrt2  `weaklyLess` y' -> three_pi_iv / 4 - atan_small ((1 + y') / (1 - y'))
+                           |   otherwise                       -> pi_iv + atan_small (recip y')
+                      -- == pi_iv / 2 - atanI y'
+  where
+    x' = singleton x
+    pi_iv :: i
+    pi_iv = makeInterval pi_down pi_up
+    three_pi_iv :: i
+    three_pi_iv = makeInterval three_pi_down three_pi_up
+    one_plus_sqrt2 :: i
+    one_plus_sqrt2 = 1 + makeInterval sqrt2_down sqrt2_up
+    sqrt2_minus_one :: i
+    sqrt2_minus_one = makeInterval sqrt2m1_down sqrt2m1_up
+
+acosI :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RoundedSqrt (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+acosI = withEndPoints (\(Rounded x) (Rounded y) -> hull (acosP x) (acosP y)) -- decreasing
