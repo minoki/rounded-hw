@@ -105,7 +105,7 @@ extern void rounded_hw_add_longdouble(HsInt mode, long double *result, const lon
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, hs_rounding_mode_to_native(mode));
-    *result = *a + *b;
+    *(volatile long double *)result = *a + *b;
     restore_fp_reg(oldreg);
 }
 
@@ -113,7 +113,7 @@ extern void rounded_hw_sub_longdouble(HsInt mode, long double *result, const lon
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, hs_rounding_mode_to_native(mode));
-    *result = *a - *b;
+    *(volatile long double *)result = *a - *b;
     restore_fp_reg(oldreg);
 }
 
@@ -121,7 +121,7 @@ extern void rounded_hw_mul_longdouble(HsInt mode, long double *result, const lon
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, hs_rounding_mode_to_native(mode));
-    *result = *a * *b;
+    *(volatile long double *)result = *a * *b;
     restore_fp_reg(oldreg);
 }
 
@@ -129,7 +129,7 @@ extern void rounded_hw_div_longdouble(HsInt mode, long double *result, const lon
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, hs_rounding_mode_to_native(mode));
-    *result = *a / *b;
+    *(volatile long double *)result = *a / *b;
     restore_fp_reg(oldreg);
 }
 
@@ -137,7 +137,7 @@ extern void rounded_hw_sqrt_longdouble(HsInt mode, long double *result, const lo
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, hs_rounding_mode_to_native(mode));
-    *result = sqrtl(*a);
+    *(volatile long double *)result = sqrtl(*a);
     restore_fp_reg(oldreg);
 }
 
@@ -145,7 +145,7 @@ extern void rounded_hw_fma_longdouble(HsInt mode, long double *result, const lon
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, hs_rounding_mode_to_native(mode));
-    *result = fmal(*a, *b, *c);
+    *(volatile long double *)result = fmal(*a, *b, *c);
     restore_fp_reg(oldreg);
 }
 

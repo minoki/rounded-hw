@@ -8,7 +8,7 @@ static inline double rounded_add_impl_double(native_rounding_mode mode, double a
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double c = a + b;
+    volatile double c = a + b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -25,7 +25,7 @@ static inline double rounded_sub_impl_double(native_rounding_mode mode, double a
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double c = a - b;
+    volatile double c = a - b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -42,7 +42,7 @@ static inline double rounded_mul_impl_double(native_rounding_mode mode, double a
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double c = a * b;
+    volatile double c = a * b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -59,7 +59,7 @@ static inline double rounded_div_impl_double(native_rounding_mode mode, double a
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double c = a / b;
+    volatile double c = a / b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -76,7 +76,7 @@ static inline double rounded_sqrt_impl_double(native_rounding_mode mode, double 
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double c = sqrt(a);
+    volatile double c = sqrt(a);
     restore_fp_reg(oldreg);
     return c;
 }
@@ -93,7 +93,7 @@ static inline double rounded_fma_impl_double(native_rounding_mode mode, double a
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double result = fma(a, b, c);
+    volatile double result = fma(a, b, c);
     restore_fp_reg(oldreg);
     return result;
 }
@@ -111,9 +111,9 @@ static inline double rounded_fma_if_fast_impl_double(native_rounding_mode mode, 
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
 #ifdef FP_FAST_FMA
-    double result = fma(a, b, c);
+    volatile double result = fma(a, b, c);
 #else
-    double result = a * b + c;
+    volatile double result = a * b + c;
 #endif
     restore_fp_reg(oldreg);
     return result;
@@ -135,7 +135,7 @@ static inline double rounded_int64_to_double_impl(native_rounding_mode mode, int
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double result = (double)x;
+    volatile double result = (double)x;
     restore_fp_reg(oldreg);
     return result;
 }
@@ -152,7 +152,7 @@ static inline double rounded_word64_to_double_impl(native_rounding_mode mode, ui
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double result = (double)x;
+    volatile double result = (double)x;
     restore_fp_reg(oldreg);
     return result;
 }
@@ -174,7 +174,7 @@ extern double rounded_hw_interval_mul_double_up(double lo1, double hi1, double l
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    double hi = fmax(fmax(lo1 * lo2, lo1 * hi2), fmax(hi1 * lo2, hi1 * hi2));
+    volatile double hi = fmax(fmax(lo1 * lo2, lo1 * hi2), fmax(hi1 * lo2, hi1 * hi2));
     restore_fp_reg(oldreg);
     return hi;
 }
@@ -184,7 +184,7 @@ extern double rounded_hw_interval_mul_double_down(double lo1, double hi1, double
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    double lo = fmin(fmin(lo1 * lo2, lo1 * hi2), fmin(hi1 * lo2, hi1 * hi2));
+    volatile double lo = fmin(fmin(lo1 * lo2, lo1 * hi2), fmin(hi1 * lo2, hi1 * hi2));
     restore_fp_reg(oldreg);
     return lo;
 }
@@ -194,7 +194,7 @@ extern double rounded_hw_interval_div_double_up(double lo1, double hi1, double l
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    double hi = fmax(fmax(lo1 / lo2, lo1 / hi2), fmax(hi1 / lo2, hi1 / hi2));
+    volatile double hi = fmax(fmax(lo1 / lo2, lo1 / hi2), fmax(hi1 / lo2, hi1 / hi2));
     restore_fp_reg(oldreg);
     return hi;
 }
@@ -204,7 +204,7 @@ extern double rounded_hw_interval_div_double_down(double lo1, double hi1, double
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    double lo = fmin(fmin(lo1 / lo2, lo1 / hi2), fmin(hi1 / lo2, hi1 / hi2));
+    volatile double lo = fmin(fmin(lo1 / lo2, lo1 / hi2), fmin(hi1 / lo2, hi1 / hi2));
     restore_fp_reg(oldreg);
     return lo;
 }
@@ -217,7 +217,7 @@ static inline double rounded_sum_impl_double(native_rounding_mode mode, HsInt of
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    double s = 0.0;
+    volatile double s = 0.0;
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
     }
@@ -241,7 +241,7 @@ static inline float rounded_add_impl_float(native_rounding_mode mode, float a, f
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float c = a + b;
+    volatile float c = a + b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -258,7 +258,7 @@ static inline float rounded_sub_impl_float(native_rounding_mode mode, float a, f
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float c = a - b;
+    volatile float c = a - b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -275,7 +275,7 @@ static inline float rounded_mul_impl_float(native_rounding_mode mode, float a, f
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float c = a * b;
+    volatile float c = a * b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -292,7 +292,7 @@ static inline float rounded_div_impl_float(native_rounding_mode mode, float a, f
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float c = a / b;
+    volatile float c = a / b;
     restore_fp_reg(oldreg);
     return c;
 }
@@ -309,7 +309,7 @@ static inline float rounded_sqrt_impl_float(native_rounding_mode mode, float a)
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float c = sqrtf(a);
+    volatile float c = sqrtf(a);
     restore_fp_reg(oldreg);
     return c;
 }
@@ -326,7 +326,7 @@ static inline float rounded_fma_impl_float(native_rounding_mode mode, float a, f
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float result = fmaf(a, b, c);
+    volatile float result = fmaf(a, b, c);
     restore_fp_reg(oldreg);
     return result;
 }
@@ -344,9 +344,9 @@ static inline float rounded_fma_if_fast_impl_float(native_rounding_mode mode, fl
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
 #ifdef FP_FAST_FMAF
-    float result = fmaf(a, b, c);
+    volatile float result = fmaf(a, b, c);
 #else
-    float result = a * b + c;
+    volatile float result = a * b + c;
 #endif
     restore_fp_reg(oldreg);
     return result;
@@ -368,7 +368,7 @@ static inline float rounded_int64_to_float_impl(native_rounding_mode mode, int64
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float result = (float)x;
+    volatile float result = (float)x;
     restore_fp_reg(oldreg);
     return result;
 }
@@ -385,7 +385,7 @@ static inline float rounded_word64_to_float_impl(native_rounding_mode mode, uint
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float result = (float)x;
+    volatile float result = (float)x;
     restore_fp_reg(oldreg);
     return result;
 }
@@ -407,7 +407,7 @@ extern float rounded_hw_interval_mul_float_up(float lo1, float hi1, float lo2, f
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    float hi = fmaxf(fmaxf(lo1 * lo2, lo1 * hi2), fmaxf(hi1 * lo2, hi1 * hi2));
+    volatile float hi = fmaxf(fmaxf(lo1 * lo2, lo1 * hi2), fmaxf(hi1 * lo2, hi1 * hi2));
     restore_fp_reg(oldreg);
     return hi;
 }
@@ -417,7 +417,7 @@ extern float rounded_hw_interval_mul_float_down(float lo1, float hi1, float lo2,
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    float lo = fminf(fminf(lo1 * lo2, lo1 * hi2), fminf(hi1 * lo2, hi1 * hi2));
+    volatile float lo = fminf(fminf(lo1 * lo2, lo1 * hi2), fminf(hi1 * lo2, hi1 * hi2));
     restore_fp_reg(oldreg);
     return lo;
 }
@@ -427,7 +427,7 @@ extern float rounded_hw_interval_div_float_up(float lo1, float hi1, float lo2, f
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    float hi = fmaxf(fmaxf(lo1 / lo2, lo1 / hi2), fmaxf(hi1 / lo2, hi1 / hi2));
+    volatile float hi = fmaxf(fmaxf(lo1 / lo2, lo1 / hi2), fmaxf(hi1 / lo2, hi1 / hi2));
     restore_fp_reg(oldreg);
     return hi;
 }
@@ -437,7 +437,7 @@ extern float rounded_hw_interval_div_float_down(float lo1, float hi1, float lo2,
     // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    float lo = fminf(fminf(lo1 / lo2, lo1 / hi2), fminf(hi1 / lo2, hi1 / hi2));
+    volatile float lo = fminf(fminf(lo1 / lo2, lo1 / hi2), fminf(hi1 / lo2, hi1 / hi2));
     restore_fp_reg(oldreg);
     return lo;
 }
@@ -450,7 +450,7 @@ static inline float rounded_sum_impl_float(native_rounding_mode mode, HsInt offs
 {
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, mode);
-    float s = 0.0f;
+    volatile float s = 0.0f;
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
     }
