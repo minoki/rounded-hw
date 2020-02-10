@@ -90,7 +90,7 @@ fp_reg get_fp_reg(void)
 static inline ALWAYS_INLINE
 void set_rounding(fp_reg oldcword, native_rounding_mode mode)
 {
-    uint16_t newcword = (oldcword & ~(3u << 10)) | (mode << 10);
+    uint16_t newcword = (oldcword & ~(3u << 10) & ~(3u << 8)) | (mode << 10) | (3u << 8); // precision: double extended
     asm("fldcw %0" : : "m"(newcword));
 }
 static inline ALWAYS_INLINE
