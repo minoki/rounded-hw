@@ -1,19 +1,22 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
-import Numeric.Rounded.Hardware.Interval
-import Gauge.Main
-import Data.Array
-import Data.Array.IArray (IArray)
-import Data.Array.ST
+import           Control.Monad
+import           Control.Monad.ST
+import           Data.Array (Array)
+import           Data.Array.IArray (IArray)
+import           Data.Array.ST
+import           Data.Array.Unboxed
+import           Data.Ratio
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
 import qualified Data.Vector.Unboxed as VU
-import Control.Monad
-import Control.Monad.ST
-import Data.Ratio
-import Numeric.Rounded.Hardware.Sum
-import Numeric.Rounded.Hardware.Internal
+import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Gauge.Main
+import           Numeric.Rounded.Hardware.Internal
+import           Numeric.Rounded.Hardware.Interval
+import qualified Numeric.Rounded.Hardware.Vector.Unboxed as RVU
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
 thawST = thaw
@@ -50,6 +53,39 @@ intervalGaussianElimination a b
           modify' vec f i = do
             x <- VM.read vec i
             VM.write vec i $! f x
+
+intervalGaussianEliminationU :: (Fractional a, IArray UArray a, VU.Unbox a) => UArray (Int,Int) a -> VU.Vector a -> VU.Vector a
+intervalGaussianEliminationU a b
+  | not (i0 == 0 && j0 == 0 && iN == n - 1 && jN == n - 1) = error "invalid size"
+  | otherwise = VU.create $ do
+      a' <- thawST a
+      b' <- VU.thaw b
+
+      -- elimination
+      forM_ [0..n-2] $ \k -> do
+        forM_ [k+1..n-1] $ \i -> do
+          !t <- liftM2 (/) (readArray a' (i,k)) (readArray a' (k,k))
+          forM_ [k+1..n-1] $ \j -> do
+            a_ij <- readArray a' (i,j)
+            a_kj <- readArray a' (k,j)
+            writeArray a' (i,j) $! a_ij - t * a_kj
+          b_k <- VUM.read b' k
+          modify' b' (subtract (t * b_k)) i
+
+      -- backward substitution
+      a_nn <- readArray a' (n-1,n-1)
+      modify' b' (/ a_nn) (n-1)
+      forM_ [n-2,n-3..0] $ \i -> do
+        s <- sum <$> mapM (\j -> liftM2 (*) (readArray a' (i,j)) (VUM.read b' j)) [i+1..n-1]
+        a_ii <- readArray a' (i,i)
+        modify' b' (\b_i -> (b_i - s) / a_ii) i
+      return b'
+        where
+          ((i0,j0),(iN,jN)) = bounds a
+          n = VU.length b
+          modify' vec f i = do
+            x <- VUM.read vec i
+            VUM.write vec i $! f x
 
 main :: IO ()
 main =
@@ -102,6 +138,20 @@ main =
          [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
          , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector (Interval Double))
          ]
+    , let arr :: (IArray UArray a, Fractional a) => UArray (Int,Int) a
+          arr = listArray ((0,0),(4,4))
+                [2,4,1,3,8
+                ,-4,7,3.1,0,7
+                ,9,7,54,1,0,1
+                ,0,5,8,1e-10,7
+                ,8,6,4,8,0
+                ]
+          vec :: (VU.Unbox a, Fractional a) => VU.Vector a
+          vec = VU.fromList [1,0,0,0,0]
+      in bgroup "(Interval) Gaussian Elimination, unboxed"
+         [ bench "non-interval" $ nf (uncurry intervalGaussianEliminationU) (arr, vec :: VU.Vector Double)
+         , bench "naive" $ nf (uncurry intervalGaussianEliminationU) (arr, vec :: VU.Vector (Interval Double))
+         ]
     , let vec :: VU.Vector Double
           vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral (i+1))
           vec' :: VU.Vector (Rounded 'TowardInf Double)
@@ -110,7 +160,7 @@ main =
           vec'' = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
       in bgroup "sum"
          [ bench "naive" $ nf VU.sum vec'
-         , bench "C impl" $ nf sumUnboxedVector' vec'
+         , bench "C impl" $ nf RVU.sum vec'
          ]
     , let vec :: V.Vector (Interval Double)
           vec = V.generate 100000 $ \i -> fromRational (1 % (1 + fromIntegral i))
