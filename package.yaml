@@ -56,6 +56,13 @@ flags:
     manual: true
     default: true
 
+# Custom setup is required to allow assembly sources to #include "ghcconfig.h"
+build-type: Custom
+custom-setup:
+  dependencies:
+  - base >= 4.7
+  - Cabal >= 1.24
+
 library:
   source-dirs: src
   other-modules:
@@ -97,16 +104,16 @@ library:
   - condition: "!flag(pure-hs) && !flag(c99) && flag(ghc-prim) && impl(ghc) && arch(x86_64)"
     exposed-modules:
     - Numeric.Rounded.Hardware.Backend.FastFFI
+    cpp-options:
+    - -DUSE_GHC_PRIM
     when:
     - condition: flag(avx512)
       then:
         c-sources:
-        - cbits/interval-prim-x86_64-avx512.s
+        - cbits/interval-prim-x86_64-avx512.S
       else:
         c-sources:
-        - cbits/interval-prim-x86_64.s
-    cpp-options:
-    - -DUSE_GHC_PRIM
+        - cbits/interval-prim-x86_64.S
 
   # flag(x87-long-double): Support LongDouble on x86
   - condition: flag(x87-long-double) && (arch(i386) || arch(x86_64))

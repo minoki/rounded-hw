@@ -1,3 +1,12 @@
+/* NB: We need some tricks to include "ghcconfig.h" from assembly source files. See Setup.hs for details. */
+#include "ghcconfig.h"
+#if LEADING_UNDERSCORE
+#define SYMBOL2(name) _##name
+#define SYMBOL(name) SYMBOL2(name)
+#else
+#define SYMBOL(name) name
+#endif
+
 	# Haskell declaration:
 	#
 	# rounded_hw_interval_add
@@ -9,8 +18,8 @@
 	#       , Double#  -- upper (%xmm2)
 	#       #)
 	#
-	.globl _rounded_hw_interval_add
-_rounded_hw_interval_add:
+	.globl SYMBOL(rounded_hw_interval_add)
+SYMBOL(rounded_hw_interval_add):
 	vaddsd {rd-sae}, %xmm3, %xmm1, %xmm1
 	vaddsd {ru-sae}, %xmm4, %xmm2, %xmm2
 	jmp *(%rbp)
@@ -26,8 +35,8 @@ _rounded_hw_interval_add:
 	#       , Double#  -- upper (%xmm2)
 	#       #)
 	#
-	.globl _rounded_hw_interval_sub
-_rounded_hw_interval_sub:
+	.globl SYMBOL(rounded_hw_interval_sub)
+SYMBOL(rounded_hw_interval_sub):
 	vsubsd {rd-sae}, %xmm4, %xmm1, %xmm1
 	vsubsd {ru-sae}, %xmm3, %xmm2, %xmm2
 	jmp *(%rbp)
@@ -51,8 +60,8 @@ _rounded_hw_interval_sub:
 	#     return {resultLo, resultHi};
 	# }
 	#
-	.globl _rounded_hw_interval_recip
-_rounded_hw_interval_recip:
+	.globl SYMBOL(rounded_hw_interval_recip)
+SYMBOL(rounded_hw_interval_recip):
 	vmovsd LC0(%rip), %xmm4 ## xmm4 = mem[0],zero
 	vdivsd {rd-sae}, %xmm2, %xmm4, %xmm3
 	vdivsd {ru-sae}, %xmm1, %xmm4, %xmm2

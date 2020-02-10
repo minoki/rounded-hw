@@ -1,4 +1,12 @@
-	#
+/* NB: We need some tricks to include "ghcconfig.h" from assembly source files. See Setup.hs for details. */
+#include "ghcconfig.h"
+#if LEADING_UNDERSCORE
+#define SYMBOL2(name) _##name
+#define SYMBOL(name) SYMBOL2(name)
+#else
+#define SYMBOL(name) name
+#endif
+
 	# Haskell declaration:
 	#
 	# rounded_hw_interval_add
@@ -10,8 +18,8 @@
 	#       , Double#  -- upper (%xmm2)
 	#       #)
 	#
-	.globl _rounded_hw_interval_add
-_rounded_hw_interval_add:
+	.globl SYMBOL(rounded_hw_interval_add)
+SYMBOL(rounded_hw_interval_add):
 	stmxcsr -8(%rbp)
 	movl -8(%rbp), %eax
 	movl %eax, %ecx
@@ -38,8 +46,8 @@ _rounded_hw_interval_add:
 	#       , Double#  -- upper (%xmm2)
 	#       #)
 	#
-	.globl _rounded_hw_interval_sub
-_rounded_hw_interval_sub:
+	.globl SYMBOL(rounded_hw_interval_sub)
+SYMBOL(rounded_hw_interval_sub):
 	stmxcsr -8(%rbp)
 	movl -8(%rbp), %eax
 	movl %eax, %ecx
@@ -78,8 +86,8 @@ _rounded_hw_interval_sub:
 	#     return {resultLo, resultHi};
 	# }
 	#
-	.globl _rounded_hw_interval_recip
-_rounded_hw_interval_recip:
+	.globl SYMBOL(rounded_hw_interval_recip)
+SYMBOL(rounded_hw_interval_recip):
 	stmxcsr -8(%rbp)
 	movl -8(%rbp), %eax
 	movl %eax, %ecx
