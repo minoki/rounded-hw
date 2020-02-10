@@ -138,12 +138,13 @@ tests:
     - hspec
     - QuickCheck
     when:
-    - condition: flag(x87-long-double) && (arch(i386) || arch(x86_64))
+    - condition: flag(x87-long-double) && (arch(i386) || (arch(x86_64) && !os(windows)))
       dependencies: long-double
       other-modules:
       - X87LongDoubleSpec
       cpp-options:
       - -DTEST_X87_LONG_DOUBLE
+      # Support for 80-bit long double is not good on Win64, so don't test
 
   rounded-hw-doctests:
     main: doctests.hs
