@@ -189,6 +189,26 @@ extern double rounded_hw_interval_mul_double_down(double lo1, double hi1, double
     return lo;
 }
 
+extern double rounded_hw_interval_mul_add_double_up(double lo1, double hi1, double lo2, double hi2, double hi3)
+{
+    // TODO: zero and infinity
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, ROUND_UPWARD);
+    volatile double hi = fmax(fmax(lo1 * lo2, lo1 * hi2), fmax(hi1 * lo2, hi1 * hi2)) + hi3;
+    restore_fp_reg(oldreg);
+    return hi;
+}
+
+extern double rounded_hw_interval_mul_add_double_down(double lo1, double hi1, double lo2, double hi2, double lo3)
+{
+    // TODO: zero and infinity
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, ROUND_DOWNWARD);
+    volatile double lo = fmin(fmin(lo1 * lo2, lo1 * hi2), fmin(hi1 * lo2, hi1 * hi2)) + lo3;
+    restore_fp_reg(oldreg);
+    return lo;
+}
+
 extern double rounded_hw_interval_div_double_up(double lo1, double hi1, double lo2, double hi2)
 {
     // TODO: zero and infinity
@@ -418,6 +438,26 @@ extern float rounded_hw_interval_mul_float_down(float lo1, float hi1, float lo2,
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
     volatile float lo = fminf(fminf(lo1 * lo2, lo1 * hi2), fminf(hi1 * lo2, hi1 * hi2));
+    restore_fp_reg(oldreg);
+    return lo;
+}
+
+extern float rounded_hw_interval_mul_add_float_up(float lo1, float hi1, float lo2, float hi2, float hi3)
+{
+    // TODO: zero and infinity
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, ROUND_UPWARD);
+    volatile float hi = fmaxf(fmaxf(lo1 * lo2, lo1 * hi2), fmaxf(hi1 * lo2, hi1 * hi2)) + hi3;
+    restore_fp_reg(oldreg);
+    return hi;
+}
+
+extern float rounded_hw_interval_mul_add_float_down(float lo1, float hi1, float lo2, float hi2, float lo3)
+{
+    // TODO: zero and infinity
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, ROUND_DOWNWARD);
+    volatile float lo = fminf(fminf(lo1 * lo2, lo1 * hi2), fminf(hi1 * lo2, hi1 * hi2)) + lo3;
     restore_fp_reg(oldreg);
     return lo;
 }

@@ -10,6 +10,8 @@ module {{ModName}}
   , intervalMul_up
   , intervalDiv_down
   , intervalDiv_up
+  , intervalMulAdd_down
+  , intervalMulAdd_up
   ) where
 import Data.Int (Int64)
 import Data.Word (Word64)
@@ -37,7 +39,13 @@ foreign import ccall unsafe "rounded_hw_interval_mul_{{NAME}}_down"
   intervalMul_down :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
 foreign import ccall unsafe "rounded_hw_interval_mul_{{NAME}}_up"
   intervalMul_up :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
+
 foreign import ccall unsafe "rounded_hw_interval_div_{{NAME}}_down"
   intervalDiv_down :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
 foreign import ccall unsafe "rounded_hw_interval_div_{{NAME}}_up"
   intervalDiv_up :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
+
+foreign import ccall unsafe "rounded_hw_interval_mul_add_{{NAME}}_down"
+  intervalMulAdd_down :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
+foreign import ccall unsafe "rounded_hw_interval_mul_add_{{NAME}}_up"
+  intervalMulAdd_up :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}

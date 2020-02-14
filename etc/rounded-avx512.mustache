@@ -232,6 +232,28 @@ extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1
     return {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
 }
 
+extern {{TYPE}} rounded_hw_interval_mul_add_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} hi3)
+{
+    // TODO: zero and infinity
+    {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
+    {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
+    {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
+    {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
+    {{TYPE}} p = {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+    return rounded_add_impl_{{NAME}}(ROUND_UPWARD, p, hi3);
+}
+
+extern {{TYPE}} rounded_hw_interval_mul_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} lo3)
+{
+    // TODO: zero and infinity
+    {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
+    {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
+    {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
+    {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
+    {{TYPE}} p = {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+    return rounded_add_impl_{{NAME}}(ROUND_DOWNWARD, p, lo3);
+}
+
 extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
     // TODO: zero and infinity

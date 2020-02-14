@@ -18,6 +18,8 @@ module FFIWrapper.Double
   , intervalMul_up
   , intervalDiv_down
   , intervalDiv_up
+  , intervalMulAdd_down
+  , intervalMulAdd_up
   ) where
 import Data.Int (Int64)
 import Data.Word (Word64)
@@ -227,7 +229,13 @@ foreign import ccall unsafe "rounded_hw_interval_mul_double_down"
   intervalMul_down :: Double -> Double -> Double -> Double -> Double
 foreign import ccall unsafe "rounded_hw_interval_mul_double_up"
   intervalMul_up :: Double -> Double -> Double -> Double -> Double
+
 foreign import ccall unsafe "rounded_hw_interval_div_double_down"
   intervalDiv_down :: Double -> Double -> Double -> Double -> Double
 foreign import ccall unsafe "rounded_hw_interval_div_double_up"
   intervalDiv_up :: Double -> Double -> Double -> Double -> Double
+
+foreign import ccall unsafe "rounded_hw_interval_mul_add_double_down"
+  intervalMulAdd_down :: Double -> Double -> Double -> Double -> Double -> Double
+foreign import ccall unsafe "rounded_hw_interval_mul_add_double_up"
+  intervalMulAdd_up :: Double -> Double -> Double -> Double -> Double -> Double

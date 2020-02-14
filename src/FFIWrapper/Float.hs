@@ -18,6 +18,8 @@ module FFIWrapper.Float
   , intervalMul_up
   , intervalDiv_down
   , intervalDiv_up
+  , intervalMulAdd_down
+  , intervalMulAdd_up
   ) where
 import Data.Int (Int64)
 import Data.Word (Word64)
@@ -227,7 +229,13 @@ foreign import ccall unsafe "rounded_hw_interval_mul_float_down"
   intervalMul_down :: Float -> Float -> Float -> Float -> Float
 foreign import ccall unsafe "rounded_hw_interval_mul_float_up"
   intervalMul_up :: Float -> Float -> Float -> Float -> Float
+
 foreign import ccall unsafe "rounded_hw_interval_div_float_down"
   intervalDiv_down :: Float -> Float -> Float -> Float -> Float
 foreign import ccall unsafe "rounded_hw_interval_div_float_up"
   intervalDiv_up :: Float -> Float -> Float -> Float -> Float
+
+foreign import ccall unsafe "rounded_hw_interval_mul_add_float_down"
+  intervalMulAdd_down :: Float -> Float -> Float -> Float -> Float -> Float
+foreign import ccall unsafe "rounded_hw_interval_mul_add_float_up"
+  intervalMulAdd_up :: Float -> Float -> Float -> Float -> Float -> Float
