@@ -1,7 +1,6 @@
 module Numeric.Rounded.Hardware
   ( Rounded(..)
   , RoundingMode(..)
-  , getRounded
   , Rounding
   , RoundedRing
   , RoundedFractional

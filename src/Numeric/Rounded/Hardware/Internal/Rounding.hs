@@ -13,7 +13,6 @@ module Numeric.Rounded.Hardware.Internal.Rounding
   , rounding
   , reifyRounding
   , Rounded(..)
-  , getRounded
   , VUM.MVector(MV_Rounded)
   , VU.Vector(V_Rounded)
   ) where
@@ -74,11 +73,11 @@ reifyRounding TowardZero f    = f (Proxy :: Proxy 'TowardZero)
 --
 -- The rounding mode is effective for a /single/ operation.
 -- You don't obtain the correctly-rounded result for a compound expression like @(a - b * c) :: Rounded 'TowardInf Double@.
-newtype Rounded (rn :: RoundingMode) a = Rounded a
-  deriving (Eq,Ord,Show,Generic,Functor,Storable)
+newtype Rounded (rn :: RoundingMode) a = Rounded { getRounded :: a }
+  deriving (Eq, Ord, Generic, Functor, Storable)
 
-getRounded :: Rounded rn a -> a
-getRounded (Rounded x) = x
+instance Show a => Show (Rounded r a) where
+  showsPrec prec (Rounded x) = showParen (prec > 10) $ showString "Rounded " . showsPrec 11 x
 
 instance NFData a => NFData (Rounded rn a)
 
