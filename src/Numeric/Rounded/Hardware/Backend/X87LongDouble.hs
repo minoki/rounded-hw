@@ -133,7 +133,7 @@ instance RoundedRing LongDouble where
 
 instance RoundedFractional LongDouble where
   roundedDiv = roundedDiv_ld
-  roundedFromRational rn x = fromRatio rn (numerator x) (denominator x)
+  roundedFromRational r x = fromRatio r (numerator x) (denominator x)
   intervalFromRational = intervalFromRational_default
   {-# INLINE roundedDiv #-}
   {-# INLINE roundedFromRational #-}

@@ -26,36 +26,36 @@ newtype ViaRational a = ViaRational a
 instance NFData a => NFData (ViaRational a)
 
 instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational a) where
-  roundedAdd rn (ViaRational x) (ViaRational y)
+  roundedAdd r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y = ViaRational (x + y)
     | x == 0 && y == 0 = ViaRational $ if isNegativeZero x == isNegativeZero y
                                        then x
                                        else roundedZero
     | otherwise = case toRational x + toRational y of
                     0 -> ViaRational roundedZero
-                    z -> roundedFromRational rn z
-    where roundedZero = case rn of
+                    z -> roundedFromRational r z
+    where roundedZero = case r of
             TowardNearest ->  0
             TowardNegInf  -> -0
             TowardInf     ->  0
             TowardZero    ->  0
-  roundedSub rn (ViaRational x) (ViaRational y)
+  roundedSub r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y = ViaRational (x - y)
     | x == 0 && y == 0 = ViaRational $ if isNegativeZero x /= isNegativeZero y
                                        then x
                                        else roundedZero
     | otherwise = case toRational x - toRational y of
                     0 -> ViaRational roundedZero
-                    z -> roundedFromRational rn z
-    where roundedZero = case rn of
+                    z -> roundedFromRational r z
+    where roundedZero = case r of
             TowardNearest ->  0
             TowardNegInf  -> -0
             TowardInf     ->  0
             TowardZero    ->  0
-  roundedMul rn (ViaRational x) (ViaRational y)
+  roundedMul r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y || isNegativeZero x || isNegativeZero y = ViaRational (x * y)
-    | otherwise = roundedFromRational rn (toRational x * toRational y)
-  roundedFromInteger rn x = ViaRational (fromInt rn x)
+    | otherwise = roundedFromRational r (toRational x * toRational y)
+  roundedFromInteger r x = ViaRational (fromInt r x)
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
     Pair a b -> (ViaRational <$> a, ViaRational <$> b)
   backendNameT = Tagged "via Rational"
@@ -65,10 +65,10 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
   {-# SPECIALIZE instance RoundedRing (ViaRational Double) #-}
 
 instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRational a) where
-  roundedDiv rn (ViaRational x) (ViaRational y)
+  roundedDiv r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y || x == 0 || y == 0 = ViaRational (x / y)
-    | otherwise = roundedFromRational rn (toRational x / toRational y)
-  roundedFromRational rn x = ViaRational $ fromRatio rn (numerator x) (denominator x)
+    | otherwise = roundedFromRational r (toRational x / toRational y)
+  roundedFromRational r x = ViaRational $ fromRatio r (numerator x) (denominator x)
   intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
     Pair a b -> (ViaRational <$> a, ViaRational <$> b)
   {-# INLINE roundedFromRational #-}

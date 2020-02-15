@@ -120,14 +120,14 @@ class RoundedRing a => RoundedVectorOperation a where
   default roundedSum_UnboxedVector :: (Num a, VU.Unbox a) => RoundingMode -> VU.Vector a -> a
   roundedSum_UnboxedVector mode = VU.foldl' (roundedAdd mode) 0
 
-instance (Rounding rn, Num a, RoundedRing a) => Num (Rounded rn a) where
-  Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy rn)) x y)
-  Rounded x - Rounded y = Rounded (roundedSub (rounding (Proxy :: Proxy rn)) x y)
-  Rounded x * Rounded y = Rounded (roundedMul (rounding (Proxy :: Proxy rn)) x y)
+instance (Rounding r, Num a, RoundedRing a) => Num (Rounded r a) where
+  Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy r)) x y)
+  Rounded x - Rounded y = Rounded (roundedSub (rounding (Proxy :: Proxy r)) x y)
+  Rounded x * Rounded y = Rounded (roundedMul (rounding (Proxy :: Proxy r)) x y)
   negate = coerce (negate :: a -> a)
   abs = coerce (abs :: a -> a)
   signum = coerce (signum :: a -> a)
-  fromInteger x = Rounded (roundedFromInteger (rounding (Proxy :: Proxy rn)) x)
+  fromInteger x = Rounded (roundedFromInteger (rounding (Proxy :: Proxy r)) x)
   {-# INLINE (+) #-}
   {-# INLINE (-) #-}
   {-# INLINE (*) #-}
@@ -136,16 +136,16 @@ instance (Rounding rn, Num a, RoundedRing a) => Num (Rounded rn a) where
   {-# INLINE signum #-}
   {-# INLINE fromInteger #-}
 
-instance (Rounding rn, Num a, RoundedFractional a) => Fractional (Rounded rn a) where
-  Rounded x / Rounded y = Rounded (roundedDiv (rounding (Proxy :: Proxy rn)) x y)
-  recip (Rounded x) = Rounded (roundedRecip (rounding (Proxy :: Proxy rn)) x)
-  fromRational x = Rounded (roundedFromRational (rounding (Proxy :: Proxy rn)) x)
+instance (Rounding r, Num a, RoundedFractional a) => Fractional (Rounded r a) where
+  Rounded x / Rounded y = Rounded (roundedDiv (rounding (Proxy :: Proxy r)) x y)
+  recip (Rounded x) = Rounded (roundedRecip (rounding (Proxy :: Proxy r)) x)
+  fromRational x = Rounded (roundedFromRational (rounding (Proxy :: Proxy r)) x)
   {-# INLINE (/) #-}
   {-# INLINE recip #-}
   {-# INLINE fromRational #-}
 
-deriving newtype instance (Rounding rn, Real a, RoundedFractional a) => Real (Rounded rn a)
-deriving newtype instance (Rounding rn, RealFrac a, RoundedFractional a) => RealFrac (Rounded rn a)
+deriving newtype instance (Rounding r, Real a, RoundedFractional a) => Real (Rounded r a)
+deriving newtype instance (Rounding r, RealFrac a, RoundedFractional a) => RealFrac (Rounded r a)
 
 -- These instances are provided in Numeric.Rounded.Hardware.Backend.Default:
 --   instance RoundedRing Float

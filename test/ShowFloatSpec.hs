@@ -69,15 +69,15 @@ specT proxy = do
   prop "showGFloat" $ prop_showGFloat proxy
 
   -- 0.5 should be exactly representable in the type...
-  prop "showFFloatRn Nothing 0.5"  $ \rn -> showFFloatRn rn Nothing  (0.5 :: a) "" === "0.5"
-  prop "showFFloatRn (Just 0) 0.5" $ \rn -> showFFloatRn rn (Just 0) (0.5 :: a) "" === (if rn == TowardInf then "1" else "0")
-  prop "showFFloatRn (Just 3) 0.5" $ \rn -> showFFloatRn rn (Just 3) (0.5 :: a) "" === "0.500"
-  prop "showGFloatRn Nothing 0.5"  $ \rn -> showGFloatRn rn Nothing  (0.5 :: a) "" === "0.5"
-  prop "showGFloatRn (Just 0) 0.5" $ \rn -> showGFloatRn rn (Just 0) (0.5 :: a) "" === (if rn == TowardInf then "1" else "0")
-  prop "showGFloatRn (Just 3) 0.5" $ \rn -> showGFloatRn rn (Just 3) (0.5 :: a) "" === "0.500"
-  prop "showEFloatRn Nothing 0.5"  $ \rn -> showEFloatRn rn Nothing  (0.5 :: a) "" === "5.0e-1"
-  prop "showEFloatRn (Just 0) 0.5" $ \rn -> showEFloatRn rn (Just 0) (0.5 :: a) "" === "5e-1"
-  prop "showEFloatRn (Just 3) 0.5" $ \rn -> showEFloatRn rn (Just 3) (0.5 :: a) "" === "5.000e-1"
+  prop "showFFloatRn Nothing 0.5"  $ \r -> showFFloatRn r Nothing  (0.5 :: a) "" === "0.5"
+  prop "showFFloatRn (Just 0) 0.5" $ \r -> showFFloatRn r (Just 0) (0.5 :: a) "" === (if r == TowardInf then "1" else "0")
+  prop "showFFloatRn (Just 3) 0.5" $ \r -> showFFloatRn r (Just 3) (0.5 :: a) "" === "0.500"
+  prop "showGFloatRn Nothing 0.5"  $ \r -> showGFloatRn r Nothing  (0.5 :: a) "" === "0.5"
+  prop "showGFloatRn (Just 0) 0.5" $ \r -> showGFloatRn r (Just 0) (0.5 :: a) "" === (if r == TowardInf then "1" else "0")
+  prop "showGFloatRn (Just 3) 0.5" $ \r -> showGFloatRn r (Just 3) (0.5 :: a) "" === "0.500"
+  prop "showEFloatRn Nothing 0.5"  $ \r -> showEFloatRn r Nothing  (0.5 :: a) "" === "5.0e-1"
+  prop "showEFloatRn (Just 0) 0.5" $ \r -> showEFloatRn r (Just 0) (0.5 :: a) "" === "5e-1"
+  prop "showEFloatRn (Just 3) 0.5" $ \r -> showEFloatRn r (Just 3) (0.5 :: a) "" === "5.000e-1"
 
 spec :: Spec
 spec = do

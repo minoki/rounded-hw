@@ -32,7 +32,7 @@ intervalFromRational_default x = case fromRatioF (numerator x) (denominator x) o
 
 fromInt :: (RealFloat a, RealFloatConstants a)
         => RoundingMode -> Integer -> a
-fromInt rn n = withRoundingMode (fromIntF n) rn
+fromInt r n = withRoundingMode (fromIntF n) r
 {-# SPECIALIZE fromInt :: RoundingMode -> Integer -> Float #-}
 {-# SPECIALIZE fromInt :: RoundingMode -> Integer -> Double #-}
 
@@ -81,14 +81,14 @@ fromPositiveIntF !n
                    in inexact toNearest up down down
 {-# SPECIALIZE fromPositiveIntF :: Integer -> DynamicRoundingMode Float #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> OppositeRoundingMode DynamicRoundingMode Float #-}
-{-# SPECIALIZE fromPositiveIntF :: Rounding rn => Integer -> Rounded rn Float #-}
-{-# SPECIALIZE fromPositiveIntF :: Rounding rn => Integer -> OppositeRoundingMode (Rounded rn) Float #-}
+{-# SPECIALIZE fromPositiveIntF :: Rounding r => Integer -> Rounded r Float #-}
+{-# SPECIALIZE fromPositiveIntF :: Rounding r => Integer -> OppositeRoundingMode (Rounded r) Float #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Float #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> OppositeRoundingMode (Product (Rounded 'TowardNegInf) (Rounded 'TowardInf)) Float #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> DynamicRoundingMode Double #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> OppositeRoundingMode DynamicRoundingMode Double #-}
-{-# SPECIALIZE fromPositiveIntF :: Rounding rn => Integer -> Rounded rn Double #-}
-{-# SPECIALIZE fromPositiveIntF :: Rounding rn => Integer -> OppositeRoundingMode (Rounded rn) Double #-}
+{-# SPECIALIZE fromPositiveIntF :: Rounding r => Integer -> Rounded r Double #-}
+{-# SPECIALIZE fromPositiveIntF :: Rounding r => Integer -> OppositeRoundingMode (Rounded r) Double #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> OppositeRoundingMode (Product (Rounded 'TowardNegInf) (Rounded 'TowardInf)) Double #-}
 
@@ -97,7 +97,7 @@ fromRatio :: (RealFloat a, RealFloatConstants a)
           -> Integer -- ^ numerator
           -> Integer -- ^ denominator
           -> a
-fromRatio rn n d = withRoundingMode (fromRatioF n d) rn
+fromRatio r n d = withRoundingMode (fromRatioF n d) r
 {-# SPECIALIZE fromRatio :: RoundingMode -> Integer -> Integer -> Float #-}
 {-# SPECIALIZE fromRatio :: RoundingMode -> Integer -> Integer -> Double #-}
 
@@ -189,13 +189,13 @@ fromPositiveRatioF !n !d
                    in inexact toNearest up down down
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> DynamicRoundingMode Float #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> OppositeRoundingMode DynamicRoundingMode Float #-}
-{-# SPECIALIZE fromPositiveRatioF :: Rounding rn => Integer -> Integer -> Rounded rn Float #-}
-{-# SPECIALIZE fromPositiveRatioF :: Rounding rn => Integer -> Integer -> OppositeRoundingMode (Rounded rn) Float #-}
+{-# SPECIALIZE fromPositiveRatioF :: Rounding r => Integer -> Integer -> Rounded r Float #-}
+{-# SPECIALIZE fromPositiveRatioF :: Rounding r => Integer -> Integer -> OppositeRoundingMode (Rounded r) Float #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Float #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> OppositeRoundingMode (Product (Rounded 'TowardNegInf) (Rounded 'TowardInf)) Float #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> DynamicRoundingMode Double #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> OppositeRoundingMode DynamicRoundingMode Double #-}
-{-# SPECIALIZE fromPositiveRatioF :: Rounding rn => Integer -> Integer -> Rounded rn Double #-}
-{-# SPECIALIZE fromPositiveRatioF :: Rounding rn => Integer -> Integer -> OppositeRoundingMode (Rounded rn) Double #-}
+{-# SPECIALIZE fromPositiveRatioF :: Rounding r => Integer -> Integer -> Rounded r Double #-}
+{-# SPECIALIZE fromPositiveRatioF :: Rounding r => Integer -> Integer -> OppositeRoundingMode (Rounded r) Double #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> OppositeRoundingMode (Product (Rounded 'TowardNegInf) (Rounded 'TowardInf)) Double #-}

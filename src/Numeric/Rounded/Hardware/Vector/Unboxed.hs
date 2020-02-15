@@ -12,6 +12,6 @@ import           Prelude                           hiding (sum)
 roundedSum :: (VU.Unbox a, RoundedVectorOperation a) => RoundingMode -> VU.Vector a -> a
 roundedSum = roundedSum_UnboxedVector
 
-sum :: forall rn a. (Rounding rn, VU.Unbox a, RoundedVectorOperation a) => VU.Vector (Rounded rn a) -> Rounded rn a
-sum (V_Rounded vec) = let mode = rounding (Proxy :: Proxy rn)
+sum :: forall r a. (Rounding r, VU.Unbox a, RoundedVectorOperation a) => VU.Vector (Rounded r a) -> Rounded r a
+sum (V_Rounded vec) = let mode = rounding (Proxy :: Proxy r)
                       in Rounded (roundedSum mode vec)

@@ -43,8 +43,8 @@ oppositeRoundingMode TowardZero    = TowardZero
 oppositeRoundingMode TowardInf     = TowardNegInf
 oppositeRoundingMode TowardNegInf  = TowardInf
 
-class Rounding (rn :: RoundingMode) where
-  roundingT :: Tagged rn RoundingMode
+class Rounding (r :: RoundingMode) where
+  roundingT :: Tagged r RoundingMode
 
 instance Rounding 'TowardNearest where
   roundingT = Tagged TowardNearest
@@ -58,11 +58,11 @@ instance Rounding 'TowardNegInf where
 instance Rounding 'TowardZero where
   roundingT = Tagged TowardZero
 
-rounding :: Rounding rn => proxy rn -> RoundingMode
+rounding :: Rounding r => proxy r -> RoundingMode
 rounding = Data.Tagged.proxy roundingT
 {-# INLINE rounding #-}
 
-reifyRounding :: RoundingMode -> (forall s. Rounding s => Proxy s -> r) -> r
+reifyRounding :: RoundingMode -> (forall s. Rounding s => Proxy s -> a) -> a
 reifyRounding TowardNearest f = f (Proxy :: Proxy 'TowardNearest)
 reifyRounding TowardInf f     = f (Proxy :: Proxy 'TowardInf)
 reifyRounding TowardNegInf f  = f (Proxy :: Proxy 'TowardNegInf)
@@ -73,25 +73,25 @@ reifyRounding TowardZero f    = f (Proxy :: Proxy 'TowardZero)
 --
 -- The rounding mode is effective for a /single/ operation.
 -- You don't obtain the correctly-rounded result for a compound expression like @(a - b * c) :: Rounded 'TowardInf Double@.
-newtype Rounded (rn :: RoundingMode) a = Rounded { getRounded :: a }
+newtype Rounded (r :: RoundingMode) a = Rounded { getRounded :: a }
   deriving (Eq, Ord, Generic, Functor, Storable)
 
 instance Show a => Show (Rounded r a) where
   showsPrec prec (Rounded x) = showParen (prec > 10) $ showString "Rounded " . showsPrec 11 x
 
-instance NFData a => NFData (Rounded rn a)
+instance NFData a => NFData (Rounded r a)
 
 -- Orphan instances:
--- instance Num (Rounded rn a) is defined in Numeric.Rounded.Hardware.Class.
--- instance Fractional (Rounded rn a) is defined in Numeric.Rounded.Hardware.Class.
--- instance Real (Rounded rn a) is defined in Numeric.Rounded.Hardware.Class.
--- instance RealFrac (Rounded rn a) is defined in Numeric.Rounded.Hardware.Class.
--- instance Floating (Rounded rn a) is not implemented yet...
+-- instance Num (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
+-- instance Fractional (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
+-- instance Real (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
+-- instance RealFrac (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
+-- instance Floating (Rounded r a) is not implemented yet...
 
-newtype instance VUM.MVector s (Rounded rn a) = MV_Rounded (VUM.MVector s a)
-newtype instance VU.Vector (Rounded rn a) = V_Rounded (VU.Vector a)
+newtype instance VUM.MVector s (Rounded r a) = MV_Rounded (VUM.MVector s a)
+newtype instance VU.Vector (Rounded r a) = V_Rounded (VU.Vector a)
 
-instance VU.Unbox a => VGM.MVector VUM.MVector (Rounded rn a) where
+instance VU.Unbox a => VGM.MVector VUM.MVector (Rounded r a) where
   basicLength (MV_Rounded mv) = VGM.basicLength mv
   basicUnsafeSlice i l (MV_Rounded mv) = MV_Rounded (VGM.basicUnsafeSlice i l mv)
   basicOverlaps (MV_Rounded mv) (MV_Rounded mv') = VGM.basicOverlaps mv mv'
@@ -106,7 +106,7 @@ instance VU.Unbox a => VGM.MVector VUM.MVector (Rounded rn a) where
   basicUnsafeMove (MV_Rounded mv) (MV_Rounded mv') = VGM.basicUnsafeMove mv mv'
   basicUnsafeGrow (MV_Rounded mv) n = MV_Rounded <$> VGM.basicUnsafeGrow mv n
 
-instance VU.Unbox a => VG.Vector VU.Vector (Rounded rn a) where
+instance VU.Unbox a => VG.Vector VU.Vector (Rounded r a) where
   basicUnsafeFreeze (MV_Rounded mv) = V_Rounded <$> VG.basicUnsafeFreeze mv
   basicUnsafeThaw (V_Rounded v) = MV_Rounded <$> VG.basicUnsafeThaw v
   basicLength (V_Rounded v) = VG.basicLength v
@@ -115,4 +115,4 @@ instance VU.Unbox a => VG.Vector VU.Vector (Rounded rn a) where
   basicUnsafeCopy (MV_Rounded mv) (V_Rounded v) = VG.basicUnsafeCopy mv v
   elemseq (V_Rounded v) x y = VG.elemseq v (coerce x) y
 
-instance VU.Unbox a => VU.Unbox (Rounded rn a)
+instance VU.Unbox a => VU.Unbox (Rounded r a)

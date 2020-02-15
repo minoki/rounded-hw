@@ -46,7 +46,7 @@ instance RoundedRing CFloat where
   roundedSub = coerce F.roundedSub
   roundedMul = coerce F.roundedMul
   intervalMul x x' y y' = (coerce F.intervalMul_down x x' y y', coerce F.intervalMul_up x x' y y')
-  roundedFromInteger rn x = CFloat (fromInt rn x)
+  roundedFromInteger r x = CFloat (fromInt r x)
   intervalFromInteger = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
@@ -59,7 +59,7 @@ instance RoundedRing CFloat where
 instance RoundedFractional CFloat where
   roundedDiv = coerce F.roundedDiv
   intervalDiv x x' y y' = (coerce F.intervalDiv_down x x' y y', coerce F.intervalDiv_up x x' y y')
-  roundedFromRational rn x = CFloat $ fromRatio rn (numerator x) (denominator x)
+  roundedFromRational r x = CFloat $ fromRatio r (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromRational_default
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
@@ -90,7 +90,7 @@ instance RoundedRing CDouble where
   roundedSub = coerce D.roundedSub
   roundedMul = coerce D.roundedMul
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
-  roundedFromInteger rn x = CDouble (fromInt rn x)
+  roundedFromInteger r x = CDouble (fromInt r x)
   intervalFromInteger = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
@@ -103,7 +103,7 @@ instance RoundedRing CDouble where
 instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
   intervalDiv x x' y y' = (coerce D.intervalDiv_down x x' y y', coerce D.intervalDiv_up x x' y y')
-  roundedFromRational rn x = CDouble $ fromRatio rn (numerator x) (denominator x)
+  roundedFromRational r x = CDouble $ fromRatio r (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromRational_default
   -- TODO: Specialize small case in ***FromRational?
   {-# INLINE roundedDiv #-}

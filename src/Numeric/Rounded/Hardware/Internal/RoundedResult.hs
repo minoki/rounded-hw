@@ -18,9 +18,9 @@ class Functor f => Result f where
 newtype Exactness a = Exactness { getExactness :: Bool }
   deriving (Eq, Ord, Show, Functor)
 
-instance Rounding rn => Result (Rounded rn) where
+instance Rounding r => Result (Rounded r) where
   exact x = Rounded x
-  inexact n inf ninf z = case rounding (Proxy :: Proxy rn) of
+  inexact n inf ninf z = case rounding (Proxy :: Proxy r) of
                            TowardNearest -> Rounded n
                            TowardInf -> Rounded inf
                            TowardNegInf -> Rounded ninf
@@ -30,8 +30,8 @@ newtype DynamicRoundingMode a = DynamicRoundingMode { withRoundingMode :: Roundi
   deriving (Functor)
 instance Result DynamicRoundingMode where
   exact x = DynamicRoundingMode (\_ -> x)
-  inexact n inf ninf z = DynamicRoundingMode $ \rn ->
-    case rn of
+  inexact n inf ninf z = DynamicRoundingMode $ \r ->
+    case r of
       TowardNearest -> n
       TowardInf -> inf
       TowardNegInf -> ninf

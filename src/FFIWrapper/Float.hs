@@ -37,7 +37,7 @@ foreign import ccall unsafe "rounded_hw_add_float_zero"
   c_rounded_add_zero :: Float -> Float -> Float
 
 roundedAdd :: RoundingMode -> Float -> Float -> Float
-roundedAdd rn = c_rounded_add (fromEnum rn)
+roundedAdd r = c_rounded_add (fromEnum r)
 {-# INLINE [1] roundedAdd #-}
 {-# RULES
 "roundedAdd/TowardNegInf" [~1] roundedAdd TowardNegInf = c_rounded_add_down
@@ -55,7 +55,7 @@ foreign import ccall unsafe "rounded_hw_sub_float_zero"
   c_rounded_sub_zero :: Float -> Float -> Float
 
 roundedSub :: RoundingMode -> Float -> Float -> Float
-roundedSub rn = c_rounded_sub (fromEnum rn)
+roundedSub r = c_rounded_sub (fromEnum r)
 {-# INLINE [1] roundedSub #-}
 {-# RULES
 "roundedSub/TowardNegInf" [~1] roundedSub TowardNegInf = c_rounded_sub_down
@@ -73,7 +73,7 @@ foreign import ccall unsafe "rounded_hw_mul_float_zero"
   c_rounded_mul_zero :: Float -> Float -> Float
 
 roundedMul :: RoundingMode -> Float -> Float -> Float
-roundedMul rn = c_rounded_mul (fromEnum rn)
+roundedMul r = c_rounded_mul (fromEnum r)
 {-# INLINE [1] roundedMul #-}
 {-# RULES
 "roundedMul/TowardNegInf" [~1] roundedMul TowardNegInf = c_rounded_mul_down
@@ -91,7 +91,7 @@ foreign import ccall unsafe "rounded_hw_div_float_zero"
   c_rounded_div_zero :: Float -> Float -> Float
 
 roundedDiv :: RoundingMode -> Float -> Float -> Float
-roundedDiv rn = c_rounded_div (fromEnum rn)
+roundedDiv r = c_rounded_div (fromEnum r)
 {-# INLINE [1] roundedDiv #-}
 {-# RULES
 "roundedDiv/TowardNegInf" [~1] roundedDiv TowardNegInf = c_rounded_div_down
@@ -109,7 +109,7 @@ foreign import ccall unsafe "rounded_hw_sqrt_float_zero"
   c_rounded_sqrt_zero :: Float -> Float
 
 roundedSqrt :: RoundingMode -> Float -> Float
-roundedSqrt rn = c_rounded_sqrt (fromEnum rn)
+roundedSqrt r = c_rounded_sqrt (fromEnum r)
 {-# INLINE [1] roundedSqrt #-}
 {-# RULES
 "roundedSqrt/TowardNegInf" [~1] roundedSqrt TowardNegInf = c_rounded_sqrt_down
@@ -127,7 +127,7 @@ foreign import ccall unsafe "rounded_hw_fma_float_zero"
   c_rounded_fma_zero :: Float -> Float -> Float -> Float
 
 roundedFMA :: RoundingMode -> Float -> Float -> Float -> Float
-roundedFMA rn = c_rounded_fma (fromEnum rn)
+roundedFMA r = c_rounded_fma (fromEnum r)
 {-# INLINE [1] roundedFMA #-}
 {-# RULES
 "roundedFMA/TowardNegInf" [~1] roundedFMA TowardNegInf = c_rounded_fma_down
@@ -145,7 +145,7 @@ foreign import ccall unsafe "rounded_hw_fma_if_fast_float_zero"
   c_rounded_fma_if_fast_zero :: Float -> Float -> Float -> Float
 
 roundedFMAIfFast :: RoundingMode -> Float -> Float -> Float -> Float
-roundedFMAIfFast rn = c_rounded_fma_if_fast (fromEnum rn)
+roundedFMAIfFast r = c_rounded_fma_if_fast (fromEnum r)
 {-# INLINE [1] roundedFMAIfFast #-}
 {-# RULES
 "roundedFMAIfFast/TowardNegInf" [~1] roundedFMAIfFast TowardNegInf = c_rounded_fma_if_fast_down
@@ -163,7 +163,7 @@ foreign import ccall unsafe "rounded_hw_int64_to_float_zero"
   c_rounded_from_int64_zero :: Int64 -> Float
 
 roundedFromInt64 :: RoundingMode -> Int64 -> Float
-roundedFromInt64 rn = c_rounded_from_int64 (fromEnum rn)
+roundedFromInt64 r = c_rounded_from_int64 (fromEnum r)
 {-# INLINE [1] roundedFromInt64 #-}
 {-# RULES
 "roundedFromInt64/TowardNegInf" [~1] roundedFromInt64 TowardNegInf = c_rounded_from_int64_down
@@ -181,7 +181,7 @@ foreign import ccall unsafe "rounded_hw_word64_to_float_zero"
   c_rounded_from_word64_zero :: Word64 -> Float
 
 roundedFromWord64 :: RoundingMode -> Word64 -> Float
-roundedFromWord64 rn = c_rounded_from_word64 (fromEnum rn)
+roundedFromWord64 r = c_rounded_from_word64 (fromEnum r)
 {-# INLINE [1] roundedFromWord64 #-}
 {-# RULES
 "roundedFromWord64/TowardNegInf" [~1] roundedFromWord64 TowardNegInf = c_rounded_from_word64_down
@@ -199,7 +199,7 @@ foreign import ccall unsafe "rounded_hw_sum_float_zero"
   c_rounded_sum_ptr_zero :: Int -> Int -> Ptr Float -> IO Float
 
 roundedSumPtr :: RoundingMode -> Int -> Int -> Ptr Float -> IO Float
-roundedSumPtr rn = c_rounded_sum_ptr (fromEnum rn)
+roundedSumPtr r = c_rounded_sum_ptr (fromEnum r)
 {-# INLINE [1] roundedSumPtr #-}
 {-# RULES
 "roundedSumPtr/TowardNegInf" [~1] roundedSumPtr TowardNegInf = c_rounded_sum_ptr_down
@@ -217,7 +217,7 @@ foreign import ccall unsafe "rounded_hw_sum_float_zero"
   c_rounded_sum_bytearr_zero :: Int -> Int -> ByteArray# -> Float
 
 roundedSumByteArray :: RoundingMode -> Int -> Int -> ByteArray# -> Float
-roundedSumByteArray rn = c_rounded_sum_bytearr (fromEnum rn)
+roundedSumByteArray r = c_rounded_sum_bytearr (fromEnum r)
 {-# INLINE [1] roundedSumByteArray #-}
 {-# RULES
 "roundedSumByteArray/TowardNegInf" [~1] roundedSumByteArray TowardNegInf = c_rounded_sum_bytearr_down

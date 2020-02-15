@@ -36,9 +36,9 @@ binaryFloatToDecimalDigitsRn :: forall a. RealFloat a
                              -> Int -- ^ prec
                              -> a -- ^ a non-negative number (zero, normal or subnormal)
                              -> ([Int], Int)
-binaryFloatToDecimalDigitsRn _rn _prec 0 = ([], 0)
-binaryFloatToDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "radix must be 2"
-binaryFloatToDecimalDigitsRn rn prec x =
+binaryFloatToDecimalDigitsRn _rm _prec 0 = ([], 0)
+binaryFloatToDecimalDigitsRn _rm _prec x | floatRadix x /= 2 = error "radix must be 2"
+binaryFloatToDecimalDigitsRn rm prec x =
   -- x > 0
   let m :: Integer
       n, d, e0 :: Int
@@ -83,7 +83,7 @@ binaryFloatToDecimalDigitsRn rn prec x =
        loop0 e' q'
      else
        -- inexact
-       case rn of
+       case rm of
          TowardNegInf -> loop0 e' q'
          TowardZero   -> loop0 e' q'
          TowardInf    -> loop0 e' (q' + 1)
@@ -120,8 +120,8 @@ binaryFloatToFixedDecimalDigitsRn :: forall a. RealFloat a
                                   -> Int -- ^ prec
                                   -> a -- ^ a non-negative number (zero, normal or subnormal)
                                   -> [Int]
-binaryFloatToFixedDecimalDigitsRn _rn _prec x | floatRadix x /= 2 = error "radix must be 2"
-binaryFloatToFixedDecimalDigitsRn rn prec x =
+binaryFloatToFixedDecimalDigitsRn _rm _prec x | floatRadix x /= 2 = error "radix must be 2"
+binaryFloatToFixedDecimalDigitsRn rm prec x =
   let m, s, t, q, r :: Integer
       e :: Int
       (m,e) = decodeFloat x -- x = m*2^e
@@ -137,7 +137,7 @@ binaryFloatToFixedDecimalDigitsRn rn prec x =
        loop [] q
      else
        -- inexact
-       case rn of
+       case rm of
          TowardNegInf -> loop [] q
          TowardZero -> loop [] q
          TowardInf -> loop [] (q + 1)
@@ -202,14 +202,14 @@ binaryFloatToDecimalDigits x =
 -- >>> showEFloatRn TowardNearest Nothing (0.5 :: Double) ""
 -- "5.0e-1"
 showEFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
-showEFloatRn rn mprec x
+showEFloatRn r mprec x
   | isNaN x = showString "NaN"
-  | x < 0 || isNegativeZero x = showChar '-' . showEFloatRn (oppositeRoundingMode rn) mprec (-x)
+  | x < 0 || isNegativeZero x = showChar '-' . showEFloatRn (oppositeRoundingMode r) mprec (-x)
   | isInfinite x = showString "Infinity"
   | otherwise = let (xs,e) = case mprec of
                       Nothing -> binaryFloatToDecimalDigits x
                       Just prec -> let !prec' = max prec 0
-                                   in first (padRight0 (prec' + 1)) $ binaryFloatToDecimalDigitsRn rn prec' x
+                                   in first (padRight0 (prec' + 1)) $ binaryFloatToDecimalDigitsRn r prec' x
                     e' | all (== 0) xs = 0
                        | otherwise = e - 1
                 in case xs of
@@ -236,9 +236,9 @@ showEFloatRn rn mprec x
 -- >>> showFFloatRn TowardNearest Nothing (-0.5 :: Double) ""
 -- "-0.5"
 showFFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
-showFFloatRn rn mprec x
+showFFloatRn r mprec x
   | isNaN x = showString "NaN"
-  | x < 0 || isNegativeZero x = showChar '-' . showFFloatRn (oppositeRoundingMode rn) mprec (-x)
+  | x < 0 || isNegativeZero x = showChar '-' . showFFloatRn (oppositeRoundingMode r) mprec (-x)
   | isInfinite x = showString "Infinity"
   | otherwise = case mprec of
                   Nothing -> let (xs,e) = binaryFloatToDecimalDigits x
@@ -257,7 +257,7 @@ showFFloatRn rn mprec x
                                      else -- e < 0
                                        showString ("0." ++ replicate (-e) '0' ++ map intToDigit xs)
                   Just prec -> let prec' = max prec 0
-                                   xs = binaryFloatToFixedDecimalDigitsRn rn prec' x
+                                   xs = binaryFloatToFixedDecimalDigitsRn r prec' x
                                    l = length xs
                                in if prec' == 0
                                   then if null xs
@@ -272,8 +272,8 @@ showFFloatRn rn mprec x
 {-# SPECIALIZE showFFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 showGFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
-showGFloatRn rn mprec x | x == 0 || (0.1 <= abs x && abs x < 1e7) = showFFloatRn rn mprec x -- Note that 1%10 < toRational (0.1 :: Double)
-                        | otherwise = showEFloatRn rn mprec x
+showGFloatRn r mprec x | x == 0 || (0.1 <= abs x && abs x < 1e7) = showFFloatRn r mprec x -- Note that 1%10 < toRational (0.1 :: Double)
+                       | otherwise = showEFloatRn r mprec x
 {-# SPECIALIZE showGFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 {-
