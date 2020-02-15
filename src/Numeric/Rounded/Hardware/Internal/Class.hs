@@ -1,12 +1,12 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DefaultSignatures   #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving  #-}
 {-# LANGUAGE ConstrainedClassMethods #-}
-{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Numeric.Rounded.Hardware.Internal.Class
   ( module Numeric.Rounded.Hardware.Internal.Class
