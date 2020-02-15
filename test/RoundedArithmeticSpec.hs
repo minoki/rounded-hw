@@ -52,14 +52,26 @@ prop_roundedDiv _proxy x (NonZero y) =
       ninf = roundedDiv TowardNegInf x y
   in ne ==. x / y .&&. ninf <= inf .&&. (ne ==. ninf .||. ne ==. inf) .&&. (ze ==. ninf .||. ze ==. inf) .&&. abs ze ==. min (abs ninf) (abs inf)
 
-specT :: (RealFloat a, RoundedFractional a, Arbitrary a, Show a) => Proxy a -> Spec
+prop_roundedSqrt :: (RealFloat a, Show a, RoundedSqrt a) => Proxy a -> a -> Property
+prop_roundedSqrt _proxy x =
+  -- Assume neither x nor y is NaN
+  let ne = roundedSqrt TowardNearest x
+      ze = roundedSqrt TowardZero x
+      inf = roundedSqrt TowardInf x
+      ninf = roundedSqrt TowardNegInf x
+  in if isNaN x || x < 0
+     then isNaN ne .&&. isNaN ze .&&. isNaN inf .&&. isNaN ninf
+     else ne ==. sqrt x .&&. ninf <= inf .&&. (ne ==. ninf .||. ne ==. inf) .&&. (ze ==. ninf .||. ze ==. inf) .&&. abs ze ==. min (abs ninf) (abs inf)
+
+specT :: (RealFloat a, RoundedFractional a, RoundedSqrt a, Arbitrary a, Show a) => Proxy a -> Spec
 specT proxy = do
   prop "roundedAdd" $ prop_roundedAdd proxy
   prop "roundedSub" $ prop_roundedSub proxy
   prop "roundedMul" $ prop_roundedMul proxy
   prop "roundedDiv" $ prop_roundedDiv proxy
+  prop "roundedSqrt" $ prop_roundedSqrt proxy
 
-verifyImplementation :: forall base a. (RealFloat base, RoundedFractional a, Arbitrary base, Show base, RealFloatConstants base, Coercible a base) => Proxy base -> Proxy a -> Spec
+verifyImplementation :: forall base a. (RealFloat base, RoundedFractional a, RoundedSqrt a, Arbitrary base, Show base, RealFloatConstants base, Coercible a base) => Proxy base -> Proxy a -> Spec
 verifyImplementation _ _ = do
   let unVR (ViaRational x) = x
       c :: base -> a
@@ -68,6 +80,7 @@ verifyImplementation _ _ = do
   prop "roundedSub" $ \r x y -> unVR (roundedSub r (ViaRational x) (ViaRational y)) ==. coerce (roundedSub r (c x) (c y))
   prop "roundedMul" $ \r x y -> unVR (roundedMul r (ViaRational x) (ViaRational y)) ==. coerce (roundedMul r (c x) (c y))
   prop "roundedDiv" $ \r x y -> unVR (roundedDiv r (ViaRational x) (ViaRational y)) ==. coerce (roundedDiv r (c x) (c y))
+  prop "roundedSqrt" $ \r x -> unVR (roundedSqrt r (ViaRational x)) ==. coerce (roundedSqrt r (c x))
 
 spec :: Spec
 spec = do
