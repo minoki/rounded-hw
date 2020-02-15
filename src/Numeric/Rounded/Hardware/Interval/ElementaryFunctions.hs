@@ -280,3 +280,61 @@ acosP x | x < -1 || 1 < x = error "asin"
 
 acosI :: forall i. (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RoundedRing (EndPoint i), RoundedSqrt (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
 acosI = withEndPoints (\(Rounded x) (Rounded y) -> hull (acosP x) (acosP y)) -- decreasing
+
+sinhP :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+sinhP x | x >= 0 = let y = expP x
+                   in (y - recip y) / 2
+        | otherwise = let y = expP (- x)
+                      in (recip y - y) / 2
+        -- TODO: precision when x ~ 0
+
+sinhI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+sinhI = withEndPoints (\(Rounded x) (Rounded y) -> hull (sinhP x) (sinhP y)) -- increasing
+
+coshP :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+coshP x | x >= 0 = let y = expP x
+                   in (y + recip y) / 2
+        | otherwise = let y = expP (- x)
+                      in (recip y + y) / 2
+
+coshI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+coshI = withEndPoints $ \(Rounded x) (Rounded y) ->
+                          let z = hull (coshP x) (coshP y)
+                          in if x <= 0 && 0 <= y
+                             then hull 0 z
+                             else z
+
+tanhP :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+tanhP x | -0.5 <= x && x <= 0.5 = sinhP x / coshP x
+        | 0 < x = 1 - 2 / (1 + expP (2 * x)) -- assuming 2*x is exact
+        | otherwise = 2 / (1 + expP (- 2 * x)) - 1 -- assuming 2*x is exact
+
+tanhI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+tanhI = withEndPoints $ \(Rounded x) (Rounded y) -> hull (tanhP x) (tanhP y) -- increasing
+
+asinhP :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i), RoundedSqrt (EndPoint i)) => EndPoint i -> i
+asinhP x = let x' = singleton x
+           in logI (x' + sqrtI (1 + x' ^ (2 :: Int)))
+-- TODO: precision when x ~ 0
+
+asinhI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i), RoundedSqrt (EndPoint i)) => i -> i
+asinhI = withEndPoints $ \(Rounded x) (Rounded y) -> hull (asinhP x) (asinhP y) -- increasing
+
+acoshP :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i), RoundedSqrt (EndPoint i)) => EndPoint i -> i
+acoshP x | x < 1 = error "acosh: domain"
+         | otherwise = let x' = singleton x
+                       in logI (x' + sqrtI (x' ^ (2 :: Int) - 1))
+-- TODO: precision when x ~ 1
+
+acoshI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i), RoundedSqrt (EndPoint i)) => i -> i
+acoshI = withEndPoints $ \(Rounded x) (Rounded y) -> hull (acoshP x) (acoshP y) -- increasing
+
+atanhP :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => EndPoint i -> i
+atanhP x | x < -1 || 1 < x = error "atanh: domain"
+         | x == -1 = - makeInterval (Rounded maxFinite) (Rounded positiveInfinity)
+         | x == 1 = makeInterval (Rounded maxFinite) (Rounded positiveInfinity)
+         | otherwise = let x' = singleton x
+                       in logI ((1 + x') / (1 - x')) / 2
+
+atanhI :: (IsInterval i, Fractional i, Eq (EndPoint i), RealFloat (EndPoint i), RealFloatConstants (EndPoint i)) => i -> i
+atanhI = withEndPoints $ \(Rounded x) (Rounded y) -> hull (atanhP x) (atanhP y) -- increasing
