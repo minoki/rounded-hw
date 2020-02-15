@@ -16,17 +16,6 @@ module Numeric.Rounded.Hardware.Interval
   , width
   , hull
   , intersection
-  , sqrtI
-  , expI
-  , expm1I
-  , logI
-  , log1pI
-  , sinI
-  , cosI
-  , tanI
-  , asinI
-  , acosI
-  , atanI
   ) where
 import           Control.DeepSeq (NFData (..))
 import           Control.Monad
@@ -39,6 +28,7 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import           GHC.Float (log1p, expm1)
 import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal
 import qualified Numeric.Rounded.Hardware.Interval.Class as C
@@ -146,32 +136,30 @@ intersection (I x y) (I x' y') | getRounded x'' <= getRounded y'' = I x'' y''
         y'' = min y y'
 intersection _ _ = Empty
 
-sqrtI :: (RoundedSqrt a, RealFloat a) => Interval a -> Interval a
-sqrtI = C.sqrtI
 
-expI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-expI = C.expI
-
-expm1I :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-expm1I = C.expm1I
-
-logI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-logI = C.logI
-
-log1pI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-log1pI = C.log1pI
-
-sinI, cosI, tanI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-sinI = C.sinI
-cosI = C.cosI
-tanI = C.tanI
-
-atanI :: (Num a, RoundedFractional a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-atanI = C.atanI
-
-asinI, acosI :: (Num a, RoundedFractional a, RoundedSqrt a, Eq a, RealFloat a, RealFloatConstants a) => Interval a -> Interval a
-asinI = C.asinI
-acosI = C.acosI
+instance (Num a, RoundedFractional a, RoundedSqrt a, Eq a, RealFloat a, RealFloatConstants a) => Floating (Interval a) where
+  pi = I pi_down pi_up
+  exp = C.expI
+  log = C.logI
+  sqrt = C.sqrtI
+  -- x ** y = exp (log x * y) -- default
+  -- logBase x y = log y / log x -- default
+  sin = C.sinI
+  cos = C.cosI
+  tan = C.tanI
+  asin = C.asinI
+  acos = C.acosI
+  atan = C.atanI
+  sinh = C.sinhI
+  cosh = C.coshI
+  tanh = C.tanhI
+  asinh = C.asinhI
+  acosh = C.acoshI
+  atanh = C.atanhI
+  log1p = C.log1pI
+  expm1 = C.expm1I
+  -- log1pexp x = log (1 + exp x) -- default
+  -- log1mexp x = log (1 - exp x) -- default
 
 instance (Num a, RoundedRing a, RealFloat a) => C.IsInterval (Interval a) where
   type EndPoint (Interval a) = a
