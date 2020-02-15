@@ -35,15 +35,11 @@ type DoubleImpl = VR.ViaRational Double
 
 deriving via FloatImpl instance RoundedRing Float
 deriving via FloatImpl instance RoundedFractional Float
-#ifdef USE_FFI
 deriving via FloatImpl instance RoundedSqrt Float
-#endif
 
 deriving via DoubleImpl instance RoundedRing Double
 deriving via DoubleImpl instance RoundedFractional Double
-#ifdef USE_FFI
 deriving via DoubleImpl instance RoundedSqrt Double
-#endif
 
 instance RoundedVectorOperation Float where
   roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec :: VS.Vector FloatImpl))

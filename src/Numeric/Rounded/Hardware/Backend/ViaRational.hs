@@ -19,6 +19,7 @@ import           GHC.Generics                             (Generic)
 import           Numeric.Rounded.Hardware.Internal.Class
 import           Numeric.Rounded.Hardware.Internal.Constants
 import           Numeric.Rounded.Hardware.Internal.Conversion
+import           Numeric.Rounded.Hardware.Internal.FloatUtil (nextDown, nextUp)
 
 newtype ViaRational a = ViaRational a
   deriving (Eq,Ord,Show,Generic,Num,Storable)
@@ -75,6 +76,18 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
   {-# INLINE intervalFromRational #-}
   {-# SPECIALIZE instance RoundedFractional (ViaRational Float) #-}
   {-# SPECIALIZE instance RoundedFractional (ViaRational Double) #-}
+
+instance (RealFloat a, RealFloatConstants a) => RoundedSqrt (ViaRational a) where
+  roundedSqrt r (ViaRational x)
+    | r /= TowardNearest && x >= 0 = ViaRational $
+      case compare ((toRational y) ^ (2 :: Int)) (toRational x) of
+        LT | r == TowardInf -> nextUp y
+           | otherwise -> y
+        EQ -> y
+        GT | r == TowardInf -> y
+           | otherwise -> nextDown y
+    | otherwise = ViaRational y
+    where y = sqrt x
 
 instance (RealFloat a, Num a, RealFloatConstants a) => RoundedVectorOperation (ViaRational a)
 
