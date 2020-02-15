@@ -68,6 +68,7 @@ library:
   - Numeric.Rounded.Hardware.Internal.Class
   - Numeric.Rounded.Hardware.Internal.Constants
   - Numeric.Rounded.Hardware.Internal.Conversion
+  - Numeric.Rounded.Hardware.Internal.FloatUtil
   - Numeric.Rounded.Hardware.Internal.RoundedResult
   - Numeric.Rounded.Hardware.Internal.Show
   - Numeric.Rounded.Hardware.Backend.Default

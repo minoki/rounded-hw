@@ -8,6 +8,7 @@ import qualified IntervalArithmeticSpec
 import           Numeric.Rounded.Hardware.Backend (backendName)
 import qualified RoundedArithmeticSpec
 import qualified ShowFloatSpec
+import qualified FloatUtilSpec
 import           Test.Hspec
 #ifdef TEST_X87_LONG_DOUBLE
 import           Numeric.LongDouble (LongDouble)
@@ -31,6 +32,7 @@ main = do
     describe "showFloat" ShowFloatSpec.spec
     describe "rounded arithmetic" RoundedArithmeticSpec.spec
     describe "interval arithmetic" IntervalArithmeticSpec.spec
+    describe "FloatUtil" FloatUtilSpec.spec
 #ifdef TEST_X87_LONG_DOUBLE
     describe "x87 long double" X87LongDoubleSpec.spec
 #endif
