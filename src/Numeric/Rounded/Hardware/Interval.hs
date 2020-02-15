@@ -14,6 +14,7 @@ module Numeric.Rounded.Hardware.Interval
   , inf
   , sup
   , width
+  , widthUlp
   , hull
   , intersection
   ) where
@@ -124,6 +125,10 @@ sup _       = error "empty interval"
 width :: (Num a, RoundedRing a) => Interval a -> Rounded 'TowardInf a
 width (I x y) = y - coerce x
 width Empty   = 0
+
+widthUlp :: (RealFloat a) => Interval a -> Maybe Integer
+widthUlp (I x y) = distanceUlp (getRounded x) (getRounded y)
+widthUlp Empty = Just 0
 
 hull :: RoundedRing a => Interval a -> Interval a -> Interval a
 hull (I x y) (I x' y') = I (min x x') (max y y')
