@@ -1,7 +1,9 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Util where
 import           Numeric
 import           Numeric.Rounded.Hardware.Internal
+import           System.Random
 import           Test.QuickCheck
 
 newtype ShowHexFloat a = ShowHexFloat a deriving (Eq,Ord)
@@ -38,3 +40,20 @@ sameFloatP x y = counterexample (showHFloat x . showString (interpret res) . sho
 
 infix 4 `sameFloat`, `sameFloatP`
 
+variousFloats :: forall a. (RealFloat a, Arbitrary a, Random a, RealFloatConstants a) => Gen a
+variousFloats = frequency
+  [ (10, arbitrary)
+  , (10, choose (-1, 1))
+  , (10, (* encodeFloat 1 expMin) <$> choose (-1, 1) ) -- subnormal or very small normal
+  , (10, (* encodeFloat 1 (expMax-1)) <$> choose (-2, 2) ) -- infinity or very large normal
+  , (1, pure 0) -- positive zero
+  , (1, pure (-0)) -- negative zero
+  , (1, pure (1/0)) -- positive infinity
+  , (1, pure (-1/0)) -- negative infinity
+  , (1, pure (0/0)) -- NaN
+  , (1, pure maxFinite) -- max finite
+  , (1, pure (-maxFinite)) -- min negative
+  , (1, pure minPositive) -- min positive
+  , (1, pure (-minPositive)) -- max negative
+  ]
+  where (expMin,expMax) = floatRange (undefined :: a)

@@ -3,7 +3,7 @@ import           Numeric.Rounded.Hardware.Internal
 import           Test.Hspec
 import           Test.Hspec.QuickCheck (prop)
 import           Test.QuickCheck
-import           Util (sameFloatP)
+import           Util (sameFloatP, variousFloats)
 
 foreign import ccall unsafe "nextafter"
   c_nextafter_double :: Double -> Double -> Double
@@ -42,12 +42,12 @@ prop_nextDown_nextUp x = x /= (1/0) ==>
 spec :: Spec
 spec = do
   describe "Double" $ do
-    prop "nextUp vs C nextafter" (prop_nextUp_match :: Double -> Property)
-    prop "nextDown vs C nextafter" (prop_nextDown_match :: Double -> Property)
-    prop "nextUp . nextDown == id (unless -inf)" (prop_nextUp_nextDown :: Double -> Property)
-    prop "nextDown . nextUp == id (unless inf)" (prop_nextDown_nextUp :: Double -> Property)
+    prop "nextUp vs C nextafter" $ forAll variousFloats (prop_nextUp_match :: Double -> Property)
+    prop "nextDown vs C nextafter" $ forAll variousFloats (prop_nextDown_match :: Double -> Property)
+    prop "nextUp . nextDown == id (unless -inf)" $ forAll variousFloats (prop_nextUp_nextDown :: Double -> Property)
+    prop "nextDown . nextUp == id (unless inf)" $ forAll variousFloats (prop_nextDown_nextUp :: Double -> Property)
   describe "Float" $ do
-    prop "nextUp vs C nextafter" (prop_nextUp_match :: Float -> Property)
-    prop "nextDown vs C nextafter" (prop_nextDown_match :: Float -> Property)
-    prop "nextUp . nextDown == id (unless -inf)" (prop_nextUp_nextDown :: Float -> Property)
-    prop "nextDown . nextUp == id (unless inf)" (prop_nextDown_nextUp :: Float -> Property)
+    prop "nextUp vs C nextafter" $ forAll variousFloats (prop_nextUp_match :: Float -> Property)
+    prop "nextDown vs C nextafter" $ forAll variousFloats (prop_nextDown_match :: Float -> Property)
+    prop "nextUp . nextDown == id (unless -inf)" $ forAll variousFloats (prop_nextUp_nextDown :: Float -> Property)
+    prop "nextDown . nextUp == id (unless inf)" $ forAll variousFloats (prop_nextDown_nextUp :: Float -> Property)
