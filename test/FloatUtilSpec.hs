@@ -1,4 +1,4 @@
-module FloatUtilSpec (spec) where
+module FloatUtilSpec where
 import           Numeric.Rounded.Hardware.Internal
 import           Test.Hspec
 import           Test.Hspec.QuickCheck (prop)
