@@ -1,6 +1,8 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE HexFloatLiterals #-}
+{-# LANGUAGE NumericUnderscores #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 import           Control.Monad
 import           Control.Monad.ST
@@ -14,6 +16,7 @@ import qualified Data.Vector.Mutable as VM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Gauge.Main
+import           Numeric
 import           Numeric.Rounded.Hardware.Internal
 import           Numeric.Rounded.Hardware.Interval
 import qualified Numeric.Rounded.Hardware.Vector.Unboxed as RVU
@@ -86,6 +89,21 @@ intervalGaussianEliminationU a b
           modify' vec f i = do
             x <- VUM.read vec i
             VUM.write vec i $! f x
+
+foreign import ccall unsafe "nextafter"
+  c_nextafter_double :: Double -> Double -> Double
+foreign import ccall unsafe "nextafterf"
+  c_nextafter_float :: Float -> Float -> Float
+
+class Fractional a => CNextAfter a where
+  c_nextafter :: a -> a -> a
+
+instance CNextAfter Double where c_nextafter = c_nextafter_double
+instance CNextAfter Float where c_nextafter = c_nextafter_float
+
+c_nextUp, c_nextDown :: (RealFloat a, CNextAfter a) => a -> a
+c_nextUp x = c_nextafter x (1/0)
+c_nextDown x = c_nextafter x (-1/0)
 
 main :: IO ()
 main =
@@ -168,4 +186,36 @@ main =
          [ bench "naive" $ nf V.sum vec
          , bench "naive 2" $ nf (V.foldl' (+) 0) vec
          ]
+    , bgroup "nextUp"
+      [ let cases = [0,1,0x1.ffff_ffff_ffff_fp200] :: [Double]
+        in bgroup "Double"
+           [ bgroup "C"
+             [ bench (showHFloat x "") $ nf c_nextUp x | x <- cases ]
+           , bgroup "Haskell"
+             [ bench (showHFloat x "") $ nf nextUp x | x <- cases ]
+           ]
+      , let cases = [0,1,0x1.fffffep100] :: [Float]
+        in bgroup "Float"
+           [ bgroup "C"
+             [ bench (showHFloat x "") $ nf c_nextUp x | x <- cases ]
+           , bgroup "Haskell"
+             [ bench (showHFloat x "") $ nf nextUp x | x <- cases ]
+           ]
+      ]
+    , bgroup "nextDown"
+      [ let cases = [0,1,0x1.ffff_ffff_ffff_fp200] :: [Double]
+        in bgroup "Double"
+           [ bgroup "C"
+             [ bench (showHFloat x "") $ nf c_nextDown x | x <- cases ]
+           , bgroup "Haskell"
+             [ bench (showHFloat x "") $ nf nextDown x | x <- cases ]
+           ]
+      , let cases = [0,1,0x1.fffffep100] :: [Float]
+        in bgroup "Float"
+           [ bgroup "C"
+             [ bench (showHFloat x "") $ nf c_nextDown x | x <- cases ]
+           , bgroup "Haskell"
+             [ bench (showHFloat x "") $ nf nextDown x | x <- cases ]
+           ]
+      ]
     ]
