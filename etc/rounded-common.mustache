@@ -192,6 +192,26 @@ extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1
     return lo;
 }
 
+extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} hi3)
+{
+    // TODO: zero and infinity
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, ROUND_UPWARD);
+    volatile {{TYPE}} hi = {{fmax}}({{fmax}}(lo1 / lo2, lo1 / hi2), {{fmax}}(hi1 / lo2, hi1 / hi2)) + hi3;
+    restore_fp_reg(oldreg);
+    return hi;
+}
+
+extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} lo3)
+{
+    // TODO: zero and infinity
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, ROUND_DOWNWARD);
+    volatile {{TYPE}} lo = {{fmin}}({{fmin}}(lo1 / lo2, lo1 / hi2), {{fmin}}(hi1 / lo2, hi1 / hi2)) + lo3;
+    restore_fp_reg(oldreg);
+    return lo;
+}
+
 //
 // Summation
 //
