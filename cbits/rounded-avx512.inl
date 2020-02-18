@@ -152,20 +152,19 @@ static inline ALWAYS_INLINE
 double rounded_sqrt_impl_double(native_rounding_mode mode, double a)
 {
     __m128d av = _mm_set_sd(a);
-    __m128d bv = _mm_set_sd(0.0);
     __m128d resultv;
     switch (mode) {
     case ROUND_TONEAREST:
-        resultv = _mm_sqrt_round_sd(av, bv, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_sd(av, av, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
         break;
     case ROUND_DOWNWARD:
-        resultv = _mm_sqrt_round_sd(av, bv, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_sd(av, av, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
         break;
     case ROUND_UPWARD:
-        resultv = _mm_sqrt_round_sd(av, bv, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_sd(av, av, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
         break;
     case ROUND_TOWARDZERO:
-        resultv = _mm_sqrt_round_sd(av, bv, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_sd(av, av, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
         break;
     default:
         UNREACHABLE();
@@ -620,20 +619,19 @@ static inline ALWAYS_INLINE
 float rounded_sqrt_impl_float(native_rounding_mode mode, float a)
 {
     __m128 av = _mm_set_ss(a);
-    __m128 bv = _mm_set_ss(0.0f);
     __m128 resultv;
     switch (mode) {
     case ROUND_TONEAREST:
-        resultv = _mm_sqrt_round_ss(av, bv, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_ss(av, av, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
         break;
     case ROUND_DOWNWARD:
-        resultv = _mm_sqrt_round_ss(av, bv, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_ss(av, av, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
         break;
     case ROUND_UPWARD:
-        resultv = _mm_sqrt_round_ss(av, bv, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_ss(av, av, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
         break;
     case ROUND_TOWARDZERO:
-        resultv = _mm_sqrt_round_ss(av, bv, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round_ss(av, av, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
         break;
     default:
         UNREACHABLE();

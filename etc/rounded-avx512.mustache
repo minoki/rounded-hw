@@ -107,12 +107,11 @@ static inline ALWAYS_INLINE
 {{TYPE}} rounded_sqrt_impl_{{NAME}}(native_rounding_mode mode, {{TYPE}} a)
 {
     {{VECTOR}} av = _mm_set{{SIMD_SUFFIX}}(a);
-    {{VECTOR}} bv = _mm_set{{SIMD_SUFFIX}}(0.0{{LIT_SUFFIX}});
     {{VECTOR}} resultv;
     switch (mode) {
 {{#each_static_rounding_mode}}
     case {{MODE}}:
-        resultv = _mm_sqrt_round{{SIMD_SUFFIX}}(av, bv, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
+        resultv = _mm_sqrt_round{{SIMD_SUFFIX}}(av, av, {{_MM_FROUND_MODE}} | _MM_FROUND_NO_EXC);
         break;
 {{/each_static_rounding_mode}}
     default:
