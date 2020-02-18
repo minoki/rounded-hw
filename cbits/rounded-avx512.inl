@@ -302,90 +302,132 @@ extern double rounded_hw_word64_to_double_zero(uint64_t x)
 
 //
 // Interval arithmetic
-// TODO: Can we use MAXSS/MAXSD?
 //
+
+static inline double fast_fmax_double(double x, double y)
+{
+    // should compile to MAX[SP][SD] instruction on x86
+    return x > y ? x : y;
+}
+static inline double fast_fmax4_double(double x, double y, double z, double w)
+{
+    return fast_fmax_double(fast_fmax_double(x, y), fast_fmax_double(z, w));
+}
+static inline double fast_fmin_double(double x, double y)
+{
+    // should compile to MIN[SP][SD] instruction on x86
+    return x < y ? x : y;
+}
+static inline double fast_fmin4_double(double x, double y, double z, double w)
+{
+    return fast_fmin_double(fast_fmin_double(x, y), fast_fmin_double(z, w));
+}
 
 extern double rounded_hw_interval_mul_double_up(double lo1, double hi1, double lo2, double hi2)
 {
-    // TODO: zero and infinity
     double x = rounded_mul_impl_double(ROUND_UPWARD, lo1, lo2);
     double y = rounded_mul_impl_double(ROUND_UPWARD, lo1, hi2);
     double z = rounded_mul_impl_double(ROUND_UPWARD, hi1, lo2);
     double w = rounded_mul_impl_double(ROUND_UPWARD, hi1, hi2);
-    return fmax(fmax(x, y), fmax(z, w));
+    if (isnan(x)) x = 0.0; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 * inf -> 0 */
+    return fast_fmax4_double(x, y, z, w);
 }
 
 extern double rounded_hw_interval_mul_double_down(double lo1, double hi1, double lo2, double hi2)
 {
-    // TODO: zero and infinity
     double x = rounded_mul_impl_double(ROUND_DOWNWARD, lo1, lo2);
     double y = rounded_mul_impl_double(ROUND_DOWNWARD, lo1, hi2);
     double z = rounded_mul_impl_double(ROUND_DOWNWARD, hi1, lo2);
     double w = rounded_mul_impl_double(ROUND_DOWNWARD, hi1, hi2);
-    return fmin(fmin(x, y), fmin(z, w));
+    if (isnan(x)) x = 0.0; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 * inf -> 0 */
+    return fast_fmin4_double(x, y, z, w);
 }
 
 extern double rounded_hw_interval_mul_add_double_up(double lo1, double hi1, double lo2, double hi2, double hi3)
 {
-    // TODO: zero and infinity
     double x = rounded_mul_impl_double(ROUND_UPWARD, lo1, lo2);
     double y = rounded_mul_impl_double(ROUND_UPWARD, lo1, hi2);
     double z = rounded_mul_impl_double(ROUND_UPWARD, hi1, lo2);
     double w = rounded_mul_impl_double(ROUND_UPWARD, hi1, hi2);
-    double p = fmax(fmax(x, y), fmax(z, w));
+    if (isnan(x)) x = 0.0; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 * inf -> 0 */
+    double p = fast_fmax4_double(x, y, z, w);
     return rounded_add_impl_double(ROUND_UPWARD, p, hi3);
 }
 
 extern double rounded_hw_interval_mul_add_double_down(double lo1, double hi1, double lo2, double hi2, double lo3)
 {
-    // TODO: zero and infinity
     double x = rounded_mul_impl_double(ROUND_DOWNWARD, lo1, lo2);
     double y = rounded_mul_impl_double(ROUND_DOWNWARD, lo1, hi2);
     double z = rounded_mul_impl_double(ROUND_DOWNWARD, hi1, lo2);
     double w = rounded_mul_impl_double(ROUND_DOWNWARD, hi1, hi2);
-    double p = fmin(fmin(x, y), fmin(z, w));
+    if (isnan(x)) x = 0.0; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 * inf -> 0 */
+    double p = fast_fmin4_double(x, y, z, w);
     return rounded_add_impl_double(ROUND_DOWNWARD, p, lo3);
 }
 
 extern double rounded_hw_interval_div_double_up(double lo1, double hi1, double lo2, double hi2)
 {
-    // TODO: zero and infinity
     double x = rounded_div_impl_double(ROUND_UPWARD, lo1, lo2);
     double y = rounded_div_impl_double(ROUND_UPWARD, lo1, hi2);
     double z = rounded_div_impl_double(ROUND_UPWARD, hi1, lo2);
     double w = rounded_div_impl_double(ROUND_UPWARD, hi1, hi2);
-    return fmax(fmax(x, y), fmax(z, w));
+    if (isnan(x)) x = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    return fast_fmax4_double(x, y, z, w);
 }
 
 extern double rounded_hw_interval_div_double_down(double lo1, double hi1, double lo2, double hi2)
 {
-    // TODO: zero and infinity
     double x = rounded_div_impl_double(ROUND_DOWNWARD, lo1, lo2);
     double y = rounded_div_impl_double(ROUND_DOWNWARD, lo1, hi2);
     double z = rounded_div_impl_double(ROUND_DOWNWARD, hi1, lo2);
     double w = rounded_div_impl_double(ROUND_DOWNWARD, hi1, hi2);
-    return fmin(fmin(x, y), fmin(z, w));
+    if (isnan(x)) x = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    return fast_fmin4_double(x, y, z, w);
 }
 
 extern double rounded_hw_interval_div_add_double_up(double lo1, double hi1, double lo2, double hi2, double hi3)
 {
-    // TODO: zero and infinity
     double x = rounded_div_impl_double(ROUND_UPWARD, lo1, lo2);
     double y = rounded_div_impl_double(ROUND_UPWARD, lo1, hi2);
     double z = rounded_div_impl_double(ROUND_UPWARD, hi1, lo2);
     double w = rounded_div_impl_double(ROUND_UPWARD, hi1, hi2);
-    double p = fmax(fmax(x, y), fmax(z, w));
+    if (isnan(x)) x = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    double p = fast_fmax4_double(x, y, z, w);
     return rounded_add_impl_double(ROUND_UPWARD, p, hi3);
 }
 
 extern double rounded_hw_interval_div_add_double_down(double lo1, double hi1, double lo2, double hi2, double lo3)
 {
-    // TODO: zero and infinity
     double x = rounded_div_impl_double(ROUND_DOWNWARD, lo1, lo2);
     double y = rounded_div_impl_double(ROUND_DOWNWARD, lo1, hi2);
     double z = rounded_div_impl_double(ROUND_DOWNWARD, hi1, lo2);
     double w = rounded_div_impl_double(ROUND_DOWNWARD, hi1, hi2);
-    double p = fmin(fmin(x, y), fmin(z, w));
+    if (isnan(x)) x = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0; /* 0 / 0, +-inf / +-inf -> 0 */
+    double p = fast_fmin4_double(x, y, z, w);
     return rounded_add_impl_double(ROUND_DOWNWARD, p, lo3);
 }
 
@@ -728,90 +770,132 @@ extern float rounded_hw_word64_to_float_zero(uint64_t x)
 
 //
 // Interval arithmetic
-// TODO: Can we use MAXSS/MAXSD?
 //
+
+static inline float fast_fmax_float(float x, float y)
+{
+    // should compile to MAX[SP][SD] instruction on x86
+    return x > y ? x : y;
+}
+static inline float fast_fmax4_float(float x, float y, float z, float w)
+{
+    return fast_fmax_float(fast_fmax_float(x, y), fast_fmax_float(z, w));
+}
+static inline float fast_fmin_float(float x, float y)
+{
+    // should compile to MIN[SP][SD] instruction on x86
+    return x < y ? x : y;
+}
+static inline float fast_fmin4_float(float x, float y, float z, float w)
+{
+    return fast_fmin_float(fast_fmin_float(x, y), fast_fmin_float(z, w));
+}
 
 extern float rounded_hw_interval_mul_float_up(float lo1, float hi1, float lo2, float hi2)
 {
-    // TODO: zero and infinity
     float x = rounded_mul_impl_float(ROUND_UPWARD, lo1, lo2);
     float y = rounded_mul_impl_float(ROUND_UPWARD, lo1, hi2);
     float z = rounded_mul_impl_float(ROUND_UPWARD, hi1, lo2);
     float w = rounded_mul_impl_float(ROUND_UPWARD, hi1, hi2);
-    return fmaxf(fmaxf(x, y), fmaxf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 * inf -> 0 */
+    return fast_fmax4_float(x, y, z, w);
 }
 
 extern float rounded_hw_interval_mul_float_down(float lo1, float hi1, float lo2, float hi2)
 {
-    // TODO: zero and infinity
     float x = rounded_mul_impl_float(ROUND_DOWNWARD, lo1, lo2);
     float y = rounded_mul_impl_float(ROUND_DOWNWARD, lo1, hi2);
     float z = rounded_mul_impl_float(ROUND_DOWNWARD, hi1, lo2);
     float w = rounded_mul_impl_float(ROUND_DOWNWARD, hi1, hi2);
-    return fminf(fminf(x, y), fminf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 * inf -> 0 */
+    return fast_fmin4_float(x, y, z, w);
 }
 
 extern float rounded_hw_interval_mul_add_float_up(float lo1, float hi1, float lo2, float hi2, float hi3)
 {
-    // TODO: zero and infinity
     float x = rounded_mul_impl_float(ROUND_UPWARD, lo1, lo2);
     float y = rounded_mul_impl_float(ROUND_UPWARD, lo1, hi2);
     float z = rounded_mul_impl_float(ROUND_UPWARD, hi1, lo2);
     float w = rounded_mul_impl_float(ROUND_UPWARD, hi1, hi2);
-    float p = fmaxf(fmaxf(x, y), fmaxf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 * inf -> 0 */
+    float p = fast_fmax4_float(x, y, z, w);
     return rounded_add_impl_float(ROUND_UPWARD, p, hi3);
 }
 
 extern float rounded_hw_interval_mul_add_float_down(float lo1, float hi1, float lo2, float hi2, float lo3)
 {
-    // TODO: zero and infinity
     float x = rounded_mul_impl_float(ROUND_DOWNWARD, lo1, lo2);
     float y = rounded_mul_impl_float(ROUND_DOWNWARD, lo1, hi2);
     float z = rounded_mul_impl_float(ROUND_DOWNWARD, hi1, lo2);
     float w = rounded_mul_impl_float(ROUND_DOWNWARD, hi1, hi2);
-    float p = fminf(fminf(x, y), fminf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 * inf -> 0 */
+    float p = fast_fmin4_float(x, y, z, w);
     return rounded_add_impl_float(ROUND_DOWNWARD, p, lo3);
 }
 
 extern float rounded_hw_interval_div_float_up(float lo1, float hi1, float lo2, float hi2)
 {
-    // TODO: zero and infinity
     float x = rounded_div_impl_float(ROUND_UPWARD, lo1, lo2);
     float y = rounded_div_impl_float(ROUND_UPWARD, lo1, hi2);
     float z = rounded_div_impl_float(ROUND_UPWARD, hi1, lo2);
     float w = rounded_div_impl_float(ROUND_UPWARD, hi1, hi2);
-    return fmaxf(fmaxf(x, y), fmaxf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    return fast_fmax4_float(x, y, z, w);
 }
 
 extern float rounded_hw_interval_div_float_down(float lo1, float hi1, float lo2, float hi2)
 {
-    // TODO: zero and infinity
     float x = rounded_div_impl_float(ROUND_DOWNWARD, lo1, lo2);
     float y = rounded_div_impl_float(ROUND_DOWNWARD, lo1, hi2);
     float z = rounded_div_impl_float(ROUND_DOWNWARD, hi1, lo2);
     float w = rounded_div_impl_float(ROUND_DOWNWARD, hi1, hi2);
-    return fminf(fminf(x, y), fminf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    return fast_fmin4_float(x, y, z, w);
 }
 
 extern float rounded_hw_interval_div_add_float_up(float lo1, float hi1, float lo2, float hi2, float hi3)
 {
-    // TODO: zero and infinity
     float x = rounded_div_impl_float(ROUND_UPWARD, lo1, lo2);
     float y = rounded_div_impl_float(ROUND_UPWARD, lo1, hi2);
     float z = rounded_div_impl_float(ROUND_UPWARD, hi1, lo2);
     float w = rounded_div_impl_float(ROUND_UPWARD, hi1, hi2);
-    float p = fmaxf(fmaxf(x, y), fmaxf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    float p = fast_fmax4_float(x, y, z, w);
     return rounded_add_impl_float(ROUND_UPWARD, p, hi3);
 }
 
 extern float rounded_hw_interval_div_add_float_down(float lo1, float hi1, float lo2, float hi2, float lo3)
 {
-    // TODO: zero and infinity
     float x = rounded_div_impl_float(ROUND_DOWNWARD, lo1, lo2);
     float y = rounded_div_impl_float(ROUND_DOWNWARD, lo1, hi2);
     float z = rounded_div_impl_float(ROUND_DOWNWARD, hi1, lo2);
     float w = rounded_div_impl_float(ROUND_DOWNWARD, hi1, hi2);
-    float p = fminf(fminf(x, y), fminf(z, w));
+    if (isnan(x)) x = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0f; /* 0 / 0, +-inf / +-inf -> 0 */
+    float p = fast_fmin4_float(x, y, z, w);
     return rounded_add_impl_float(ROUND_DOWNWARD, p, lo3);
 }
 

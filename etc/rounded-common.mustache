@@ -132,82 +132,157 @@ extern {{TYPE}} rounded_hw_word64_to_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}uint6
 // Interval arithmetic
 //
 
+static inline {{TYPE}} fast_fmax_{{NAME}}({{TYPE}} x, {{TYPE}} y)
+{
+    // should compile to MAX[SP][SD] instruction on x86
+    return x > y ? x : y;
+}
+static inline {{TYPE}} fast_fmax4_{{NAME}}({{TYPE}} x, {{TYPE}} y, {{TYPE}} z, {{TYPE}} w)
+{
+    return fast_fmax_{{NAME}}(fast_fmax_{{NAME}}(x, y), fast_fmax_{{NAME}}(z, w));
+}
+static inline {{TYPE}} fast_fmin_{{NAME}}({{TYPE}} x, {{TYPE}} y)
+{
+    // should compile to MIN[SP][SD] instruction on x86
+    return x < y ? x : y;
+}
+static inline {{TYPE}} fast_fmin4_{{NAME}}({{TYPE}} x, {{TYPE}} y, {{TYPE}} z, {{TYPE}} w)
+{
+    return fast_fmin_{{NAME}}(fast_fmin_{{NAME}}(x, y), fast_fmin_{{NAME}}(z, w));
+}
+
 extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    volatile {{TYPE}} hi = {{fmax}}({{fmax}}(lo1 * lo2, lo1 * hi2), {{fmax}}(hi1 * lo2, hi1 * hi2));
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 * lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 * hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 * lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 * hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    {{TYPE}} hi = fast_fmax4_{{NAME}}(x, y, z, w);
     restore_fp_reg(oldreg);
     return hi;
 }
 
 extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    volatile {{TYPE}} lo = {{fmin}}({{fmin}}(lo1 * lo2, lo1 * hi2), {{fmin}}(hi1 * lo2, hi1 * hi2));
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 * lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 * hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 * lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 * hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    {{TYPE}} lo = fast_fmin4_{{NAME}}(x, y, z, w);
     restore_fp_reg(oldreg);
     return lo;
 }
 
 extern {{TYPE}} rounded_hw_interval_mul_add_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} hi3)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    volatile {{TYPE}} hi = {{fmax}}({{fmax}}(lo1 * lo2, lo1 * hi2), {{fmax}}(hi1 * lo2, hi1 * hi2)) + hi3;
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 * lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 * hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 * lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 * hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    volatile {{TYPE}} hi = fast_fmax4_{{NAME}}(x, y, z, w) + hi3;
     restore_fp_reg(oldreg);
     return hi;
 }
 
 extern {{TYPE}} rounded_hw_interval_mul_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} lo3)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    volatile {{TYPE}} lo = {{fmin}}({{fmin}}(lo1 * lo2, lo1 * hi2), {{fmin}}(hi1 * lo2, hi1 * hi2)) + lo3;
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 * lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 * hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 * lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 * hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    volatile {{TYPE}} lo = fast_fmin4_{{NAME}}(x, y, z, w) + lo3;
     restore_fp_reg(oldreg);
     return lo;
 }
 
 extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    volatile {{TYPE}} hi = {{fmax}}({{fmax}}(lo1 / lo2, lo1 / hi2), {{fmax}}(hi1 / lo2, hi1 / hi2));
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 / lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 / hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 / lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 / hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    {{TYPE}} hi = fast_fmax4_{{NAME}}(x, y, z, w);
     restore_fp_reg(oldreg);
     return hi;
 }
 
 extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    volatile {{TYPE}} lo = {{fmin}}({{fmin}}(lo1 / lo2, lo1 / hi2), {{fmin}}(hi1 / lo2, hi1 / hi2));
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 / lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 / hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 / lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 / hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    {{TYPE}} lo = fast_fmin4_{{NAME}}(x, y, z, w);
     restore_fp_reg(oldreg);
     return lo;
 }
 
 extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} hi3)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_UPWARD);
-    volatile {{TYPE}} hi = {{fmax}}({{fmax}}(lo1 / lo2, lo1 / hi2), {{fmax}}(hi1 / lo2, hi1 / hi2)) + hi3;
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 / lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 / hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 / lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 / hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    volatile {{TYPE}} hi = fast_fmax4_{{NAME}}(x, y, z, w) + hi3;
     restore_fp_reg(oldreg);
     return hi;
 }
 
 extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} lo3)
 {
-    // TODO: zero and infinity
     fp_reg oldreg = get_fp_reg();
     set_rounding(oldreg, ROUND_DOWNWARD);
-    volatile {{TYPE}} lo = {{fmin}}({{fmin}}(lo1 / lo2, lo1 / hi2), {{fmin}}(hi1 / lo2, hi1 / hi2)) + lo3;
+    {{TYPE}} x = (volatile {{TYPE}})(lo1 / lo2);
+    {{TYPE}} y = (volatile {{TYPE}})(lo1 / hi2);
+    {{TYPE}} z = (volatile {{TYPE}})(hi1 / lo2);
+    {{TYPE}} w = (volatile {{TYPE}})(hi1 / hi2);
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    volatile {{TYPE}} lo = fast_fmin4_{{NAME}}(x, y, z, w) + lo3;
     restore_fp_reg(oldreg);
     return lo;
 }

@@ -209,90 +209,132 @@ extern {{TYPE}} rounded_hw_word64_to_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}uint6
 
 //
 // Interval arithmetic
-// TODO: Can we use MAXSS/MAXSD?
 //
+
+static inline {{TYPE}} fast_fmax_{{NAME}}({{TYPE}} x, {{TYPE}} y)
+{
+    // should compile to MAX[SP][SD] instruction on x86
+    return x > y ? x : y;
+}
+static inline {{TYPE}} fast_fmax4_{{NAME}}({{TYPE}} x, {{TYPE}} y, {{TYPE}} z, {{TYPE}} w)
+{
+    return fast_fmax_{{NAME}}(fast_fmax_{{NAME}}(x, y), fast_fmax_{{NAME}}(z, w));
+}
+static inline {{TYPE}} fast_fmin_{{NAME}}({{TYPE}} x, {{TYPE}} y)
+{
+    // should compile to MIN[SP][SD] instruction on x86
+    return x < y ? x : y;
+}
+static inline {{TYPE}} fast_fmin4_{{NAME}}({{TYPE}} x, {{TYPE}} y, {{TYPE}} z, {{TYPE}} w)
+{
+    return fast_fmin_{{NAME}}(fast_fmin_{{NAME}}(x, y), fast_fmin_{{NAME}}(z, w));
+}
 
 extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
     {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
     {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
     {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
-    return {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    return fast_fmax4_{{NAME}}(x, y, z, w);
 }
 
 extern {{TYPE}} rounded_hw_interval_mul_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
     {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
     {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
     {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
-    return {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    return fast_fmin4_{{NAME}}(x, y, z, w);
 }
 
 extern {{TYPE}} rounded_hw_interval_mul_add_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} hi3)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
     {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
     {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
     {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
-    {{TYPE}} p = {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    {{TYPE}} p = fast_fmax4_{{NAME}}(x, y, z, w);
     return rounded_add_impl_{{NAME}}(ROUND_UPWARD, p, hi3);
 }
 
 extern {{TYPE}} rounded_hw_interval_mul_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} lo3)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
     {{TYPE}} y = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
     {{TYPE}} z = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
     {{TYPE}} w = rounded_mul_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
-    {{TYPE}} p = {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 * inf -> 0 */
+    {{TYPE}} p = fast_fmin4_{{NAME}}(x, y, z, w);
     return rounded_add_impl_{{NAME}}(ROUND_DOWNWARD, p, lo3);
 }
 
 extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_div_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
     {{TYPE}} y = rounded_div_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
     {{TYPE}} z = rounded_div_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
     {{TYPE}} w = rounded_div_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
-    return {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    return fast_fmax4_{{NAME}}(x, y, z, w);
 }
 
 extern {{TYPE}} rounded_hw_interval_div_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
     {{TYPE}} y = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
     {{TYPE}} z = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
     {{TYPE}} w = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
-    return {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    return fast_fmin4_{{NAME}}(x, y, z, w);
 }
 
 extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_up({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} hi3)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_div_impl_{{NAME}}(ROUND_UPWARD, lo1, lo2);
     {{TYPE}} y = rounded_div_impl_{{NAME}}(ROUND_UPWARD, lo1, hi2);
     {{TYPE}} z = rounded_div_impl_{{NAME}}(ROUND_UPWARD, hi1, lo2);
     {{TYPE}} w = rounded_div_impl_{{NAME}}(ROUND_UPWARD, hi1, hi2);
-    {{TYPE}} p = {{fmax}}({{fmax}}(x, y), {{fmax}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    {{TYPE}} p = fast_fmax4_{{NAME}}(x, y, z, w);
     return rounded_add_impl_{{NAME}}(ROUND_UPWARD, p, hi3);
 }
 
 extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}} hi1, {{TYPE}} lo2, {{TYPE}} hi2, {{TYPE}} lo3)
 {
-    // TODO: zero and infinity
     {{TYPE}} x = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, lo1, lo2);
     {{TYPE}} y = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, lo1, hi2);
     {{TYPE}} z = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, hi1, lo2);
     {{TYPE}} w = rounded_div_impl_{{NAME}}(ROUND_DOWNWARD, hi1, hi2);
-    {{TYPE}} p = {{fmin}}({{fmin}}(x, y), {{fmin}}(z, w));
+    if (isnan(x)) x = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(y)) y = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(z)) z = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    if (isnan(w)) w = 0.0{{LIT_SUFFIX}}; /* 0 / 0, +-inf / +-inf -> 0 */
+    {{TYPE}} p = fast_fmin4_{{NAME}}(x, y, z, w);
     return rounded_add_impl_{{NAME}}(ROUND_DOWNWARD, p, lo3);
 }
 
