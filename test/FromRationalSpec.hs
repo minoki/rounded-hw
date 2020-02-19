@@ -12,7 +12,7 @@ import           Util
 
 prop_fromRational_nearest_stock :: forall a. (RealFloat a, RoundedFractional a) => Proxy a -> Rational -> Property
 prop_fromRational_nearest_stock _proxy x
-  = (roundedFromRational TowardNearest x :: a)
+  = (roundedFromRational ToNearest x :: a)
     `sameFloatP` (fromRational x :: a)
 
 prop_roundedFromRational_check :: forall a. (RealFloat a, RoundedFractional a) => Proxy a -> RoundingMode -> Rational -> Property
@@ -22,10 +22,10 @@ prop_roundedFromRational_check _proxy r x
 
 prop_fromRatio_order :: forall a. RealFloat a => Proxy a -> Rational -> Property
 prop_fromRatio_order _proxy x
-  = let ne   = fromRatio TowardNearest (numerator x) (denominator x) :: a
-        ze   = fromRatio TowardZero    (numerator x) (denominator x) :: a
-        inf  = fromRatio TowardInf     (numerator x) (denominator x) :: a
-        ninf = fromRatio TowardNegInf  (numerator x) (denominator x) :: a
+  = let ne   = fromRatio ToNearest    (numerator x) (denominator x) :: a
+        ze   = fromRatio TowardZero   (numerator x) (denominator x) :: a
+        inf  = fromRatio TowardInf    (numerator x) (denominator x) :: a
+        ninf = fromRatio TowardNegInf (numerator x) (denominator x) :: a
     in ninf <= inf
        .&&. (ne == ninf || ne == inf)
        .&&. (if x < 0 then ze == inf else ze == ninf)

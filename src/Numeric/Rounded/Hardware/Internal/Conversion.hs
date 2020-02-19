@@ -60,7 +60,7 @@ fromPositiveIntF !n
             in if k >= expMax
                then
                  -- infinity
-                 inexact (1 / 0) -- TowardNearest
+                 inexact (1 / 0) -- ToNearest
                          (1 / 0) -- TowardInf
                          maxFinite_ieee -- TowardNegInf
                          maxFinite_ieee -- TowardZero
@@ -161,7 +161,7 @@ fromPositiveRatioF !n !d
          if expMax <= e' + fDigits
          then
            -- infinity
-           inexact (1 / 0) -- TowardNearest
+           inexact (1 / 0) -- ToNearest
                    (1 / 0) -- TowardInf
                    maxFinite_ieee -- TowardNegInf
                    maxFinite_ieee -- TowardZero

@@ -11,7 +11,7 @@ import           Util
 
 prop_fromInteger_nearest_stock :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> Integer -> Property
 prop_fromInteger_nearest_stock _proxy x
-  = (roundedFromInteger TowardNearest x :: a)
+  = (roundedFromInteger ToNearest x :: a)
     `sameFloatP` (fromInteger x :: a)
 
 prop_roundedFromInteger_check :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> RoundingMode -> Integer -> Property
@@ -21,10 +21,10 @@ prop_roundedFromInteger_check _proxy r x
 
 prop_fromInt_order :: forall a. RealFloat a => Proxy a -> Integer -> Property
 prop_fromInt_order _proxy x
-  = let ne   = fromInt TowardNearest x :: a
-        ze   = fromInt TowardZero    x :: a
-        inf  = fromInt TowardInf     x :: a
-        ninf = fromInt TowardNegInf  x :: a
+  = let ne   = fromInt ToNearest    x :: a
+        ze   = fromInt TowardZero   x :: a
+        inf  = fromInt TowardInf    x :: a
+        ninf = fromInt TowardNegInf x :: a
     in ninf <= inf
        .&&. (ne == ninf || ne == inf)
        .&&. (if x < 0 then ze == inf else ze == ninf)

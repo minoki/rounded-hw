@@ -27,9 +27,9 @@ countTrailingZerosInteger x
 -- 0 <= n <= prec + 1, x = 0.d1d2...dn * (10^^e) up to rounding
 -- 0 <= di < 10
 -- |
--- >>> binaryFloatToDecimalDigitsRn TowardNearest 3 (0.125 :: Double)
+-- >>> binaryFloatToDecimalDigitsRn ToNearest 3 (0.125 :: Double)
 -- ([1,2,5],0)
--- >>> binaryFloatToDecimalDigitsRn TowardNearest 3 (12.5 :: Double)
+-- >>> binaryFloatToDecimalDigitsRn ToNearest 3 (12.5 :: Double)
 -- ([1,2,5],2)
 binaryFloatToDecimalDigitsRn :: forall a. RealFloat a
                              => RoundingMode -- ^ rounding mode
@@ -87,7 +87,7 @@ binaryFloatToDecimalDigitsRn rm prec x =
          TowardNegInf -> loop0 e' q'
          TowardZero   -> loop0 e' q'
          TowardInf    -> loop0 e' (q' + 1)
-         TowardNearest -> case compare (2 * r') t' of
+         ToNearest -> case compare (2 * r') t' of
            LT -> loop0 e' q'
            EQ | even q' -> loop0 e' q'
               | otherwise -> loop0 e' (q' + 1)
@@ -111,9 +111,9 @@ binaryFloatToDecimalDigitsRn rm prec x =
 -- x = d1d2...dn * (10^^(-prec)) up to rounding
 -- 0 <= di < 10
 -- |
--- >>> binaryFloatToFixedDecimalDigitsRn TowardNearest 3 (0.125 :: Double)
+-- >>> binaryFloatToFixedDecimalDigitsRn ToNearest 3 (0.125 :: Double)
 -- [1,2,5]
--- >>> binaryFloatToFixedDecimalDigitsRn TowardNearest 3 (12.5 :: Double)
+-- >>> binaryFloatToFixedDecimalDigitsRn ToNearest 3 (12.5 :: Double)
 -- [1,2,5,0,0]
 binaryFloatToFixedDecimalDigitsRn :: forall a. RealFloat a
                                   => RoundingMode -- ^ rounding mode
@@ -141,7 +141,7 @@ binaryFloatToFixedDecimalDigitsRn rm prec x =
          TowardNegInf -> loop [] q
          TowardZero -> loop [] q
          TowardInf -> loop [] (q + 1)
-         TowardNearest -> case compare (2 * r) t of
+         ToNearest -> case compare (2 * r) t of
            LT -> loop [] q
            EQ | even q -> loop [] q
               | otherwise -> loop [] (q + 1)
@@ -195,11 +195,11 @@ binaryFloatToDecimalDigits x =
 -- TODO: Maybe implement ByteString or Text versions
 
 -- |
--- >>> showEFloatRn TowardNearest (Just 0) (0 :: Double) ""
+-- >>> showEFloatRn ToNearest (Just 0) (0 :: Double) ""
 -- "0e0"
--- >>> showEFloatRn TowardNearest Nothing (0 :: Double) ""
+-- >>> showEFloatRn ToNearest Nothing (0 :: Double) ""
 -- "0.0e0"
--- >>> showEFloatRn TowardNearest Nothing (0.5 :: Double) ""
+-- >>> showEFloatRn ToNearest Nothing (0.5 :: Double) ""
 -- "5.0e-1"
 showEFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
 showEFloatRn r mprec x
@@ -227,13 +227,13 @@ showEFloatRn r mprec x
 {-# SPECIALIZE showEFloatRn :: RoundingMode -> Maybe Int -> Double -> ShowS #-}
 
 -- |
--- >>> showFFloatRn TowardNearest (Just 0) (0 :: Double) ""
+-- >>> showFFloatRn ToNearest (Just 0) (0 :: Double) ""
 -- "0"
--- >>> showFFloatRn TowardNearest Nothing (0 :: Double) ""
+-- >>> showFFloatRn ToNearest Nothing (0 :: Double) ""
 -- "0.0"
--- >>> showFFloatRn TowardNearest Nothing (-0 :: Double) ""
+-- >>> showFFloatRn ToNearest Nothing (-0 :: Double) ""
 -- "-0.0"
--- >>> showFFloatRn TowardNearest Nothing (-0.5 :: Double) ""
+-- >>> showFFloatRn ToNearest Nothing (-0.5 :: Double) ""
 -- "-0.5"
 showFFloatRn :: RealFloat a => RoundingMode -> Maybe Int -> a -> ShowS
 showFFloatRn r mprec x

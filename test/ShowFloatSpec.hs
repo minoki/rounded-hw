@@ -11,23 +11,23 @@ import           Test.QuickCheck
 import           Util ()
 
 prop_showEFloat_nearest :: forall a. RealFloat a => Proxy a -> Int -> Int32 -> Property
-prop_showEFloat_nearest _proxy prec x = showEFloat mprec x' "" === showEFloatRn TowardNearest mprec x' ""
+prop_showEFloat_nearest _proxy prec x = showEFloat mprec x' "" === showEFloatRn ToNearest mprec x' ""
   where mprec = Just prec
         x' = fromIntegral x / 64 :: a
 
 prop_showFFloat_nearest :: forall a. RealFloat a => Proxy a -> Int -> Int32 -> Property
-prop_showFFloat_nearest _proxy prec x = showFFloat mprec x' "" === showFFloatRn TowardNearest mprec x' ""
+prop_showFFloat_nearest _proxy prec x = showFFloat mprec x' "" === showFFloatRn ToNearest mprec x' ""
   where mprec = Just prec
         x' = fromIntegral x / 64 :: a
 
 prop_showGFloat_nearest :: forall a. RealFloat a => Proxy a -> Int -> Int32 -> Property
-prop_showGFloat_nearest _proxy prec x = showGFloat mprec x' "" === showGFloatRn TowardNearest mprec x' ""
+prop_showGFloat_nearest _proxy prec x = showGFloat mprec x' "" === showGFloatRn ToNearest mprec x' ""
   where mprec = Just prec
         x' = fromIntegral x / 64 :: a
 
 prop_showEFloat :: forall a. RealFloat a => Proxy a -> Maybe Int -> a -> Property
 prop_showEFloat _proxy mprec x =
-  let rn = showEFloatRn TowardNearest mprec x ""
+  let rn = showEFloatRn ToNearest mprec x ""
       ru = showEFloatRn TowardInf mprec x ""
       rd = showEFloatRn TowardNegInf mprec x ""
       rz = showEFloatRn TowardZero mprec x ""
@@ -35,7 +35,7 @@ prop_showEFloat _proxy mprec x =
 
 prop_showFFloat :: forall a. RealFloat a => Proxy a -> Maybe Int -> a -> Property
 prop_showFFloat _proxy mprec x =
-  let rn = showFFloatRn TowardNearest mprec x ""
+  let rn = showFFloatRn ToNearest mprec x ""
       ru = showFFloatRn TowardInf mprec x ""
       rd = showFFloatRn TowardNegInf mprec x ""
       rz = showFFloatRn TowardZero mprec x ""
@@ -43,7 +43,7 @@ prop_showFFloat _proxy mprec x =
 
 prop_showGFloat :: forall a. RealFloat a => Proxy a -> Maybe Int -> a -> Property
 prop_showGFloat _proxy mprec x =
-  let rn = showGFloatRn TowardNearest mprec x ""
+  let rn = showGFloatRn ToNearest mprec x ""
       ru = showGFloatRn TowardInf mprec x ""
       rd = showGFloatRn TowardNegInf mprec x ""
       rz = showGFloatRn TowardZero mprec x ""
@@ -56,11 +56,11 @@ testAgainstNumeric proxy = do
     prop "showFFloat (nearest)" $ prop_showFFloat_nearest proxy
     prop "showGFloat (nearest)" $ prop_showGFloat_nearest proxy
     prop "showEFloat/Int32" $ \mprec (x :: Int32) ->
-      showEFloat mprec (fromIntegral x :: a) "" === showEFloatRn TowardNearest mprec (fromIntegral x :: a) ""
+      showEFloat mprec (fromIntegral x :: a) "" === showEFloatRn ToNearest mprec (fromIntegral x :: a) ""
     prop "showFFloat/Int32" $ \mprec (x :: Int32) ->
-      showFFloat mprec (fromIntegral x :: a) "" === showFFloatRn TowardNearest mprec (fromIntegral x :: a) ""
+      showFFloat mprec (fromIntegral x :: a) "" === showFFloatRn ToNearest mprec (fromIntegral x :: a) ""
     prop "showGFloat/Int32" $ \mprec (x :: Int32) ->
-      showGFloat mprec (fromIntegral x :: a) "" === showGFloatRn TowardNearest mprec (fromIntegral x :: a) ""
+      showGFloat mprec (fromIntegral x :: a) "" === showGFloatRn ToNearest mprec (fromIntegral x :: a) ""
 
 specT :: forall a. (RealFloat a, Arbitrary a, Show a) => Proxy a -> Spec
 specT proxy = do

@@ -29,7 +29,7 @@ import           GHC.Generics                (Generic)
 
 -- See cbits/rounded.c for the ordering
 data RoundingMode
-  = TowardNearest -- ^ IEEE754 roundTiesToEven
+  = ToNearest     -- ^ IEEE754 roundTiesToEven
   | TowardNegInf  -- ^ IEEE754 roundTowardNegative
   | TowardInf     -- ^ IEEE754 roundTowardPositive
   | TowardZero    -- ^ IEEE754 roundTowardZero
@@ -38,16 +38,16 @@ data RoundingMode
 instance NFData RoundingMode
 
 oppositeRoundingMode :: RoundingMode -> RoundingMode
-oppositeRoundingMode TowardNearest = TowardNearest
-oppositeRoundingMode TowardZero    = TowardZero
-oppositeRoundingMode TowardInf     = TowardNegInf
-oppositeRoundingMode TowardNegInf  = TowardInf
+oppositeRoundingMode ToNearest    = ToNearest
+oppositeRoundingMode TowardZero   = TowardZero
+oppositeRoundingMode TowardInf    = TowardNegInf
+oppositeRoundingMode TowardNegInf = TowardInf
 
 class Rounding (r :: RoundingMode) where
   roundingT :: Tagged r RoundingMode
 
-instance Rounding 'TowardNearest where
-  roundingT = Tagged TowardNearest
+instance Rounding 'ToNearest where
+  roundingT = Tagged ToNearest
 
 instance Rounding 'TowardInf where
   roundingT = Tagged TowardInf
@@ -63,10 +63,10 @@ rounding = Data.Tagged.proxy roundingT
 {-# INLINE rounding #-}
 
 reifyRounding :: RoundingMode -> (forall s. Rounding s => Proxy s -> a) -> a
-reifyRounding TowardNearest f = f (Proxy :: Proxy 'TowardNearest)
-reifyRounding TowardInf f     = f (Proxy :: Proxy 'TowardInf)
-reifyRounding TowardNegInf f  = f (Proxy :: Proxy 'TowardNegInf)
-reifyRounding TowardZero f    = f (Proxy :: Proxy 'TowardZero)
+reifyRounding ToNearest f    = f (Proxy :: Proxy 'ToNearest)
+reifyRounding TowardInf f    = f (Proxy :: Proxy 'TowardInf)
+reifyRounding TowardNegInf f = f (Proxy :: Proxy 'TowardNegInf)
+reifyRounding TowardZero f   = f (Proxy :: Proxy 'TowardZero)
 {-# INLINE reifyRounding #-}
 
 -- | A type tagged with a rounding mode.

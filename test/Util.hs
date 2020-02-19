@@ -14,11 +14,11 @@ instance RealFloat a => Show (ShowHexFloat a) where
   showsPrec _prec (ShowHexFloat x) = showHFloat x
 
 instance Arbitrary RoundingMode where
-  arbitrary = elements [TowardNearest, TowardNegInf, TowardInf, TowardZero]
-  shrink TowardNearest = []
-  shrink TowardInf     = [TowardNearest]
-  shrink TowardNegInf  = [TowardNearest, TowardInf]
-  shrink TowardZero    = [TowardNearest, TowardInf, TowardNegInf]
+  arbitrary = elements [ToNearest, TowardNegInf, TowardInf, TowardZero]
+  shrink ToNearest    = []
+  shrink TowardInf    = [ToNearest]
+  shrink TowardNegInf = [ToNearest, TowardInf]
+  shrink TowardZero   = [ToNearest, TowardInf, TowardNegInf]
 
 -- | Compares two floating point values.
 --
@@ -37,7 +37,7 @@ sameFloatP :: (RealFloat a) => a -> a -> Property
 sameFloatP x y = counterexample (showHFloat x . showString (interpret res) . showHFloat y $ "") res
   where
     res = sameFloat x y
-    interpret True = " === "
+    interpret True  = " === "
     interpret False = " =/= "
 
 infix 4 `sameFloat`, `sameFloatP`

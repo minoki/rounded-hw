@@ -115,9 +115,9 @@ main =
          [ bench "Double/small" $ nf (fromInteger :: Integer -> Double) smallInteger
          , bench "Double/medium" $ nf (fromInteger :: Integer -> Double) mediumInteger
          , bench "Double/large" $ nf (fromInteger :: Integer -> Double) largeInteger
-         , bench "RoundedDouble/TowardNearest/small" $ nf (fromInteger :: Integer -> Rounded 'TowardNearest Double) smallInteger
-         , bench "RoundedDouble/TowardNearest/medium" $ nf (fromInteger :: Integer -> Rounded 'TowardNearest Double) mediumInteger
-         , bench "RoundedDouble/TowardNearest/large" $ nf (fromInteger :: Integer -> Rounded 'TowardNearest Double) largeInteger
+         , bench "RoundedDouble/ToNearest/small" $ nf (fromInteger :: Integer -> Rounded 'ToNearest Double) smallInteger
+         , bench "RoundedDouble/ToNearest/medium" $ nf (fromInteger :: Integer -> Rounded 'ToNearest Double) mediumInteger
+         , bench "RoundedDouble/ToNearest/large" $ nf (fromInteger :: Integer -> Rounded 'ToNearest Double) largeInteger
          , bench "RoundedDouble/TowardInf/small" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) smallInteger
          , bench "RoundedDouble/TowardInf/medium" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) mediumInteger
          , bench "RoundedDouble/TowardInf/large" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) largeInteger
@@ -132,9 +132,9 @@ main =
          [ bench "Double/decimal" $ nf (fromRational :: Rational -> Double) pi'
          , bench "Double/small" $ nf (fromRational :: Rational -> Double) smallRational
          , bench "Double/large" $ nf (fromRational :: Rational -> Double) largeRational
-         , bench "RoundedDouble/TowardNearest/decimal" $ nf (fromRational :: Rational -> Rounded 'TowardNearest Double) pi'
-         , bench "RoundedDouble/TowardNearest/small" $ nf (fromRational :: Rational -> Rounded 'TowardNearest Double) smallRational
-         , bench "RoundedDouble/TowardNearest/large" $ nf (fromRational :: Rational -> Rounded 'TowardNearest Double) largeRational
+         , bench "RoundedDouble/ToNearest/decimal" $ nf (fromRational :: Rational -> Rounded 'ToNearest Double) pi'
+         , bench "RoundedDouble/ToNearest/small" $ nf (fromRational :: Rational -> Rounded 'ToNearest Double) smallRational
+         , bench "RoundedDouble/ToNearest/large" $ nf (fromRational :: Rational -> Rounded 'ToNearest Double) largeRational
          , bench "RoundedDouble/TowardInf/decimal" $ nf (fromRational :: Rational -> Rounded 'TowardInf Double) pi'
          , bench "RoundedDouble/TowardInf/small" $ nf (fromRational :: Rational -> Rounded 'TowardInf Double) smallRational
          , bench "RoundedDouble/TowardInf/large" $ nf (fromRational :: Rational -> Rounded 'TowardInf Double) largeRational

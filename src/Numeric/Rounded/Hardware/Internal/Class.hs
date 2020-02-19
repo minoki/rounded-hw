@@ -164,10 +164,10 @@ instance RoundedRing Integer where
 
 instance RoundedFractional Integer where
   roundedDiv r x y = roundedFromRational r (x % y)
-  roundedFromRational TowardNearest = round
-  roundedFromRational TowardNegInf  = floor
-  roundedFromRational TowardInf     = ceiling
-  roundedFromRational TowardZero    = truncate
+  roundedFromRational ToNearest    = round
+  roundedFromRational TowardNegInf = floor
+  roundedFromRational TowardInf    = ceiling
+  roundedFromRational TowardZero   = truncate
 
 -- TODO: instance RoundedSqrt Integer
 

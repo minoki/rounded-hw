@@ -112,10 +112,10 @@ static inline ALWAYS_INLINE
 native_rounding_mode hs_rounding_mode_to_native(HsInt mode)
 {
     switch (mode) {
-    case /* TowardNearest */ 0: return FE_TONEAREST;
-    case /* TowardNegInf  */ 1: return FE_DOWNWARD;
-    case /* TowardInf     */ 2: return FE_UPWARD;
-    case /* TowardZero    */ 3: return FE_TOWARDZERO;
+    case /* ToNearest    */ 0: return FE_TONEAREST;
+    case /* TowardNegInf */ 1: return FE_DOWNWARD;
+    case /* TowardInf    */ 2: return FE_UPWARD;
+    case /* TowardZero   */ 3: return FE_TOWARDZERO;
     default: UNREACHABLE(); return FE_TONEAREST;
     }
 }

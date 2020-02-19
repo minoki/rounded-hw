@@ -37,10 +37,10 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
                     0 -> ViaRational roundedZero
                     z -> roundedFromRational r z
     where roundedZero = case r of
-            TowardNearest ->  0
-            TowardNegInf  -> -0
-            TowardInf     ->  0
-            TowardZero    ->  0
+            ToNearest    ->  0
+            TowardNegInf -> -0
+            TowardInf    ->  0
+            TowardZero   ->  0
   roundedSub r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y = ViaRational (x - y)
     | x == 0 && y == 0 = ViaRational $ if isNegativeZero x /= isNegativeZero y
@@ -50,10 +50,10 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
                     0 -> ViaRational roundedZero
                     z -> roundedFromRational r z
     where roundedZero = case r of
-            TowardNearest ->  0
-            TowardNegInf  -> -0
-            TowardInf     ->  0
-            TowardZero    ->  0
+            ToNearest    ->  0
+            TowardNegInf -> -0
+            TowardInf    ->  0
+            TowardZero   ->  0
   roundedMul r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y || isNegativeZero x || isNegativeZero y = ViaRational (x * y)
     | otherwise = roundedFromRational r (toRational x * toRational y)
@@ -80,7 +80,7 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
 
 instance (RealFloat a, RealFloatConstants a) => RoundedSqrt (ViaRational a) where
   roundedSqrt r (ViaRational x)
-    | r /= TowardNearest && x >= 0 = ViaRational $
+    | r /= ToNearest && x >= 0 = ViaRational $
       case compare ((toRational y) ^ (2 :: Int)) (toRational x) of
         LT | r == TowardInf -> let z = nextUp y
                                in assert (toRational x < (toRational z) ^ (2 :: Int)) z

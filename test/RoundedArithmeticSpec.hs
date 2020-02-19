@@ -19,7 +19,7 @@ infix 4 ==.
 prop_roundedAdd :: (RealFloat a, Show a, RoundedRing a) => Proxy a -> a -> a -> Property
 prop_roundedAdd _proxy x y =
   -- Assume neither x nor y is NaN
-  let ne = roundedAdd TowardNearest x y
+  let ne = roundedAdd ToNearest x y
       ze = roundedAdd TowardZero x y
       inf = roundedAdd TowardInf x y
       ninf = roundedAdd TowardNegInf x y
@@ -28,7 +28,7 @@ prop_roundedAdd _proxy x y =
 prop_roundedSub :: (RealFloat a, Show a, RoundedRing a) => Proxy a -> a -> a -> Property
 prop_roundedSub _proxy x y =
   -- Assume neither x nor y is NaN
-  let ne = roundedSub TowardNearest x y
+  let ne = roundedSub ToNearest x y
       ze = roundedSub TowardZero x y
       inf = roundedSub TowardInf x y
       ninf = roundedSub TowardNegInf x y
@@ -37,7 +37,7 @@ prop_roundedSub _proxy x y =
 prop_roundedMul :: (RealFloat a, Show a, RoundedRing a) => Proxy a -> a -> a -> Property
 prop_roundedMul _proxy x y =
   -- Assume neither x nor y is NaN
-  let ne = roundedMul TowardNearest x y
+  let ne = roundedMul ToNearest x y
       ze = roundedMul TowardZero x y
       inf = roundedMul TowardInf x y
       ninf = roundedMul TowardNegInf x y
@@ -46,7 +46,7 @@ prop_roundedMul _proxy x y =
 prop_roundedDiv :: (RealFloat a, Show a, RoundedFractional a) => Proxy a -> a -> NonZero a -> Property
 prop_roundedDiv _proxy x (NonZero y) =
   -- Assume neither x nor y is NaN
-  let ne = roundedDiv TowardNearest x y
+  let ne = roundedDiv ToNearest x y
       ze = roundedDiv TowardZero x y
       inf = roundedDiv TowardInf x y
       ninf = roundedDiv TowardNegInf x y
@@ -55,7 +55,7 @@ prop_roundedDiv _proxy x (NonZero y) =
 prop_roundedSqrt :: (RealFloat a, Show a, RoundedSqrt a) => Proxy a -> a -> Property
 prop_roundedSqrt _proxy x =
   -- Assume neither x nor y is NaN
-  let ne = roundedSqrt TowardNearest x
+  let ne = roundedSqrt ToNearest x
       ze = roundedSqrt TowardZero x
       inf = roundedSqrt TowardInf x
       ninf = roundedSqrt TowardNegInf x

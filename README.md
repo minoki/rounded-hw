@@ -8,7 +8,7 @@ In addition, `LongDouble` from [long-double](https://hackage.haskell.org/package
 
 # API overview
 
-* type `RoundingMode` = `TowardNearest` | `TowardNegInf` | `TowardInf` | `TowardZero`
+* type `RoundingMode` = `ToNearest` | `TowardNegInf` | `TowardInf` | `TowardZero`
 * type `Rounded r a`
     * `a` is typically `Double` or `Float`.
     * Methods of `Num` and `Fractional` are overloaded to honor the specified rounding mode.

@@ -21,7 +21,7 @@ newtype Exactness a = Exactness { getExactness :: Bool }
 instance Rounding r => Result (Rounded r) where
   exact x = Rounded x
   inexact n inf ninf z = case rounding (Proxy :: Proxy r) of
-                           TowardNearest -> Rounded n
+                           ToNearest -> Rounded n
                            TowardInf -> Rounded inf
                            TowardNegInf -> Rounded ninf
                            TowardZero -> Rounded z
@@ -32,7 +32,7 @@ instance Result DynamicRoundingMode where
   exact x = DynamicRoundingMode (\_ -> x)
   inexact n inf ninf z = DynamicRoundingMode $ \r ->
     case r of
-      TowardNearest -> n
+      ToNearest -> n
       TowardInf -> inf
       TowardNegInf -> ninf
       TowardZero -> z
