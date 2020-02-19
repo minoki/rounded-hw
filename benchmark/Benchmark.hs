@@ -11,6 +11,7 @@ import           Data.Array.IArray (IArray)
 import           Data.Array.ST
 import           Data.Array.Unboxed
 import           Data.Ratio
+import           Data.Functor.Identity
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
 import qualified Data.Vector.Unboxed as VU
@@ -193,6 +194,8 @@ main =
              [ bench (showHFloat x "") $ nf c_nextUp x | x <- cases ]
            , bgroup "Haskell"
              [ bench (showHFloat x "") $ nf nextUp x | x <- cases ]
+           , bgroup "Haskell (generic)"
+             [ bench (showHFloat x "") $ nf nextUp (Identity x) | x <- cases ]
            ]
       , let cases = [0,1,0x1.fffffep100] :: [Float]
         in bgroup "Float"
@@ -200,6 +203,8 @@ main =
              [ bench (showHFloat x "") $ nf c_nextUp x | x <- cases ]
            , bgroup "Haskell"
              [ bench (showHFloat x "") $ nf nextUp x | x <- cases ]
+           , bgroup "Haskell (generic)"
+             [ bench (showHFloat x "") $ nf nextUp (Identity x) | x <- cases ]
            ]
       ]
     , bgroup "nextDown"
@@ -209,6 +214,8 @@ main =
              [ bench (showHFloat x "") $ nf c_nextDown x | x <- cases ]
            , bgroup "Haskell"
              [ bench (showHFloat x "") $ nf nextDown x | x <- cases ]
+           , bgroup "Haskell (generic)"
+             [ bench (showHFloat x "") $ nf nextDown (Identity x) | x <- cases ]
            ]
       , let cases = [0,1,0x1.fffffep100] :: [Float]
         in bgroup "Float"
@@ -216,6 +223,8 @@ main =
              [ bench (showHFloat x "") $ nf c_nextDown x | x <- cases ]
            , bgroup "Haskell"
              [ bench (showHFloat x "") $ nf nextDown x | x <- cases ]
+           , bgroup "Haskell (generic)"
+             [ bench (showHFloat x "") $ nf nextDown (Identity x) | x <- cases ]
            ]
       ]
     ]
