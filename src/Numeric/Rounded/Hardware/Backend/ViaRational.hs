@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 module Numeric.Rounded.Hardware.Backend.ViaRational where
 import           Control.DeepSeq (NFData (..))
+import           Control.Exception (assert)
 import           Data.Coerce
 import           Data.Functor.Product
 import           Data.Ratio
@@ -81,11 +82,13 @@ instance (RealFloat a, RealFloatConstants a) => RoundedSqrt (ViaRational a) wher
   roundedSqrt r (ViaRational x)
     | r /= TowardNearest && x >= 0 = ViaRational $
       case compare ((toRational y) ^ (2 :: Int)) (toRational x) of
-        LT | r == TowardInf -> nextUp y
+        LT | r == TowardInf -> let z = nextUp y
+                               in assert (toRational x < (toRational z) ^ (2 :: Int)) z
            | otherwise -> y
         EQ -> y
         GT | r == TowardInf -> y
-           | otherwise -> nextDown y
+           | otherwise -> let z = nextDown y
+                          in assert ((toRational z) ^ (2 :: Int) < toRational x) z
     | otherwise = ViaRational y
     where y = sqrt x
 
