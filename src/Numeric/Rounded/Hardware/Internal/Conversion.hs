@@ -17,6 +17,7 @@ import Data.Bits
 import Data.Functor.Product
 import Math.NumberTheory.Logarithms (integerLog2')
 import Data.Ratio
+import Control.Exception (assert)
 -- import GHC.Integer.Logarithms.Internals (integerLog2IsPowerOf2#)
 -- integerLog2IsPowerOf2# :: Integer -> (# Int#, Int# #)
 
@@ -58,7 +59,7 @@ fromPositiveIntF !n
                 q = n `unsafeShiftR` e
                 r = n .&. ((1 `unsafeShiftL` e) - 1)
                     -- 2^52 <= q < 2^53, 0 <= r < 2^(k-52)
-                (_expMin, !expMax) = floatRange (undefined :: Double) -- (-1021, 1024) for Double
+                (_expMin, !expMax) = floatRange (undefined :: a) -- (-1021, 1024) for Double
             in if k >= expMax
                then
                  -- infinity
@@ -118,31 +119,31 @@ fromRatioF n d | d < 0 = error "fromRatio: negative denominator"
 fromPositiveRatioF :: forall a f. (RealFloat a, RealFloatConstants a, Result f)
                    => Integer -> Integer -> f a
 fromPositiveRatioF !n !d
-  = let ln = integerLog2' n
+  = let ln, ld, e :: Int
+        ln = integerLog2' n
         ld = integerLog2' d
-        !fDigits = floatDigits (undefined :: a) -- 53 for Double
         e = ln - ld - fDigits
-        (!q, !r) | e >= 0 = n `quotRem` (d `unsafeShiftL` e)
+        q, r, d_ :: Integer
+        d_ | e >= 0 = d `unsafeShiftL` e
+           | otherwise = d
+        (!q, !r) | e >= 0 = n `quotRem` d_
                  | otherwise = (n `unsafeShiftL` (-e)) `quotRem` d
         -- e >= 0: n = q * (d * 2^e) + r, 0 <= r < d * 2^e
         -- e <= 0: n * 2^(-e) = q * d + r, 0 <= r < d
-        -- n / d * 2^^(-e) = q + r / d
+        -- n / d * 2^^(-e) = q + r / d_
         -- 52 <= log2 q < 54
-        (!q', !r', !d', !e') | q < (1 `unsafeShiftL` fDigits) = (q, r, d, e)
-                             | e >= 0 = let (q'', r'') = q `quotRem` 2
-                                        in (q'', r'' * (d `shiftL` e) + r, d, e + 1)
+        q', r', d' :: Integer
+        e' :: Int
+        (!q', !r', !d', !e') | q < (1 `unsafeShiftL` fDigits) = (q, r, d_, e)
                              | otherwise = let (q'', r'') = q `quotRem` 2
-                                           in (q'', r'' * d + r, 2 * d, e + 1)
-        -- n' / d' * 2^^(-e') = q' + r' / d', 2^52 <= q' < 2^53
-        -- e >= 0: n = (2 * (q `quot` 2) + (q `rem` 2)) * (d * 2^e) + r
-        --           = (q `quot` 2) * (d * 2^(e+1)) + (q `rem` 2) * (d * 2^e) + r
-        -- e < 0: n * 2^(-e) = (2 * (q `quot` 2) + (q `rem` 2)) * d + r
-        --                   = (q `quot` 2) * (2 * d) + (q `rem` 2) * d + r
+                                           in (q'', r'' * d_ + r, 2 * d_, e + 1)
+        -- n / d * 2^^(-e') = q' + r' / d', 2^52 <= q' < 2^53, 0 <= r' < d'
         -- q' * 2^^e' <= n/d < (q'+1) * 2^^e', 2^52 <= q' < 2^53
         -- (q'/2^53) * 2^^(e'+53) <= n/d < (q'+1)/2^53 * 2^^(e'+53), 1/2 <= q'/2^53 < 1
-        (!expMin, !expMax) = floatRange (undefined :: a) -- (-1021, 1024) for Double
         -- normal: 0x1p-1022 <= x <= 0x1.fffffffffffffp+1023
-    in if expMin <= e'+fDigits && e'+fDigits < expMax
+    in assert (n % d * 2^^(-e) == fromInteger q + r % d * 2^^(-e)) $
+       assert (n % d * 2^^(-e') == fromInteger q' + r' % d') $
+       if expMin <= e' + fDigits && e' + fDigits <= expMax
        then
          -- normal
          if r' == 0
@@ -160,7 +161,7 @@ fromPositiveRatioF !n !d
            in inexact toNearest up down down
        else
          -- infinity or subnormal
-         if expMax <= e'+fDigits
+         if expMax <= e' + fDigits
          then
            -- infinity
            inexact positiveInfinity -- TowardNearest
@@ -168,25 +169,29 @@ fromPositiveRatioF !n !d
                    maxFinite -- TowardNegInf
                    maxFinite -- TowardZero
          else
-           -- e'+53 < expMin (e' < expMin - 53 = -1074)
-           -- subnormal: 0 <= rounded(n/d) <= 0x1p-1022, minimum (positive) subnormal: 0x1p-1074
-           -- e'+53 < expMin = -1021,  i.e. e < expMin - 53 = -1074
-           -- q' * 2^^e' = q' * 2^^(e'+1074) * 2^^(-1074)
-           --            = ((q' `quot` (2^(-1074-e'))) * (2^(-1074-e')) + (q' `rem` (2^(-1074-e')))) * 2^^(e'+1074) * 2^^(-1074)
-           --            = (q' `quot` (2^(-1074-e'))) * 2^^(-1074) + (q' `rem` (2^(-1074-e'))) * 2^^(e'+1074) * 2^^(-1074)
-           --            = q'' * 2^^(-1074) + r'' * 2^^e'
+           -- subnormal
+           -- e' + fDigits < expMin (or, e' < expMin - fDigits = -1074)
+           -- 0 <= rounded(n/d) <= 2^(expMin - 1) = 0x1p-1022, minimum (positive) subnormal: 0x1p-1074
            let (!q'', !r'') = q' `quotRem` (1 `unsafeShiftL` (expMin - fDigits - e'))
-           in if r == 0 && r'' == 0
+               -- q' = q'' * 2^(expMin - fDigits - e') + r'', 0 <= r'' < 2^(expMin - fDigits - e')
+               -- 2^(fDigits-1) <= q' = q'' * 2^(expMin - fDigits - e') + r'' < 2^fDigits
+               -- n / d * 2^^(-e') = q' + r' / d' = q'' * 2^(expMin - fDigits - e') + r'' + r' / d'
+               -- n / d = q'' * 2^^(expMin - fDigits) + (r'' + r' / d') * 2^^e'
+               -- 0 <= r'' < 2^(expMin - fDigits - e')
+           in if r' == 0 && r'' == 0
               then exact $ encodeFloat q'' (expMin - fDigits) -- exact
               else let down = encodeFloat q'' (expMin - fDigits)
                        up = encodeFloat (q'' + 1) (expMin - fDigits)
-                       toNearest = case compare r' (2^(expMin - fDigits - e' - 1)) of
+                       toNearest = case compare r'' (1 `unsafeShiftL` (expMin - fDigits - e' - 1)) of
                          LT -> down
                          GT -> up
-                         EQ | r /= 0    -> up
+                         EQ | r' /= 0   -> up
                             | even q'   -> down
                             | otherwise -> up
                    in inexact toNearest up down down
+  where
+    !fDigits = floatDigits (undefined :: a) -- 53 for Double
+    (!expMin, !expMax) = floatRange (undefined :: a) -- (-1021, 1024) for Double
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> DynamicRoundingMode Float #-}
 {-# SPECIALIZE fromPositiveRatioF :: Integer -> Integer -> OppositeRoundingMode DynamicRoundingMode Float #-}
 {-# SPECIALIZE fromPositiveRatioF :: Rounding r => Integer -> Integer -> Rounded r Float #-}
