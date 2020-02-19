@@ -1,11 +1,11 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
 module Numeric.Rounded.Hardware.Internal.Rounding
   ( RoundingMode(..)
   , oppositeRoundingMode
@@ -16,16 +16,16 @@ module Numeric.Rounded.Hardware.Internal.Rounding
   , VUM.MVector(MV_Rounded)
   , VU.Vector(V_Rounded)
   ) where
-import           Control.DeepSeq             (NFData (..))
+import           Control.DeepSeq (NFData (..))
 import           Data.Coerce
 import           Data.Proxy
 import           Data.Tagged
-import qualified Data.Vector.Generic         as VG
+import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
-import qualified Data.Vector.Unboxed         as VU
+import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           Foreign.Storable            (Storable)
-import           GHC.Generics                (Generic)
+import           Foreign.Storable (Storable)
+import           GHC.Generics (Generic)
 
 -- See cbits/rounded.c for the ordering
 data RoundingMode
