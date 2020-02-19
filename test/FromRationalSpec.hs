@@ -15,12 +15,12 @@ prop_fromRational_nearest_stock _proxy x
   = (roundedFromRational TowardNearest x :: a)
     `sameFloatP` (fromRational x :: a)
 
-prop_roundedFromRational_check :: forall a. (RealFloat a, RealFloatConstants a, RoundedFractional a) => Proxy a -> RoundingMode -> Rational -> Property
+prop_roundedFromRational_check :: forall a. (RealFloat a, RoundedFractional a) => Proxy a -> RoundingMode -> Rational -> Property
 prop_roundedFromRational_check _proxy r x
   = (fromRatio r (numerator x) (denominator x) :: a) -- the standard implementation
     `sameFloatP` (roundedFromRational r x :: a) -- may be optimized
 
-prop_fromRatio_order :: forall a. (RealFloat a, RealFloatConstants a) => Proxy a -> Rational -> Property
+prop_fromRatio_order :: forall a. RealFloat a => Proxy a -> Rational -> Property
 prop_fromRatio_order _proxy x
   = let ne   = fromRatio TowardNearest (numerator x) (denominator x) :: a
         ze   = fromRatio TowardZero    (numerator x) (denominator x) :: a
@@ -30,7 +30,7 @@ prop_fromRatio_order _proxy x
        .&&. (ne == ninf || ne == inf)
        .&&. (if x < 0 then ze == inf else ze == ninf)
 
-prop_fromRatio_exact :: forall a. (RealFloat a, RealFloatConstants a) => Proxy a -> Rational -> Property
+prop_fromRatio_exact :: forall a. RealFloat a => Proxy a -> Rational -> Property
 prop_fromRatio_exact _proxy x
   = let inf  = fromRatio TowardInf    (numerator x) (denominator x) :: a
         ninf = fromRatio TowardNegInf (numerator x) (denominator x) :: a
@@ -47,7 +47,7 @@ prop_fromRatio_exact _proxy x
                  else toRational inf =/= x
                       .&&. toRational ninf =/= x
 
-specT :: forall a. (RealFloat a, RoundedFractional a, RealFloatConstants a) => Proxy a -> Bool -> Spec
+specT :: forall a. (RealFloat a, RoundedFractional a) => Proxy a -> Bool -> Spec
 specT proxy checkAgainstStock = do
   when checkAgainstStock $ do
     -- Although fromRational for Double/Float correctly round to nearest, other types may not.

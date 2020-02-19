@@ -12,7 +12,7 @@ module Numeric.Rounded.Hardware.Internal.Conversion
   ) where
 import Numeric.Rounded.Hardware.Internal.Rounding
 import Numeric.Rounded.Hardware.Internal.RoundedResult
-import Numeric.Rounded.Hardware.Internal.Constants
+import Numeric.Rounded.Hardware.Internal.FloatUtil
 import Data.Bits
 import Data.Functor.Product
 import Math.NumberTheory.Logarithms (integerLog2')
@@ -21,24 +21,22 @@ import Control.Exception (assert)
 -- import GHC.Integer.Logarithms.Internals (integerLog2IsPowerOf2#)
 -- integerLog2IsPowerOf2# :: Integer -> (# Int#, Int# #)
 
-intervalFromInteger_default :: (RealFloat a, RealFloatConstants a) => Integer -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+intervalFromInteger_default :: RealFloat a => Integer -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
 intervalFromInteger_default x = case fromIntF x of Pair a b -> (a, b)
 {-# SPECIALIZE intervalFromInteger_default :: Integer -> (Rounded 'TowardNegInf Float, Rounded 'TowardInf Float) #-}
 {-# SPECIALIZE intervalFromInteger_default :: Integer -> (Rounded 'TowardNegInf Double, Rounded 'TowardInf Double) #-}
 
-intervalFromRational_default :: (RealFloat a, RealFloatConstants a) => Rational -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+intervalFromRational_default :: RealFloat a => Rational -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
 intervalFromRational_default x = case fromRatioF (numerator x) (denominator x) of Pair a b -> (a, b)
 {-# SPECIALIZE intervalFromRational_default :: Rational -> (Rounded 'TowardNegInf Float, Rounded 'TowardInf Float) #-}
 {-# SPECIALIZE intervalFromRational_default :: Rational -> (Rounded 'TowardNegInf Double, Rounded 'TowardInf Double) #-}
 
-fromInt :: (RealFloat a, RealFloatConstants a)
-        => RoundingMode -> Integer -> a
+fromInt :: RealFloat a => RoundingMode -> Integer -> a
 fromInt r n = withRoundingMode (fromIntF n) r
 {-# SPECIALIZE fromInt :: RoundingMode -> Integer -> Float #-}
 {-# SPECIALIZE fromInt :: RoundingMode -> Integer -> Double #-}
 
-fromIntF :: forall a f. (RealFloat a, RealFloatConstants a, Result f)
-         => Integer -> f a
+fromIntF :: forall a f. (RealFloat a, Result f) => Integer -> f a
 fromIntF !_ | floatRadix (undefined :: a) /= 2 = error "radix other than 2 is not supported"
 fromIntF 0 = exact 0
 fromIntF n | n < 0 = negate <$> withOppositeRoundingMode (fromPositiveIntF (- n))
@@ -46,8 +44,7 @@ fromIntF n | n < 0 = negate <$> withOppositeRoundingMode (fromPositiveIntF (- n)
 {-# INLINE fromIntF #-}
 
 -- n > 0
-fromPositiveIntF :: forall a f. (RealFloat a, RealFloatConstants a, Result f)
-                 => Integer -> f a
+fromPositiveIntF :: forall a f. (RealFloat a, Result f) => Integer -> f a
 fromPositiveIntF !n
   = let !k = integerLog2' n -- floor (log2 n)
         -- 2^k <= n < 2^(k+1)
@@ -63,10 +60,10 @@ fromPositiveIntF !n
             in if k >= expMax
                then
                  -- infinity
-                 inexact positiveInfinity -- TowardNearest
-                         positiveInfinity -- TowardInf
-                         maxFinite -- TowardNegInf
-                         maxFinite -- TowardZero
+                 inexact (1 / 0) -- TowardNearest
+                         (1 / 0) -- TowardInf
+                         maxFinite_ieee -- TowardNegInf
+                         maxFinite_ieee -- TowardZero
                else
                  if r == 0
                  then exact $ encodeFloat q e -- exact
@@ -93,7 +90,7 @@ fromPositiveIntF !n
 {-# SPECIALIZE fromPositiveIntF :: Integer -> Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) Double #-}
 {-# SPECIALIZE fromPositiveIntF :: Integer -> OppositeRoundingMode (Product (Rounded 'TowardNegInf) (Rounded 'TowardInf)) Double #-}
 
-fromRatio :: (RealFloat a, RealFloatConstants a)
+fromRatio :: (RealFloat a)
           => RoundingMode
           -> Integer -- ^ numerator
           -> Integer -- ^ denominator
@@ -102,21 +99,21 @@ fromRatio r n d = withRoundingMode (fromRatioF n d) r
 {-# SPECIALIZE fromRatio :: RoundingMode -> Integer -> Integer -> Float #-}
 {-# SPECIALIZE fromRatio :: RoundingMode -> Integer -> Integer -> Double #-}
 
-fromRatioF :: forall a f. (RealFloat a, RealFloatConstants a, Result f)
+fromRatioF :: forall a f. (RealFloat a, Result f)
            => Integer -- ^ numerator
            -> Integer -- ^ denominator
            -> f a
 fromRatioF !_ !_ | floatRadix (undefined :: a) /= 2 = error "radix other than 2 is not supported"
 fromRatioF 0 _ = exact 0
-fromRatioF n 0 | n > 0 = exact positiveInfinity -- positive infinity
-               | otherwise = exact negativeInfinity -- negative infinity
+fromRatioF n 0 | n > 0 = exact (1 / 0) -- positive infinity
+               | otherwise = exact (- 1 / 0) -- negative infinity
 fromRatioF n d | d < 0 = error "fromRatio: negative denominator"
                | n < 0 = negate <$> withOppositeRoundingMode (fromPositiveRatioF (- n) d)
                | otherwise = fromPositiveRatioF n d
 {-# INLINE fromRatioF #-}
 
 -- n > 0, d > 0
-fromPositiveRatioF :: forall a f. (RealFloat a, RealFloatConstants a, Result f)
+fromPositiveRatioF :: forall a f. (RealFloat a, Result f)
                    => Integer -> Integer -> f a
 fromPositiveRatioF !n !d
   = let ln, ld, e :: Int
@@ -164,10 +161,10 @@ fromPositiveRatioF !n !d
          if expMax <= e' + fDigits
          then
            -- infinity
-           inexact positiveInfinity -- TowardNearest
-                   positiveInfinity -- TowardInf
-                   maxFinite -- TowardNegInf
-                   maxFinite -- TowardZero
+           inexact (1 / 0) -- TowardNearest
+                   (1 / 0) -- TowardInf
+                   maxFinite_ieee -- TowardNegInf
+                   maxFinite_ieee -- TowardZero
          else
            -- subnormal
            -- e' + fDigits < expMin (or, e' < expMin - fDigits = -1074)

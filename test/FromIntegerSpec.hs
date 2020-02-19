@@ -14,12 +14,12 @@ prop_fromInteger_nearest_stock _proxy x
   = (roundedFromInteger TowardNearest x :: a)
     `sameFloatP` (fromInteger x :: a)
 
-prop_roundedFromInteger_check :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a -> RoundingMode -> Integer -> Property
+prop_roundedFromInteger_check :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> RoundingMode -> Integer -> Property
 prop_roundedFromInteger_check _proxy r x
   = (roundedFromInteger r x :: a)
     `sameFloatP` (fromInt r x :: a)
 
-prop_fromInt_order :: forall a. (RealFloat a, RealFloatConstants a) => Proxy a -> Integer -> Property
+prop_fromInt_order :: forall a. RealFloat a => Proxy a -> Integer -> Property
 prop_fromInt_order _proxy x
   = let ne   = fromInt TowardNearest x :: a
         ze   = fromInt TowardZero    x :: a
@@ -29,7 +29,7 @@ prop_fromInt_order _proxy x
        .&&. (ne == ninf || ne == inf)
        .&&. (if x < 0 then ze == inf else ze == ninf)
 
-prop_fromInt_exact :: forall a. (RealFloat a, RealFloatConstants a) => Proxy a -> Integer -> Property
+prop_fromInt_exact :: forall a. RealFloat a => Proxy a -> Integer -> Property
 prop_fromInt_exact _proxy x
   = let inf  = fromInt TowardInf    x :: a
         ninf = fromInt TowardNegInf x :: a
@@ -46,7 +46,7 @@ prop_fromInt_exact _proxy x
                  else toRational inf =/= fromInteger x
                       .&&. toRational ninf =/= fromInteger x
 
-specT :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a -> Bool -> Spec
+specT :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> Bool -> Spec
 specT proxy checkAgainstStock = do
   when checkAgainstStock $ do
     prop "fromInteger (nearest) coincides with stock fromInteger" $
