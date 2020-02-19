@@ -136,6 +136,7 @@ tests:
     - rounded-hw
     - hspec
     - QuickCheck
+    - random
     when:
     - condition: flag(x87-long-double) && (arch(i386) || (arch(x86_64) && !os(windows)))
       dependencies: long-double
