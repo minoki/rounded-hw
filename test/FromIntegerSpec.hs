@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module FromIntegerSpec where
+import           Control.Monad
 import           Data.Proxy
 import           Numeric.Rounded.Hardware.Internal
 import           Test.Hspec
@@ -45,10 +46,12 @@ prop_fromInt_exact _proxy x
                  else toRational inf =/= fromInteger x
                       .&&. toRational ninf =/= fromInteger x
 
-specT :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a -> Spec
-specT proxy = do
-  prop "fromInteger (nearest) coincides with stock fromInteger" $
-    forAllShrink variousIntegers shrinkIntegral (prop_fromInteger_nearest_stock proxy)
+specT :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a -> Bool -> Spec
+specT proxy checkAgainstStock = do
+  when checkAgainstStock $ do
+    prop "fromInteger (nearest) coincides with stock fromInteger" $
+      -- fromInteger for Double/Float do not necessarily round to nearest.
+      forAllShrink variousIntegers shrinkIntegral (prop_fromInteger_nearest_stock proxy)
   prop "roundedFromInteger coincides with the standard implementation" $ \r ->
     forAllShrink variousIntegers shrinkIntegral (prop_roundedFromInteger_check proxy r)
   prop "order" $
@@ -58,5 +61,5 @@ specT proxy = do
 
 spec :: Spec
 spec = do
-  describe "Double" $ specT (Proxy :: Proxy Double)
-  describe "Float" $ specT (Proxy :: Proxy Float)
+  describe "Double" $ specT (Proxy :: Proxy Double) False
+  describe "Float" $ specT (Proxy :: Proxy Float) False

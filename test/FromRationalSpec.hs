@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module FromRationalSpec where
+import           Control.Monad
 import           Data.Proxy
 import           Data.Ratio
 import           Numeric.Rounded.Hardware.Internal
@@ -46,10 +47,12 @@ prop_fromRatio_exact _proxy x
                  else toRational inf =/= x
                       .&&. toRational ninf =/= x
 
-specT :: forall a. (RealFloat a, RoundedFractional a, RealFloatConstants a) => Proxy a -> Spec
-specT proxy = do
-  prop "fromRational (nearest) coincides with stock fromRational" $
-    forAllShrink variousRationals shrinkRealFrac $ prop_fromRational_nearest_stock proxy
+specT :: forall a. (RealFloat a, RoundedFractional a, RealFloatConstants a) => Proxy a -> Bool -> Spec
+specT proxy checkAgainstStock = do
+  when checkAgainstStock $ do
+    -- Although fromRational for Double/Float correctly round to nearest, other types may not.
+    prop "fromRational (nearest) coincides with stock fromRational" $
+      forAllShrink variousRationals shrinkRealFrac $ prop_fromRational_nearest_stock proxy
   prop "roundedFromRational coincides with the standard implementation" $ \r ->
     forAllShrink variousRationals shrinkRealFrac $ prop_roundedFromRational_check proxy r
   prop "order" $
@@ -59,5 +62,5 @@ specT proxy = do
 
 spec :: Spec
 spec = do
-  describe "Double" $ specT (Proxy :: Proxy Double)
-  describe "Float" $ specT (Proxy :: Proxy Float)
+  describe "Double" $ specT (Proxy :: Proxy Double) True
+  describe "Float" $ specT (Proxy :: Proxy Float) True

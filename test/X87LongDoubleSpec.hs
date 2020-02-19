@@ -32,8 +32,8 @@ spec = do
   describe "rounded arithmetic"  $ RoundedArithmeticSpec.specT ldProxy
   describe "rounded arithmetic"  $ RoundedArithmeticSpec.verifyImplementation ldProxy ldProxy
   describe "interval arithmetic" $ IntervalArithmeticSpec.verifyImplementation ldProxy
-  describe "fromInteger"         $ FromIntegerSpec.specT ldProxy
-  describe "fromRational"        $ FromRationalSpec.specT ldProxy
+  describe "fromInteger"         $ FromIntegerSpec.specT ldProxy False
+  describe "fromRational"        $ FromRationalSpec.specT ldProxy False
   describe "showFloat"           $ ShowFloatSpec.specT ldProxy
   prop "nextUp . nextDown == id (unless -inf)" $ forAll variousFloats (FloatUtilSpec.prop_nextUp_nextDown :: LongDouble -> Property)
   prop "nextDown . nextUp == id (unless inf)" $ forAll variousFloats (FloatUtilSpec.prop_nextDown_nextUp :: LongDouble -> Property)
