@@ -33,7 +33,7 @@ sameFloat x y | isNaN x && isNaN y = True
               | x == 0 && y == 0 = isNegativeZero x == isNegativeZero y
               | otherwise = x == y
 
-sameFloatP :: (RealFloat a, Show a) => a -> a -> Property
+sameFloatP :: (RealFloat a) => a -> a -> Property
 sameFloatP x y = counterexample (showHFloat x . showString (interpret res) . showHFloat y $ "") res
   where
     res = sameFloat x y

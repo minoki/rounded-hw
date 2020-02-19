@@ -10,8 +10,13 @@ import           Util
 
 prop_fromInteger_nearest_stock :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> Integer -> Property
 prop_fromInteger_nearest_stock _proxy x
-  = ShowHexFloat (getRounded (fromInteger x :: Rounded 'TowardNearest a))
-    === ShowHexFloat (fromInteger x :: a)
+  = (roundedFromInteger TowardNearest x :: a)
+    `sameFloatP` (fromInteger x :: a)
+
+prop_roundedFromInteger_check :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a -> RoundingMode -> Integer -> Property
+prop_roundedFromInteger_check _proxy r x
+  = (roundedFromInteger r x :: a)
+    `sameFloatP` (fromInt r x :: a)
 
 prop_fromInt_order :: forall a. (RealFloat a, RealFloatConstants a) => Proxy a -> Integer -> Property
 prop_fromInt_order _proxy x
@@ -44,6 +49,8 @@ specT :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a
 specT proxy = do
   prop "fromInteger (nearest) coincides with stock fromInteger" $
     forAllShrink variousIntegers shrinkIntegral (prop_fromInteger_nearest_stock proxy)
+  prop "roundedFromInteger coincides with the standard implementation" $ \r ->
+    forAllShrink variousIntegers shrinkIntegral (prop_roundedFromInteger_check proxy r)
   prop "order" $
     forAllShrink variousIntegers shrinkIntegral (prop_fromInt_order proxy)
   prop "exactness" $

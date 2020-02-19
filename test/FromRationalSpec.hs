@@ -11,13 +11,13 @@ import           Util
 
 prop_fromRational_nearest_stock :: forall a. (RealFloat a, RoundedFractional a) => Proxy a -> Rational -> Property
 prop_fromRational_nearest_stock _proxy x
-  = ShowHexFloat (getRounded (fromRational x :: Rounded 'TowardNearest a))
-    === ShowHexFloat (fromRational x :: a)
+  = (roundedFromRational TowardNearest x :: a)
+    `sameFloatP` (fromRational x :: a)
 
-prop_fromRational :: forall r a. (Rounding r, RealFloat a, RealFloatConstants a, RoundedFractional a) => Proxy r -> Proxy a -> Rational -> Property
-prop_fromRational rProxy _proxy x
-  = ShowHexFloat (fromRatio (rounding rProxy) (numerator x) (denominator x))
-    === ShowHexFloat (getRounded (fromRational x :: Rounded r a))
+prop_roundedFromRational_check :: forall a. (RealFloat a, RealFloatConstants a, RoundedFractional a) => Proxy a -> RoundingMode -> Rational -> Property
+prop_roundedFromRational_check _proxy r x
+  = (fromRatio r (numerator x) (denominator x) :: a) -- the standard implementation
+    `sameFloatP` (roundedFromRational r x :: a) -- may be optimized
 
 prop_fromRatio_order :: forall a. (RealFloat a, RealFloatConstants a) => Proxy a -> Rational -> Property
 prop_fromRatio_order _proxy x
@@ -50,8 +50,8 @@ specT :: forall a. (RealFloat a, RoundedFractional a, RealFloatConstants a) => P
 specT proxy = do
   prop "fromRational (nearest) coincides with stock fromRational" $
     forAllShrink variousRationals shrinkRealFrac $ prop_fromRational_nearest_stock proxy
-  prop "fromRational for small numbers coincides with fromRationl" $ \r -> reifyRounding r $ \rProxy ->
-    forAllShrink variousRationals shrinkRealFrac $ prop_fromRational rProxy proxy
+  prop "roundedFromRational coincides with the standard implementation" $ \r ->
+    forAllShrink variousRationals shrinkRealFrac $ prop_roundedFromRational_check proxy r
   prop "order" $
     forAllShrink variousRationals shrinkRealFrac $ prop_fromRatio_order proxy
   prop "exactness" $
