@@ -43,11 +43,11 @@ prop_fromInt_exact _proxy x
 specT :: forall a. (RealFloat a, RealFloatConstants a, RoundedRing a) => Proxy a -> Spec
 specT proxy = do
   prop "fromInteger (nearest) coincides with stock fromInteger" $
-    prop_fromInteger_nearest_stock proxy
+    forAllShrink variousIntegers shrinkIntegral (prop_fromInteger_nearest_stock proxy)
   prop "order" $
-    prop_fromInt_order proxy
+    forAllShrink variousIntegers shrinkIntegral (prop_fromInt_order proxy)
   prop "exactness" $
-    prop_fromInt_exact proxy
+    forAllShrink variousIntegers shrinkIntegral (prop_fromInt_exact proxy)
 
 spec :: Spec
 spec = do

@@ -1,6 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans -Wno-type-defaults #-}
 module Util where
+import           Control.Applicative
+import           Data.Ratio
 import           Numeric
 import           Numeric.Rounded.Hardware.Internal
 import           System.Random
@@ -57,3 +59,18 @@ variousFloats = frequency
   , (1, pure (-minPositive)) -- max negative
   ]
   where (expMin,expMax) = floatRange (undefined :: a)
+
+variousIntegers :: Gen Integer
+variousIntegers = frequency
+  [ (10, arbitrary)
+  , (10, elements [id,negate] <*> choose (2^52, 2^54))
+  , (10, elements [id,negate] <*> choose (2^62, 2^64))
+  , (10, elements [id,negate] <*> choose (2^100, 2^101))
+  , (10, elements [id,negate] <*> choose (2^1020, 2^1030))
+  , (5, elements [id,negate] <*> choose (2^1070, 2^1075))
+  , (5, elements [id,negate] <*> choose (2^16382, 2^16384))
+  , (3, elements [id,negate] <*> choose (2^16440, 2^16445))
+  ]
+
+variousRationals :: Gen Rational
+variousRationals = liftA2 (%) variousIntegers (variousIntegers `suchThat` (/= 0))
