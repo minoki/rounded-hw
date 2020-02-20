@@ -2,6 +2,7 @@
 module Numeric.Rounded.Hardware.Internal.FloatUtil
   ( nextUp
   , nextDown
+  , nextTowardZero
   , minPositive_ieee
   , maxFinite_ieee
   , distanceUlp
@@ -68,6 +69,22 @@ nextDown x | not (isIEEE x) = error "non-IEEE numbers are not supported"
            | otherwise = - nextUp_ieee_positive (- x)
 {-# INLINE [1] nextDown #-}
 
+-- |
+-- prop> nextTowardZero 1 == (0x1.ffff_ffff_ffff_fp-1 :: Double)
+-- prop> nextTowardZero 1 == (0x1.fffffep-1 :: Float)
+-- prop> nextTowardZero (1/0) == (maxFinite_ieee :: Double)
+-- prop> nextTowardZero (-1/0) == (-maxFinite_ieee :: Double)
+-- prop> nextTowardZero 0 == (0 :: Double)
+-- prop> isNegativeZero (nextTowardZero (-0 :: Double))
+-- prop> nextTowardZero 0x1p-1074 == (0 :: Double)
+nextTowardZero :: RealFloat a => a -> a
+nextTowardZero x | not (isIEEE x) = error "non-IEEE numbers are not supported"
+                 | floatRadix x /= 2 = error "non-binary types are not supported "
+                 | isNaN x || x == 0 = x -- NaN or zero
+                 | x >= 0 = nextDown_ieee_positive x
+                 | otherwise = - nextDown_ieee_positive (- x)
+{-# INLINE [1] nextTowardZero #-}
+
 nextUp_ieee_positive :: RealFloat a => a -> a
 nextUp_ieee_positive x
   | isNaN x || x < 0 = error "nextUp_ieee_positive"
@@ -124,6 +141,8 @@ nextDown_ieee_positive x
 "nextUp/Double" [~1] nextUp = nextUpDouble
 "nextDown/Float" [~1] nextDown = nextDownFloat
 "nextDown/Double" [~1] nextDown = nextDownDouble
+"nextTowardZero/Float" [~1] nextTowardZero = nextTowardZeroFloat
+"nextTowardZero/Double" [~1] nextTowardZero = nextTowardZeroDouble
   #-}
 
 -- |
@@ -207,6 +226,48 @@ nextDownDouble x
                   0x0000_0000_0000_0000 -> encodeFloat (-1) (expMin - d) -- +0 -> max negative
                   w | testBit w 63 -> castWord64ToDouble (w + 1) -- negative
                     | otherwise -> castWord64ToDouble (w - 1) -- positive
+  where
+    d, expMin :: Int
+    d = floatDigits x -- 53 for Double
+    (expMin,expMax) = floatRange x -- (-1021,1024) for Double
+
+-- |
+-- prop> nextTowardZeroFloat 1 == 0x1.fffffep-1
+-- prop> nextTowardZeroFloat (-1) == -0x1.fffffep-1
+-- prop> nextTowardZeroFloat (1/0) == maxFinite_ieee
+-- prop> nextTowardZeroFloat (-1/0) == -maxFinite_ieee
+-- prop> nextTowardZeroFloat 0 == 0
+-- prop> isNegativeZero (nextTowardZeroFloat (-0))
+-- prop> nextTowardZeroFloat 0x1p-149 == 0
+nextTowardZeroFloat :: Float -> Float
+nextTowardZeroFloat x
+  | not (isIEEE x) || floatRadix x /= 2 || d /= 24 || expMin /= -125 || expMax /= 128 = error "rounded-hw assumes Float is IEEE binary32"
+  | isNaN x || x == 0 = x -- NaN or zero -> itself
+  | otherwise = castWord32ToFloat (castFloatToWord32 x - 1) -- positive / negative
+  where
+    d, expMin :: Int
+    d = floatDigits x -- 53 for Double
+    (expMin,expMax) = floatRange x -- (-1021,1024) for Double
+    -- Note: castFloatToWord32 is buggy on GHC <= 8.8 on x86_64, so we can't use it to test for NaN or negative number
+    --   https://gitlab.haskell.org/ghc/ghc/issues/16617
+
+-- |
+-- prop> nextTowardZeroDouble 1 == 0x1.ffff_ffff_ffff_fp-1
+-- prop> nextTowardZeroDouble (-1) == -0x1.ffff_ffff_ffff_fp-1
+-- prop> nextTowardZeroDouble (1/0) == maxFinite_ieee
+-- prop> nextTowardZeroDouble (-1/0) == -maxFinite_ieee
+-- prop> nextTowardZeroDouble 0 == 0
+-- prop> isNegativeZero (nextTowardZeroDouble (-0))
+-- prop> nextTowardZeroDouble 0x1p-1074 == 0
+nextTowardZeroDouble :: Double -> Double
+nextTowardZeroDouble x
+  | not (isIEEE x) || floatRadix x /= 2 || d /= 53 || expMin /= -1021 || expMax /= 1024 = error "rounded-hw assumes Double is IEEE binary64"
+  | otherwise = case castDoubleToWord64 x of
+                  w | w .&. 0x7ff0_0000_0000_0000 == 0x7ff0_0000_0000_0000
+                    , w .&. 0x000f_ffff_ffff_ffff /= 0 -> x -- NaN -> itself
+                  0x8000_0000_0000_0000 -> x -- -0 -> itself
+                  0x0000_0000_0000_0000 -> x -- +0 -> itself
+                  w -> castWord64ToDouble (w - 1) -- positive / negative
   where
     d, expMin :: Int
     d = floatDigits x -- 53 for Double
