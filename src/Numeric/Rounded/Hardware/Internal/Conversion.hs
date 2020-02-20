@@ -138,7 +138,7 @@ fromPositiveRatioF !n !d
         -- q' * 2^^e' <= n/d < (q'+1) * 2^^e', 2^52 <= q' < 2^53
         -- (q'/2^53) * 2^^(e'+53) <= n/d < (q'+1)/2^53 * 2^^(e'+53), 1/2 <= q'/2^53 < 1
         -- normal: 0x1p-1022 <= x <= 0x1.fffffffffffffp+1023
-    in assert (n % d * 2^^(-e) == fromInteger q + r % d * 2^^(-e)) $
+    in assert (n % d * 2^^(-e) == fromInteger q + r % d_) $
        assert (n % d * 2^^(-e') == fromInteger q' + r' % d') $
        if expMin <= e' + fDigits && e' + fDigits <= expMax
        then
