@@ -10,12 +10,15 @@ import           Data.Array (Array)
 import           Data.Array.IArray (IArray)
 import           Data.Array.ST
 import           Data.Array.Unboxed
-import           Data.Ratio
+import           Data.Bits
 import           Data.Functor.Identity
+import           Data.Int
+import           Data.Ratio
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Data.Word
 import           Gauge.Main
 import           Numeric
 import           Numeric.Rounded.Hardware.Internal
@@ -106,6 +109,24 @@ c_nextUp, c_nextDown :: (RealFloat a, CNextAfter a) => a -> a
 c_nextUp x = c_nextafter x (1/0)
 c_nextDown x = c_nextafter x (-1/0)
 
+word64ToDouble :: RoundingMode -> Word64 -> Double
+word64ToDouble ToNearest x = fromIntegral x
+word64ToDouble TowardInf x = let z = countLeadingZeros x
+                                 y = x .&. (0x0000_0000_0000_07FF `unsafeShiftR` z)
+                                 delta | y /= 0 = 0x800 `unsafeShiftR` z
+                                       | otherwise = 0
+                             in fromIntegral ((x .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z)) + delta)
+word64ToDouble TowardNegInf x = let z = countLeadingZeros x
+                                in fromIntegral (x .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z))
+word64ToDouble TowardZero x = let z = countLeadingZeros x
+                              in fromIntegral (x .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z))
+
+int64ToDouble :: RoundingMode -> Int64 -> Double
+int64ToDouble r x | x >= 0 = word64ToDouble r (fromIntegral x)
+                  | r == TowardInf = - word64ToDouble TowardNegInf (fromIntegral (-x))
+                  | r == TowardNegInf = - word64ToDouble TowardInf (fromIntegral (-x))
+                  | otherwise = - word64ToDouble r (fromIntegral (-x))
+
 main :: IO ()
 main =
   defaultMain
@@ -122,9 +143,33 @@ main =
          , bench "RoundedDouble/TowardInf/small" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) smallInteger
          , bench "RoundedDouble/TowardInf/medium" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) mediumInteger
          , bench "RoundedDouble/TowardInf/large" $ nf (fromInteger :: Integer -> Rounded 'TowardInf Double) largeInteger
+         , bench "roundedFromInteger/Double/ToNearest/small" $ nf (roundedFromInteger ToNearest :: Integer -> Double) smallInteger
+         , bench "roundedFromInteger/Double/ToNearest/medium" $ nf (roundedFromInteger ToNearest :: Integer -> Double) mediumInteger
+         , bench "roundedFromInteger/Double/ToNearest/large" $ nf (roundedFromInteger ToNearest :: Integer -> Double) largeInteger
+         , bench "roundedFromInteger/Double/TowardInf/small" $ nf (roundedFromInteger TowardInf :: Integer -> Double) smallInteger
+         , bench "roundedFromInteger/Double/TowardInf/medium" $ nf (roundedFromInteger TowardInf :: Integer -> Double) mediumInteger
+         , bench "roundedFromInteger/Double/TowardInf/large" $ nf (roundedFromInteger TowardInf :: Integer -> Double) largeInteger
          , bench "IntervalDouble/small" $ nf (fromInteger :: Integer -> Interval Double) smallInteger
          , bench "IntervalDouble/medium" $ nf (fromInteger :: Integer -> Interval Double) mediumInteger
          , bench "IntervalDouble/large" $ nf (fromInteger :: Integer -> Interval Double) largeInteger
+         ]
+    , let smallInteger = -2^50+2^13+127 :: Int64
+          mediumInteger = -2^60 + 42 * 2^53 - 137 * 2^24 + 3 :: Int64
+      in bgroup "fromIntegral/Int64"
+         [ bench "Double/small" $ nf (fromIntegral :: Int64 -> Double) smallInteger
+         , bench "Double/medium" $ nf (fromIntegral :: Int64 -> Double) mediumInteger
+         , bench "RoundedDouble/ToNearest/small" $ nf (fromIntegral :: Int64 -> Rounded 'ToNearest Double) smallInteger
+         , bench "RoundedDouble/ToNearest/medium" $ nf (fromIntegral :: Int64 -> Rounded 'ToNearest Double) mediumInteger
+         , bench "RoundedDouble/TowardInf/small" $ nf (fromIntegral :: Int64 -> Rounded 'TowardInf Double) smallInteger
+         , bench "RoundedDouble/TowardInf/medium" $ nf (fromIntegral :: Int64 -> Rounded 'TowardInf Double) mediumInteger
+         , bench "roundedFromInteger/Double/ToNearest/small" $ nf (roundedFromInteger ToNearest . fromIntegral :: Int64 -> Double) smallInteger
+         , bench "roundedFromInteger/Double/ToNearest/medium" $ nf (roundedFromInteger ToNearest . fromIntegral :: Int64 -> Double) mediumInteger
+         , bench "roundedFromInteger/Double/TowardInf/small" $ nf (roundedFromInteger TowardInf . fromIntegral :: Int64 -> Double) smallInteger
+         , bench "roundedFromInteger/Double/TowardInf/medium" $ nf (roundedFromInteger TowardInf . fromIntegral :: Int64 -> Double) mediumInteger
+         , bench "int64ToDouble/Double/ToNearest/small" $ nf (int64ToDouble ToNearest :: Int64 -> Double) smallInteger
+         , bench "int64ToDouble/Double/ToNearest/medium" $ nf (int64ToDouble ToNearest :: Int64 -> Double) mediumInteger
+         , bench "int64ToDouble/Double/TowardInf/small" $ nf (int64ToDouble TowardInf :: Int64 -> Double) smallInteger
+         , bench "int64ToDouble/Double/TowardInf/medium" $ nf (int64ToDouble TowardInf :: Int64 -> Double) mediumInteger
          ]
     , let pi' = 3.14159265358979323846264338327950 :: Rational
           smallRational = 22 % 7 :: Rational
