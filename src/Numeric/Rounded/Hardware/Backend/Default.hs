@@ -41,6 +41,26 @@ deriving via DoubleImpl instance RoundedRing Double
 deriving via DoubleImpl instance RoundedFractional Double
 deriving via DoubleImpl instance RoundedSqrt Double
 
+-- orphaned rules
+{-# RULES
+"fromIntegral/a->Rounded ToNearest Float"
+  forall x. fromIntegral x = Rounded (roundedFromInteger ToNearest (fromIntegral x)) :: Rounded 'ToNearest Float
+"fromIntegral/a->Rounded TowardInf Float"
+  forall x. fromIntegral x = Rounded (roundedFromInteger TowardInf (fromIntegral x)) :: Rounded 'TowardInf Float
+"fromIntegral/a->Rounded TowardNegInf Float"
+  forall x. fromIntegral x = Rounded (roundedFromInteger TowardNegInf (fromIntegral x)) :: Rounded 'TowardNegInf Float
+"fromIntegral/a->Rounded TowardZero Float"
+  forall x. fromIntegral x = Rounded (roundedFromInteger TowardZero (fromIntegral x)) :: Rounded 'TowardZero Float
+"fromIntegral/a->Rounded ToNearest Double"
+  forall x. fromIntegral x = Rounded (roundedFromInteger ToNearest (fromIntegral x)) :: Rounded 'ToNearest Double
+"fromIntegral/a->Rounded TowardInf Double"
+  forall x. fromIntegral x = Rounded (roundedFromInteger TowardInf (fromIntegral x)) :: Rounded 'TowardInf Double
+"fromIntegral/a->Rounded TowardNegInf Double"
+  forall x. fromIntegral x = Rounded (roundedFromInteger TowardNegInf (fromIntegral x)) :: Rounded 'TowardNegInf Double
+"fromIntegral/a->Rounded TowardZero Double"
+  forall x. fromIntegral x = Rounded (roundedFromInteger TowardZero (fromIntegral x)) :: Rounded 'TowardZero Double
+  #-}
+
 instance RoundedVectorOperation Float where
   roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec :: VS.Vector FloatImpl))
   roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: FloatImpl)
