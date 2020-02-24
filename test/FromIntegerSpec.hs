@@ -2,7 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module FromIntegerSpec where
 import           Control.Monad
+import           Data.Int
 import           Data.Proxy
+import           Data.Word
 import           Numeric.Rounded.Hardware.Internal
 import           Test.Hspec
 import           Test.Hspec.QuickCheck (prop)
@@ -18,6 +20,16 @@ prop_roundedFromInteger_check :: forall a. (RealFloat a, RoundedRing a) => Proxy
 prop_roundedFromInteger_check _proxy r x
   = (roundedFromInteger r x :: a)
     `sameFloatP` (fromInt r x :: a)
+
+prop_roundedFromInt64_check :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> RoundingMode -> Int64 -> Property
+prop_roundedFromInt64_check _proxy r x
+  = (roundedFromInteger r (fromIntegral x) :: a)
+    `sameFloatP` (fromInt r (fromIntegral x) :: a)
+
+prop_roundedFromWord64_check :: forall a. (RealFloat a, RoundedRing a) => Proxy a -> RoundingMode -> Word64 -> Property
+prop_roundedFromWord64_check _proxy r x
+  = (roundedFromInteger r (fromIntegral x) :: a)
+    `sameFloatP` (fromInt r (fromIntegral x) :: a)
 
 prop_fromInt_order :: forall a. RealFloat a => Proxy a -> Integer -> Property
 prop_fromInt_order _proxy x
@@ -54,6 +66,10 @@ specT proxy checkAgainstStock = do
       forAllShrink variousIntegers shrinkIntegral (prop_fromInteger_nearest_stock proxy)
   prop "roundedFromInteger coincides with the standard implementation" $ \r ->
     forAllShrink variousIntegers shrinkIntegral (prop_roundedFromInteger_check proxy r)
+  prop "roundedFromInteger/Int64" $ \r ->
+    prop_roundedFromInt64_check proxy r
+  prop "roundedFromInteger/Word64" $ \r ->
+    prop_roundedFromWord64_check proxy r
   prop "order" $
     forAllShrink variousIntegers shrinkIntegral (prop_fromInt_order proxy)
   prop "exactness" $

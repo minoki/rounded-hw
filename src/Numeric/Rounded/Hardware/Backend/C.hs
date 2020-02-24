@@ -13,6 +13,7 @@ module Numeric.Rounded.Hardware.Backend.C
 import           Control.DeepSeq (NFData (..))
 import           Data.Bifunctor
 import           Data.Coerce
+import           Data.Int (Int64)
 import           Data.Primitive.ByteArray
 import           Data.Ratio
 import           Data.Tagged
@@ -22,6 +23,7 @@ import qualified Data.Vector.Primitive as VP
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed.Base as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
+import           Data.Word (Word64)
 import qualified FFIWrapper.Double as D
 import qualified FFIWrapper.Float as F
 import           Foreign.C.String (CString, peekCString)
@@ -41,12 +43,39 @@ newtype CFloat = CFloat Float
 
 instance NFData CFloat
 
+roundedFloatFromInt64 :: RoundingMode -> Int64 -> Float
+roundedFloatFromInt64 r x = staticIf
+  (-0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -}) -- if input is known to be small enugh
+  (fromIntegral x)
+  (F.roundedFromInt64 r x)
+{-# INLINE roundedFloatFromInt64 #-}
+
+roundedFloatFromWord64 :: RoundingMode -> Word64 -> Float
+roundedFloatFromWord64 r x = staticIf
+  (x <= 0x1000000 {- x <= 2^24 -}) -- if input is known to be small enugh
+  (fromIntegral x)
+  (F.roundedFromWord64 r x)
+{-# INLINE roundedFloatFromWord64 #-}
+
+roundedFloatFromInteger :: RoundingMode -> Integer -> Float
+roundedFloatFromInteger r x
+  | -0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -} = fromIntegral x
+  | otherwise = fromInt r x
+{-# NOINLINE [1] roundedFloatFromInteger #-}
+
+{-# RULES
+"roundeFloatFromInteger/Int" forall r (x :: Int). roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromInt64 r (fromIntegral x)
+"roundeFloatFromInteger/Int64" forall r x. roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromInt64 r x
+"roundeFloatFromInteger/Word" forall r (x :: Word). roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r (fromIntegral x)
+"roundeFloatFromInteger/Word64" forall r x. roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r x
+  #-}
+
 instance RoundedRing CFloat where
   roundedAdd = coerce F.roundedAdd
   roundedSub = coerce F.roundedSub
   roundedMul = coerce F.roundedMul
   intervalMul x x' y y' = (coerce F.intervalMul_down x x' y y', coerce F.intervalMul_up x x' y y')
-  roundedFromInteger r x = CFloat (fromInt r x)
+  roundedFromInteger r x = CFloat (roundedFloatFromInteger r x)
   intervalFromInteger = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
@@ -85,12 +114,39 @@ newtype CDouble = CDouble Double
 
 instance NFData CDouble
 
+roundedDoubleFromInt64 :: RoundingMode -> Int64 -> Double
+roundedDoubleFromInt64 r x = staticIf
+  (-0x20000000000000 <= x && x <= 0x20000000000000 {- abs x <= 2^53 -}) -- if input is known to be small enough
+  (fromIntegral x)
+  (D.roundedFromInt64 r x)
+{-# INLINE roundedDoubleFromInt64 #-}
+
+roundedDoubleFromWord64 :: RoundingMode -> Word64 -> Double
+roundedDoubleFromWord64 r x = staticIf
+  (x <= 0x20000000000000 {- x <= 2^53 -}) -- if input is known to be small enough
+  (fromIntegral x)
+  (D.roundedFromWord64 r x)
+{-# INLINE roundedDoubleFromWord64 #-}
+
+roundedDoubleFromInteger :: RoundingMode -> Integer -> Double
+roundedDoubleFromInteger r x
+  | -0x20000000000000 <= x && x <= 0x20000000000000 {- abs x <= 2^53 -} = fromIntegral x
+  | otherwise = fromInt r x
+{-# NOINLINE [1] roundedDoubleFromInteger #-}
+
+{-# RULES
+"roundedDoubleFromInteger/Int" forall r (x :: Int). roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromInt64 r (fromIntegral x)
+"roundedDoubleFromInteger/Int64" forall r x. roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromInt64 r x
+"roundedDoubleFromInteger/Word" forall r (x :: Word). roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r (fromIntegral x)
+"roundedDoubleFromInteger/Word64" forall r x. roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r x
+  #-}
+
 instance RoundedRing CDouble where
   roundedAdd = coerce D.roundedAdd
   roundedSub = coerce D.roundedSub
   roundedMul = coerce D.roundedMul
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
-  roundedFromInteger r x = CDouble (fromInt r x)
+  roundedFromInteger = coerce roundedDoubleFromInteger
   intervalFromInteger = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
@@ -130,6 +186,19 @@ foreign import ccall unsafe "rounded_hw_backend_name"
 
 cBackendName :: String
 cBackendName = unsafePerformIO (peekCString c_backend_name)
+
+--
+-- Utility function for constant folding
+--
+
+staticIf :: Bool -> a -> a -> a
+staticIf _ _ x = x
+{-# INLINE [0] staticIf #-}
+
+{-# RULES
+"staticIf/True" forall x y. staticIf True x y = x
+"staticIf/False" forall x y. staticIf False x y = y
+  #-}
 
 --
 -- instance for Data.Vector.Unboxed.Unbox
