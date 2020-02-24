@@ -110,12 +110,18 @@ c_nextUp x = c_nextafter x (1/0)
 c_nextDown x = c_nextafter x (-1/0)
 
 word64ToDouble :: RoundingMode -> Word64 -> Double
-word64ToDouble ToNearest x = fromIntegral x
-word64ToDouble TowardInf x = let z = countLeadingZeros x
-                                 y = x .&. (0x0000_0000_0000_07FF `unsafeShiftR` z)
-                                 delta | y /= 0 = 0x800 `unsafeShiftR` z
-                                       | otherwise = 0
-                             in fromIntegral ((x .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z)) + delta)
+word64ToDouble ToNearest x
+  | x >= 0xFFFF_FFFF_FFFF_FC00 = 0x1p64
+  | otherwise = let z = countLeadingZeros x
+                    y = if x .&. (0x0000_0000_0000_0800 `unsafeShiftR` z) == 0
+                        then x + (0x0000_0000_0000_03FF `unsafeShiftR` z)
+                        else x + (0x0000_0000_0000_0400 `unsafeShiftR` z)
+                in fromIntegral (y .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z))
+word64ToDouble TowardInf x
+  | x >= 0xFFFF_FFFF_FFFF_F800 = 0x1p64
+  | otherwise = let z = countLeadingZeros x
+                    y = x + (0x0000_0000_0000_07FF `unsafeShiftR` z)
+                in fromIntegral (y .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z))
 word64ToDouble TowardNegInf x = let z = countLeadingZeros x
                                 in fromIntegral (x .&. (0xFFFF_FFFF_FFFF_F800 `unsafeShiftR` z))
 word64ToDouble TowardZero x = let z = countLeadingZeros x

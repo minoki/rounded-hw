@@ -45,29 +45,33 @@ instance NFData CFloat
 
 roundedFloatFromInt64 :: RoundingMode -> Int64 -> Float
 roundedFloatFromInt64 r x = staticIf
-  (-0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -}) -- if input is known to be small enugh
+  (-0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -}) -- if input is known to be small enough
   (fromIntegral x)
   (F.roundedFromInt64 r x)
 {-# INLINE roundedFloatFromInt64 #-}
 
 roundedFloatFromWord64 :: RoundingMode -> Word64 -> Float
 roundedFloatFromWord64 r x = staticIf
-  (x <= 0x1000000 {- x <= 2^24 -}) -- if input is known to be small enugh
+  (x <= 0x1000000 {- x <= 2^24 -}) -- if input is known to be small enough
   (fromIntegral x)
   (F.roundedFromWord64 r x)
 {-# INLINE roundedFloatFromWord64 #-}
 
 roundedFloatFromInteger :: RoundingMode -> Integer -> Float
 roundedFloatFromInteger r x
-  | -0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -} = fromIntegral x
+  | -0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -} = fromInteger x
   | otherwise = fromInt r x
 {-# NOINLINE [1] roundedFloatFromInteger #-}
 
 {-# RULES
-"roundeFloatFromInteger/Int" forall r (x :: Int). roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromInt64 r (fromIntegral x)
-"roundeFloatFromInteger/Int64" forall r x. roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromInt64 r x
-"roundeFloatFromInteger/Word" forall r (x :: Word). roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r (fromIntegral x)
-"roundeFloatFromInteger/Word64" forall r x. roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r x
+"roundeFloatFromInteger/Int" forall r (x :: Int).
+  roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromInt64 r (fromIntegral x)
+"roundeFloatFromInteger/Int64" forall r (x :: Int64).
+  roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromInt64 r x
+"roundeFloatFromInteger/Word" forall r (x :: Word).
+  roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r (fromIntegral x)
+"roundeFloatFromInteger/Word64" forall r (x :: Word64).
+  roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r x
   #-}
 
 instance RoundedRing CFloat where
@@ -130,15 +134,19 @@ roundedDoubleFromWord64 r x = staticIf
 
 roundedDoubleFromInteger :: RoundingMode -> Integer -> Double
 roundedDoubleFromInteger r x
-  | -0x20000000000000 <= x && x <= 0x20000000000000 {- abs x <= 2^53 -} = fromIntegral x
+  | -0x20000000000000 <= x && x <= 0x20000000000000 {- abs x <= 2^53 -} = fromInteger x
   | otherwise = fromInt r x
 {-# NOINLINE [1] roundedDoubleFromInteger #-}
 
 {-# RULES
-"roundedDoubleFromInteger/Int" forall r (x :: Int). roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromInt64 r (fromIntegral x)
-"roundedDoubleFromInteger/Int64" forall r x. roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromInt64 r x
-"roundedDoubleFromInteger/Word" forall r (x :: Word). roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r (fromIntegral x)
-"roundedDoubleFromInteger/Word64" forall r x. roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r x
+"roundedDoubleFromInteger/Int" forall r (x :: Int).
+  roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromInt64 r (fromIntegral x)
+"roundedDoubleFromInteger/Int64" forall r (x :: Int64).
+  roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromInt64 r x
+"roundedDoubleFromInteger/Word" forall r (x :: Word).
+  roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r (fromIntegral x)
+"roundedDoubleFromInteger/Word64" forall r (x :: Word64).
+  roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r x
   #-}
 
 instance RoundedRing CDouble where
