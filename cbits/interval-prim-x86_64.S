@@ -7,6 +7,10 @@
 #define SYMBOL(name) name
 #endif
 
+	.globl SYMBOL(rounded_hw_interval_backend_name)
+SYMBOL(rounded_hw_interval_backend_name):
+	.string "SSE2"
+
 	# Haskell declaration:
 	#
 	# rounded_hw_interval_add

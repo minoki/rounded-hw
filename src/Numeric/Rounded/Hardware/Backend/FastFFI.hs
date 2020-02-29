@@ -25,11 +25,13 @@ import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import qualified FFIWrapper.Double as D
+import           Foreign.C.String (CString, peekCString)
 import           Foreign.Storable (Storable)
 import           GHC.Exts (Double (D#), Double#)
 import           GHC.Generics (Generic)
 import qualified Numeric.Rounded.Hardware.Backend.C as C
 import           Numeric.Rounded.Hardware.Internal.Class
+import           System.IO.Unsafe (unsafePerformIO)
 import           Unsafe.Coerce
 
 --
@@ -50,7 +52,11 @@ instance RoundedRing CDouble where
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
   roundedFromInteger = coerce (roundedFromInteger :: RoundingMode -> Integer -> C.CDouble)
   intervalFromInteger = coerce (intervalFromInteger :: Integer -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
-  backendNameT = Tagged $ "FastFFI+" ++ backendName (Proxy :: Proxy C.CDouble)
+  backendNameT = Tagged $ let base = backendName (Proxy :: Proxy C.CDouble)
+                              intervals = intervalBackendName
+                          in if base == intervals
+                             then base ++ "+FastFFI"
+                             else base ++ "+FastFFI(" ++ intervals ++ ")"
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
@@ -127,6 +133,16 @@ fastIntervalRecip :: Double -> Double -> (Double, Double)
 fastIntervalRecip (D# l1) (D# h1) = case c_rounded_interval_recip l1 h1 of
   (# l2, h2 #) -> (D# l2, D# h2)
 {-# INLINE fastIntervalRecip #-}
+
+--
+-- Backend name
+--
+
+foreign import ccall "&rounded_hw_interval_backend_name"
+  c_interval_backend_name :: CString
+
+intervalBackendName :: String
+intervalBackendName = unsafePerformIO (peekCString c_interval_backend_name)
 
 --
 -- instance for Data.Vector.Unboxed.Unbox
