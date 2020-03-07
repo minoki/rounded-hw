@@ -31,10 +31,27 @@ maxFinite_ieee :: RealFloat a => a
 maxFinite_ieee = let d = floatDigits x
                      (_expMin,expMax) = floatRange x
                      r = floatRadix x
-                     x = encodeFloat (r^d-1) (expMax - d)
+                     x = encodeFloat (r ^! d - 1) (expMax - d)
                  in x
 {-# SPECIALIZE maxFinite_ieee :: Double #-}
 {-# SPECIALIZE maxFinite_ieee :: Float #-}
+
+-- A variant of (^) allowing constant folding for base = 2
+infixr 8 ^!
+(^!) :: Integer -> Int -> Integer
+(^!) = (^)
+{-# INLINE [2] (^!) #-}
+{-# RULES
+"2^!" forall y. 2 ^! y = staticIf (y >= 0) (1 `shiftL` y) (2 ^ y)
+  #-}
+
+staticIf :: Bool -> a -> a -> a
+staticIf _ _ x = x
+{-# INLINE [0] staticIf #-}
+{-# RULES
+"staticIf/True" forall x y. staticIf True x y = x
+"staticIf/False" forall x y. staticIf False x y = y
+  #-}
 
 -- |
 -- prop> nextUp 1 == (0x1.0000_0000_0000_1p0 :: Double)
