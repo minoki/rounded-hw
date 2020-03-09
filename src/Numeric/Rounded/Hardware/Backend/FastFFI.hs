@@ -73,11 +73,13 @@ instance RoundedFractional CDouble where
   intervalDivAdd x x' y y' z z' = (coerce D.intervalDivAdd_down x x' y y' z, coerce D.intervalDivAdd_up x x' y y' z')
   intervalRecip x x' = coerce fastIntervalRecip x x'
   roundedFromRational = coerce (roundedFromRational :: RoundingMode -> Rational -> C.CDouble)
+  roundedFromRealFloat r x = coerce (roundedFromRealFloat r x :: C.CDouble)
   intervalFromRational = coerce (intervalFromRational :: Rational -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE intervalRecip #-}
   {-# INLINE roundedFromRational #-}
+  {-# INLINE roundedFromRealFloat #-}
   {-# INLINE intervalFromRational #-}
 
 instance RoundedSqrt CDouble where

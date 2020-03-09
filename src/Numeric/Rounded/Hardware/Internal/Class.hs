@@ -79,6 +79,12 @@ class RoundedRing a => RoundedFractional a where
   default roundedRecip :: Num a => RoundingMode -> a -> a
   roundedRecip r = roundedDiv r 1
   roundedFromRational :: RoundingMode -> Rational -> a
+  roundedFromRealFloat :: RealFloat b => RoundingMode -> b -> a
+  default roundedFromRealFloat :: (Fractional a, RealFloat b) => RoundingMode -> b -> a
+  roundedFromRealFloat r x | isNaN x = 0 Prelude./ 0
+                           | isInfinite x = if x > 0 then 1 Prelude./ 0 else -1 Prelude./ 0
+                           | isNegativeZero x = -0
+                           | otherwise = roundedFromRational r (toRational x)
   intervalDiv :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalDiv x_lo x_hi y_lo y_hi
     = ( minimum [        x_lo /        y_lo
@@ -174,6 +180,9 @@ instance RoundedFractional Integer where
   roundedFromRational TowardNegInf = floor
   roundedFromRational TowardInf    = ceiling
   roundedFromRational TowardZero   = truncate
+  roundedFromRealFloat r x | isNaN x = error "NaN"
+                           | isInfinite x = error "Infinity"
+                           | otherwise = roundedFromRational r (toRational x)
 
 -- TODO: instance RoundedSqrt Integer
 
@@ -188,5 +197,8 @@ instance Integral a => RoundedFractional (Ratio a) where
   roundedDiv _ = (Prelude./)
   roundedRecip _ = Prelude.recip
   roundedFromRational _ = Prelude.fromRational
+  roundedFromRealFloat _ x | isNaN x = error "NaN"
+                           | isInfinite x = error "Infinity"
+                           | otherwise = Prelude.fromRational (toRational x)
 
 -- There is no RoundedSqrt (Ratio a)

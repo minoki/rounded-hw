@@ -74,6 +74,17 @@ roundedFloatFromInteger r x
   roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r x
   #-}
 
+roundedFloatFromRealFloat :: RealFloat a => RoundingMode -> a -> Float
+roundedFloatFromRealFloat r x | isNaN x = 0/0
+                              | isInfinite x = if x > 0 then 1/0 else -1/0
+                              | isNegativeZero x = -0
+                              | otherwise = coerce (roundedFromRational r (toRational x) :: CFloat)
+{-# NOINLINE [1] roundedFloatFromRealFloat #-}
+{-# RULES
+"roundedFloatFromRealFloat/Float" forall r (x :: Float).
+  roundedFloatFromRealFloat r x = x
+  #-}
+
 instance RoundedRing CFloat where
   roundedAdd = coerce F.roundedAdd
   roundedSub = coerce F.roundedSub
@@ -96,10 +107,12 @@ instance RoundedFractional CFloat where
   intervalDivAdd x x' y y' z z' = (coerce F.intervalDivAdd_down x x' y y' z, coerce F.intervalDivAdd_up x x' y y' z')
   roundedFromRational r x = CFloat $ fromRatio r (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromRational_default
+  roundedFromRealFloat r x = coerce (roundedFloatFromRealFloat r x)
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE roundedFromRational #-}
   {-# INLINE intervalFromRational #-}
+  {-# INLINE roundedFromRealFloat #-}
 
 instance RoundedSqrt CFloat where
   roundedSqrt = coerce F.roundedSqrt
@@ -151,6 +164,19 @@ roundedDoubleFromInteger r x
   roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r x
   #-}
 
+roundedDoubleFromRealFloat :: RealFloat a => RoundingMode -> a -> Double
+roundedDoubleFromRealFloat r x | isNaN x = 0/0
+                               | isInfinite x = if x > 0 then 1/0 else -1/0
+                               | isNegativeZero x = -0
+                               | otherwise = coerce (roundedFromRational r (toRational x) :: CDouble)
+{-# NOINLINE [1] roundedDoubleFromRealFloat #-}
+{-# RULES
+"roundedDoubleFromRealFloat/Double" forall r (x :: Double).
+  roundedDoubleFromRealFloat r x = x
+"roundedDoubleFromRealFloat/Float" forall r (x :: Float).
+  roundedDoubleFromRealFloat r x = realToFrac x -- should be rewritten into float2Double
+  #-}
+
 instance RoundedRing CDouble where
   roundedAdd = coerce D.roundedAdd
   roundedSub = coerce D.roundedSub
@@ -174,10 +200,12 @@ instance RoundedFractional CDouble where
   roundedFromRational r x = CDouble $ fromRatio r (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromRational_default
   -- TODO: Specialize small case in ***FromRational?
+  roundedFromRealFloat r x = coerce (roundedDoubleFromRealFloat r x)
   {-# INLINE roundedDiv #-}
   {-# INLINE intervalDiv #-}
   {-# INLINE roundedFromRational #-}
   {-# INLINE intervalFromRational #-}
+  {-# INLINE roundedFromRealFloat #-}
 
 instance RoundedSqrt CDouble where
   roundedSqrt = coerce D.roundedSqrt

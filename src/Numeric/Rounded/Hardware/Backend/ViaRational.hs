@@ -71,6 +71,10 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedFractional (ViaRat
     | isNaN x || isNaN y || isInfinite x || isInfinite y || x == 0 || y == 0 = ViaRational (x / y)
     | otherwise = roundedFromRational r (toRational x / toRational y)
   roundedFromRational r x = ViaRational $ fromRatio r (numerator x) (denominator x)
+  roundedFromRealFloat r x | isNaN x = ViaRational (0/0)
+                           | isInfinite x = ViaRational (if x > 0 then 1/0 else -1/0)
+                           | isNegativeZero x = ViaRational (-0)
+                           | otherwise = roundedFromRational r (toRational x)
   intervalFromRational x = case fromRatioF (numerator x) (denominator x) :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
     Pair a b -> (ViaRational <$> a, ViaRational <$> b)
   {-# INLINE roundedFromRational #-}
