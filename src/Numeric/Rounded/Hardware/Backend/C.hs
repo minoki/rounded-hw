@@ -74,6 +74,11 @@ roundedFloatFromInteger r x
   roundedFloatFromInteger r (fromIntegral x) = roundedFloatFromWord64 r x
   #-}
 
+intervalFloatFromInteger :: Integer -> (Rounded 'TowardNegInf Float, Rounded 'TowardInf Float)
+intervalFloatFromInteger x
+  | -0x1000000 <= x && x <= 0x1000000 {- abs x <= 2^24 -} = (Rounded (fromInteger x), Rounded (fromInteger x))
+  | otherwise = intervalFromInteger_default x
+
 roundedFloatFromRealFloat :: RealFloat a => RoundingMode -> a -> Float
 roundedFloatFromRealFloat r x | isNaN x = 0/0
                               | isInfinite x = if x > 0 then 1/0 else -1/0
@@ -92,7 +97,7 @@ instance RoundedRing CFloat where
   intervalMul x x' y y' = (coerce F.intervalMul_down x x' y y', coerce F.intervalMul_up x x' y y')
   intervalMulAdd x x' y y' z z' = (coerce F.intervalMulAdd_down x x' y y' z, coerce F.intervalMulAdd_up x x' y y' z')
   roundedFromInteger r x = CFloat (roundedFloatFromInteger r x)
-  intervalFromInteger = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromInteger_default
+  intervalFromInteger = coerce intervalFloatFromInteger
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
@@ -164,6 +169,11 @@ roundedDoubleFromInteger r x
   roundedDoubleFromInteger r (fromIntegral x) = roundedDoubleFromWord64 r x
   #-}
 
+intervalDoubleFromInteger :: Integer -> (Rounded 'TowardNegInf Double, Rounded 'TowardInf Double)
+intervalDoubleFromInteger x
+  | -0x20000000000000 <= x && x <= 0x20000000000000 {- abs x <= 2^53 -} = (Rounded (fromInteger x), Rounded (fromInteger x))
+  | otherwise = intervalFromInteger_default x
+
 roundedDoubleFromRealFloat :: RealFloat a => RoundingMode -> a -> Double
 roundedDoubleFromRealFloat r x | isNaN x = 0/0
                                | isInfinite x = if x > 0 then 1/0 else -1/0
@@ -184,7 +194,7 @@ instance RoundedRing CDouble where
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
   intervalMulAdd x x' y y' z z' = (coerce D.intervalMulAdd_down x x' y y' z, coerce D.intervalMulAdd_up x x' y y' z')
   roundedFromInteger = coerce roundedDoubleFromInteger
-  intervalFromInteger = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromInteger_default
+  intervalFromInteger = coerce intervalDoubleFromInteger
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
