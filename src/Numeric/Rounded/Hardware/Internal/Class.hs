@@ -55,6 +55,9 @@ class Ord a => RoundedRing a where
       )
     where (*) :: forall r. Rounding r => Rounded r a -> Rounded r a -> Rounded r a
           Rounded x * Rounded y = Rounded (roundedMul (rounding (Proxy :: Proxy r)) x y)
+  intervalMulAdd :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalMulAdd x_lo x_hi y_lo y_hi z_lo z_hi = case intervalMul x_lo x_hi y_lo y_hi of
+                                                   (xy_lo, xy_hi) -> intervalAdd xy_lo xy_hi z_lo z_hi
   intervalFromInteger :: Integer -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalFromInteger x = (fromInteger x, fromInteger x)
     where fromInteger :: forall r. Rounding r => Integer -> Rounded r a

@@ -50,6 +50,7 @@ instance RoundedRing CDouble where
   intervalAdd x x' y y' = coerce fastIntervalAdd x x' y y'
   intervalSub x x' y y' = coerce fastIntervalSub x x' y y'
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
+  intervalMulAdd x x' y y' z z' = (coerce D.intervalMulAdd_down x x' y y' z, coerce D.intervalMulAdd_up x x' y y' z')
   roundedFromInteger = coerce (roundedFromInteger :: RoundingMode -> Integer -> C.CDouble)
   intervalFromInteger = coerce (intervalFromInteger :: Integer -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
   backendNameT = Tagged $ let base = backendName (Proxy :: Proxy C.CDouble)

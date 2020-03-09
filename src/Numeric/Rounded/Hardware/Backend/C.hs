@@ -79,6 +79,7 @@ instance RoundedRing CFloat where
   roundedSub = coerce F.roundedSub
   roundedMul = coerce F.roundedMul
   intervalMul x x' y y' = (coerce F.intervalMul_down x x' y y', coerce F.intervalMul_up x x' y y')
+  intervalMulAdd x x' y y' z z' = (coerce F.intervalMulAdd_down x x' y y' z, coerce F.intervalMulAdd_up x x' y y' z')
   roundedFromInteger r x = CFloat (roundedFloatFromInteger r x)
   intervalFromInteger = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
@@ -154,6 +155,7 @@ instance RoundedRing CDouble where
   roundedSub = coerce D.roundedSub
   roundedMul = coerce D.roundedMul
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
+  intervalMulAdd x x' y y' z z' = (coerce D.intervalMulAdd_down x x' y y' z, coerce D.intervalMulAdd_up x x' y y' z')
   roundedFromInteger = coerce roundedDoubleFromInteger
   intervalFromInteger = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromInteger_default
   backendNameT = Tagged cBackendName
