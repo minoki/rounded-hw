@@ -93,6 +93,7 @@ instance RoundedRing CFloat where
 instance RoundedFractional CFloat where
   roundedDiv = coerce F.roundedDiv
   intervalDiv x x' y y' = (coerce F.intervalDiv_down x x' y y', coerce F.intervalDiv_up x x' y y')
+  intervalDivAdd x x' y y' z z' = (coerce F.intervalDivAdd_down x x' y y' z, coerce F.intervalDivAdd_up x x' y y' z')
   roundedFromRational r x = CFloat $ fromRatio r (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CFloat <$>) (CFloat <$>) .)) intervalFromRational_default
   {-# INLINE roundedDiv #-}
@@ -169,6 +170,7 @@ instance RoundedRing CDouble where
 instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
   intervalDiv x x' y y' = (coerce D.intervalDiv_down x x' y y', coerce D.intervalDiv_up x x' y y')
+  intervalDivAdd x x' y y' z z' = (coerce D.intervalDivAdd_down x x' y y' z, coerce D.intervalDivAdd_up x x' y y' z')
   roundedFromRational r x = CDouble $ fromRatio r (numerator x) (denominator x)
   intervalFromRational = (coerce `asTypeOf` (bimap (CDouble <$>) (CDouble <$>) .)) intervalFromRational_default
   -- TODO: Specialize small case in ***FromRational?

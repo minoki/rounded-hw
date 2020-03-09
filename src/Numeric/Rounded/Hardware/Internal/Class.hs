@@ -94,6 +94,9 @@ class RoundedRing a => RoundedFractional a where
       )
     where (/) :: forall r. Rounding r => Rounded r a -> Rounded r a -> Rounded r a
           Rounded x / Rounded y = Rounded (roundedDiv (rounding (Proxy :: Proxy r)) x y)
+  intervalDivAdd :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
+  intervalDivAdd x_lo x_hi y_lo y_hi z_lo z_hi = case intervalDiv x_lo x_hi y_lo y_hi of
+                                                   (xy_lo, xy_hi) -> intervalAdd xy_lo xy_hi z_lo z_hi
   intervalRecip :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalRecip x_lo x_hi = (recip (coerce x_hi), recip (coerce x_lo))
     where recip :: forall r. Rounding r => Rounded r a -> Rounded r a

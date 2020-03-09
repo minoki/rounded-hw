@@ -70,6 +70,7 @@ instance RoundedRing CDouble where
 instance RoundedFractional CDouble where
   roundedDiv = coerce D.roundedDiv
   intervalDiv x x' y y' = (coerce D.intervalDiv_down x x' y y', coerce D.intervalDiv_up x x' y y')
+  intervalDivAdd x x' y y' z z' = (coerce D.intervalDivAdd_down x x' y y' z, coerce D.intervalDivAdd_up x x' y y' z')
   intervalRecip x x' = coerce fastIntervalRecip x x'
   roundedFromRational = coerce (roundedFromRational :: RoundingMode -> Rational -> C.CDouble)
   intervalFromRational = coerce (intervalFromRational :: Rational -> (Rounded 'TowardNegInf C.CDouble, Rounded 'TowardInf C.CDouble))
