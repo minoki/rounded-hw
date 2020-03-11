@@ -29,11 +29,11 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           GHC.Float (log1p, expm1)
+import           GHC.Float (log1p, expm1, log1pexp, log1mexp)
 import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal
 import qualified Numeric.Rounded.Hardware.Interval.Class as C
-import qualified Numeric.Rounded.Hardware.Interval.ElementaryFunctions as C
+import qualified Numeric.Rounded.Hardware.Interval.NonEmpty as NE
 import           Prelude hiding (null)
 
 data Interval a
@@ -46,49 +46,33 @@ instance NFData a => NFData (Interval a)
 increasing :: (forall r. Rounding r => Rounded r a -> Rounded r a) -> Interval a -> Interval a
 increasing f (I a b) = I (f a) (f b)
 increasing _ Empty   = Empty
+{-# INLINE increasing #-}
 
 instance (Num a, RoundedRing a) => Num (Interval a) where
-  I a b + I a' b' = case intervalAdd a b a' b' of
-                      (a'', b'') -> I a'' b''
-  _ + _ = Empty
-  I a b - I a' b' = case intervalSub a b a' b' of
-                      (a'', b'') -> I a'' b''
-  _ - _ = Empty
-  negate (I a b) = I (negate (coerce b)) (negate (coerce a))
-  negate Empty   = Empty
-  I a b * I a' b' = case intervalMul a b a' b' of
-                      (a'', b'') -> I a'' b''
-  _ * _ = Empty
-  abs x@(I a b)
-    | a >= 0 = x
-    | b <= 0 = negate x
-    | otherwise = I 0 (max (negate (coerce a)) b)
-  abs Empty = Empty
-  signum = increasing signum
+  (+) = liftBinaryNE (+)
+  (-) = liftBinaryNE (-)
+  negate = liftUnaryNE negate
+  (*) = liftBinaryNE (*)
+  abs = liftUnaryNE abs
+  signum = liftUnaryNE signum
   fromInteger x = case intervalFromInteger x of
                     (y, y') -> I y y'
-  {-# SPECIALIZE instance Num (Interval Float) #-}
-  {-# SPECIALIZE instance Num (Interval Double) #-}
+  {-# INLINE (+) #-}
+  {-# INLINE (-) #-}
+  {-# INLINE negate #-}
+  {-# INLINE (*) #-}
+  {-# INLINE abs #-}
+  {-# INLINE signum #-}
+  {-# INLINE fromInteger #-}
 
 instance (Num a, RoundedFractional a) => Fractional (Interval a) where
-  recip Empty = Empty
-  recip (I a b)
-    -- TODO: Allow a' == 0 || b' == 0?
-    | 0 < a || b < 0 = case intervalRecip a b of
-                         (x, x') -> I x x'
-    | otherwise = error "divide by zero"
-  I a b / I a' b'
-    -- TODO: Allow a' == 0 || b' == 0?
-    | 0 < a' || b' < 0 = case intervalDiv a b a' b' of
-                           (a'', b'') -> I a'' b''
-                           -- TODO: Allow a' == 0 || b' == 0?
-    | otherwise = error "divide by zero"
-  _ / Empty = Empty
-  Empty / _ = Empty
+  recip = liftUnaryNE recip
+  (/) = liftBinaryNE (/)
   fromRational x = case intervalFromRational x of
                      (y, y') -> I y y'
-  {-# SPECIALIZE instance Fractional (Interval Float) #-}
-  {-# SPECIALIZE instance Fractional (Interval Double) #-}
+  {-# INLINE recip #-}
+  {-# INLINE (/) #-}
+  {-# INLINE fromRational #-}
 
 maxI :: Ord a => Interval a -> Interval a -> Interval a
 maxI (I a a') (I b b') = I (max a b) (max a' b')
@@ -141,30 +125,62 @@ intersection (I x y) (I x' y') | getRounded x'' <= getRounded y'' = I x'' y''
         y'' = min y y'
 intersection _ _ = Empty
 
+liftUnaryNE :: (NE.Interval a -> NE.Interval a) -> Interval a -> Interval a
+liftUnaryNE f (I x x') = case f (NE.I x x') of
+                           NE.I y y' -> I y y'
+liftUnaryNE _f Empty = Empty
+{-# INLINE [1] liftUnaryNE #-}
+
+liftBinaryNE :: (NE.Interval a -> NE.Interval a -> NE.Interval a) -> Interval a -> Interval a -> Interval a
+liftBinaryNE f (I x x') (I y y') = case f (NE.I x x') (NE.I y y') of
+                                     NE.I z z' -> I z z'
+liftBinaryNE _f _ _ = Empty
+{-# INLINE [1] liftBinaryNE #-}
 
 instance (Num a, RoundedFractional a, RoundedSqrt a, Eq a, RealFloat a, RealFloatConstants a) => Floating (Interval a) where
   pi = I pi_down pi_up
-  exp = C.expI
-  log = C.logI
-  sqrt = C.sqrtI
-  -- x ** y = exp (log x * y) -- default
-  -- logBase x y = log y / log x -- default
-  sin = C.sinI
-  cos = C.cosI
-  tan = C.tanI
-  asin = C.asinI
-  acos = C.acosI
-  atan = C.atanI
-  sinh = C.sinhI
-  cosh = C.coshI
-  tanh = C.tanhI
-  asinh = C.asinhI
-  acosh = C.acoshI
-  atanh = C.atanhI
-  log1p = C.log1pI
-  expm1 = C.expm1I
-  -- log1pexp x = log (1 + exp x) -- default
-  -- log1mexp x = log (1 - exp x) -- default
+  exp = liftUnaryNE exp
+  log = liftUnaryNE log
+  sqrt = liftUnaryNE sqrt
+  (**) = liftBinaryNE (**)
+  logBase = liftBinaryNE logBase
+  sin = liftUnaryNE sin
+  cos = liftUnaryNE cos
+  tan = liftUnaryNE tan
+  asin = liftUnaryNE asin
+  acos = liftUnaryNE acos
+  atan = liftUnaryNE atan
+  sinh = liftUnaryNE sinh
+  cosh = liftUnaryNE cosh
+  tanh = liftUnaryNE tanh
+  asinh = liftUnaryNE asinh
+  acosh = liftUnaryNE acosh
+  atanh = liftUnaryNE atanh
+  log1p = liftUnaryNE log1p
+  expm1 = liftUnaryNE expm1
+  log1pexp = liftUnaryNE log1pexp
+  log1mexp = liftUnaryNE log1mexp
+  {-# INLINE exp #-}
+  {-# INLINE log #-}
+  {-# INLINE sqrt #-}
+  {-# INLINE (**) #-}
+  {-# INLINE logBase #-}
+  {-# INLINE sin #-}
+  {-# INLINE cos #-}
+  {-# INLINE tan #-}
+  {-# INLINE asin #-}
+  {-# INLINE acos #-}
+  {-# INLINE atan #-}
+  {-# INLINE sinh #-}
+  {-# INLINE cosh #-}
+  {-# INLINE tanh #-}
+  {-# INLINE asinh #-}
+  {-# INLINE acosh #-}
+  {-# INLINE atanh #-}
+  {-# INLINE log1p #-}
+  {-# INLINE expm1 #-}
+  {-# INLINE log1pexp #-}
+  {-# INLINE log1mexp #-}
 
 instance (Num a, RoundedRing a, RealFloat a) => C.IsInterval (Interval a) where
   type EndPoint (Interval a) = a
