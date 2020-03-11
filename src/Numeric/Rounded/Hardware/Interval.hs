@@ -29,7 +29,7 @@ import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
-import           GHC.Float (log1p, expm1, log1pexp, log1mexp)
+import           GHC.Float (expm1, log1mexp, log1p, log1pexp)
 import           GHC.Generics (Generic)
 import           Numeric.Rounded.Hardware.Internal
 import qualified Numeric.Rounded.Hardware.Interval.Class as C
@@ -112,7 +112,7 @@ width Empty   = 0
 
 widthUlp :: (RealFloat a) => Interval a -> Maybe Integer
 widthUlp (I x y) = distanceUlp (getRounded x) (getRounded y)
-widthUlp Empty = Just 0
+widthUlp Empty   = Just 0
 
 hull :: RoundedRing a => Interval a -> Interval a -> Interval a
 hull (I x y) (I x' y') = I (min x x') (max y y')
@@ -192,18 +192,18 @@ instance (Num a, RoundedRing a, RealFloat a) => C.IsInterval (Interval a) where
   intersection = intersection
   maybeIntersection x y = case intersection x y of
                             Empty -> Nothing
-                            z -> Just z
+                            z     -> Just z
   equalAsSet (I x y) (I x' y') = x == x' && y == y'
-  equalAsSet Empty Empty = True
-  equalAsSet _ _ = False
+  equalAsSet Empty Empty       = True
+  equalAsSet _ _               = False
   subset (I x y) (I x' y') = x' <= x && y <= y'
-  subset Empty _ = True
-  subset I{} Empty = False
+  subset Empty _           = True
+  subset I{} Empty         = False
   weaklyLess (I x y) (I x' y') = x <= x' && y <= y'
-  weaklyLess Empty Empty = True
-  weaklyLess _ _ = False
+  weaklyLess Empty Empty       = True
+  weaklyLess _ _               = False
   precedes (I _ y) (I x' _) = getRounded y <= getRounded x'
-  precedes _ _ = True
+  precedes _ _              = True
   interior (I x y) (I x' y') = getRounded x' <# getRounded x && getRounded y <# getRounded y'
     where s <# t = s < t || (s == t && isInfinite s)
   interior Empty _ = True
@@ -213,7 +213,7 @@ instance (Num a, RoundedRing a, RealFloat a) => C.IsInterval (Interval a) where
   strictLess Empty Empty = True
   strictLess _ _ = False
   strictPrecedes (I _ y) (I x' _) = getRounded y < getRounded x'
-  strictPrecedes _ _ = True
+  strictPrecedes _ _              = True
   disjoint (I x y) (I x' y') = getRounded y < getRounded x' || getRounded y' < getRounded x
   disjoint _ _ = True
 
