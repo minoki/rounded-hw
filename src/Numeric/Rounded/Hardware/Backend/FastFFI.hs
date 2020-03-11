@@ -97,44 +97,44 @@ instance RoundedVectorOperation CDouble where
 --
 
 foreign import prim "rounded_hw_interval_add"
-  c_rounded_interval_add :: Double# -- lower 1 %xmm1
-                         -> Double# -- upper 1 %xmm2
-                         -> Double# -- lower 2 %xmm3
-                         -> Double# -- upper 2 %xmm4
-                         -> (# Double#  -- lower %xmm1
-                             , Double#  -- upper %xmm2
-                            #)
+  fastIntervalAdd# :: Double# -- lower 1, %xmm1
+                   -> Double# -- upper 1, %xmm2
+                   -> Double# -- lower 2, %xmm3
+                   -> Double# -- upper 2, %xmm4
+                   -> (# Double#  -- lower, %xmm1
+                       , Double#  -- upper, %xmm2
+                       #)
 
 foreign import prim "rounded_hw_interval_sub"
-  c_rounded_interval_sub :: Double# -- lower 1 %xmm1
-                         -> Double# -- upper 1 %xmm2
-                         -> Double# -- lower 2 %xmm3
-                         -> Double# -- upper 2 %xmm4
-                         -> (# Double#  -- lower %xmm1
-                             , Double#  -- upper %xmm2
-                            #)
+  fastIntervalSub# :: Double# -- lower 1, %xmm1
+                   -> Double# -- upper 1, %xmm2
+                   -> Double# -- lower 2, %xmm3
+                   -> Double# -- upper 2, %xmm4
+                   -> (# Double#  -- lower, %xmm1
+                       , Double#  -- upper, %xmm2
+                       #)
 
 foreign import prim "rounded_hw_interval_recip"
-  c_rounded_interval_recip :: Double# -- lower 1 %xmm1
-                           -> Double# -- upper 1 %xmm2
-                           -> (# Double#  -- lower %xmm1
-                               , Double#  -- upper %xmm2
-                              #)
+  fastIntervalRecip# :: Double# -- lower 1, %xmm1
+                     -> Double# -- upper 1, %xmm2
+                     -> (# Double#  -- lower, %xmm1
+                         , Double#  -- upper, %xmm2
+                         #)
 
 -- TODO: sqrt?
 
 fastIntervalAdd :: Double -> Double -> Double -> Double -> (Double, Double)
-fastIntervalAdd (D# l1) (D# h1) (D# l2) (D# h2) = case c_rounded_interval_add l1 h1 l2 h2 of
+fastIntervalAdd (D# l1) (D# h1) (D# l2) (D# h2) = case fastIntervalAdd# l1 h1 l2 h2 of
   (# l3, h3 #) -> (D# l3, D# h3)
 {-# INLINE fastIntervalAdd #-}
 
 fastIntervalSub :: Double -> Double -> Double -> Double -> (Double, Double)
-fastIntervalSub (D# l1) (D# h1) (D# l2) (D# h2) = case c_rounded_interval_sub l1 h1 l2 h2 of
+fastIntervalSub (D# l1) (D# h1) (D# l2) (D# h2) = case fastIntervalSub# l1 h1 l2 h2 of
   (# l3, h3 #) -> (D# l3, D# h3)
 {-# INLINE fastIntervalSub #-}
 
 fastIntervalRecip :: Double -> Double -> (Double, Double)
-fastIntervalRecip (D# l1) (D# h1) = case c_rounded_interval_recip l1 h1 of
+fastIntervalRecip (D# l1) (D# h1) = case fastIntervalRecip# l1 h1 of
   (# l2, h2 #) -> (D# l2, D# h2)
 {-# INLINE fastIntervalRecip #-}
 
