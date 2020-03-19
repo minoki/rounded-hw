@@ -117,20 +117,24 @@ jobs:
     compiler: ": #stack 8.6.5"
     addons: {apt: {packages: [libgmp-dev]}}
 
-  - env: BUILD=stack ARGS="--resolver lts-15"
+  - env: BUILD=stack ARGS="--resolver lts-15.3"
     compiler: ": #stack 8.8.2"
     addons: {apt: {packages: [libgmp-dev]}}
 
+  - env: BUILD=stack ARGS="--resolver lts-15"
+    compiler: ": #stack 8.8.3"
+    addons: {apt: {packages: [libgmp-dev]}}
+
   - env: BUILD=stack ARGS="--resolver lts-15" BUILDARGS="--flag rounded-hw:c99"
-    compiler: ": #stack 8.8.2 C99"
+    compiler: ": #stack 8.8.3 C99"
     addons: {apt: {packages: [libgmp-dev]}}
 
   - env: BUILD=stack ARGS="--resolver lts-15" BUILDARGS="--flag rounded-hw:-ghc-prim"
-    compiler: ": #stack 8.8.2 no-ghc-prim"
+    compiler: ": #stack 8.8.3 no-ghc-prim"
     addons: {apt: {packages: [libgmp-dev]}}
 
   - env: BUILD=stack ARGS="--resolver lts-15" BUILDARGS="--ghc-options=-optc=-march=native"
-    compiler: ": #stack 8.8.2 arch=native"
+    compiler: ": #stack 8.8.3 arch=native"
     addons: {apt: {packages: [libgmp-dev]}}
 
   # Nightly builds are allowed to fail
@@ -176,20 +180,24 @@ jobs:
     compiler: ": #stack 8.6.5 osx"
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver lts-15"
+  - env: BUILD=stack ARGS="--resolver lts-15.3"
     compiler: ": #stack 8.8.2 osx"
     os: osx
 
+  - env: BUILD=stack ARGS="--resolver lts-15"
+    compiler: ": #stack 8.8.3 osx"
+    os: osx
+
   - env: BUILD=stack ARGS="--resolver lts-15" BUILDARGS="--flag rounded-hw:c99"
-    compiler: ": #stack 8.8.2 osx C99"
+    compiler: ": #stack 8.8.3 osx C99"
     os: osx
 
   - env: BUILD=stack ARGS="--resolver lts-15" BUILDARGS="--flag rounded-hw:-ghc-prim"
-    compiler: ": #stack 8.8.2 osx no-ghc-prim"
+    compiler: ": #stack 8.8.3 osx no-ghc-prim"
     os: osx
 
   - env: BUILD=stack ARGS="--resolver lts-15" BUILDARGS="--ghc-options=-optc=-march=native"
-    compiler: ": #stack 8.8.2 osx arch=native"
+    compiler: ": #stack 8.8.3 osx arch=native"
     os: osx
 
   - env: BUILD=stack ARGS="--resolver nightly"
