@@ -32,6 +32,7 @@ Backends for directed rounding are:
         * SSE2 (`_mm_setcsr`)
         * AVX512 (`_mm_*_round_*`)
         * x87 FSTCW, FLDCW (for x87 long double)
+        * AArch64 FPCR
     * On x86_64, `foreign import prim` is used to provide faster interval addition/subtraction.
 
 By default, C FFI is used and an appropriate technology is detected.
