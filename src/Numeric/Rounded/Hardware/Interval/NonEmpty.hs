@@ -330,7 +330,7 @@ instance (Prim a, Ord a, Fractional a) => A.MArray (A.STUArray s) (Interval a) (
   unsafeNewArray_ = A.newArray_
   newArray_ bounds@(l,u) = do
     let n = rangeSize bounds
-    arr@(MutableByteArray arr_) <- newByteArray (2 * sizeOf (undefined :: a))
+    arr@(MutableByteArray arr_) <- newByteArray (2 * sizeOf (undefined :: a) * n)
     setByteArray arr 0 (2 * n) (0 :: a)
     return (A.STUArray l u n arr_)
   unsafeRead (A.STUArray _ _ _ byteArr) i = do
