@@ -137,6 +137,11 @@ jobs:
     compiler: ": #stack 8.8.3 arch=native"
     addons: {apt: {packages: [libgmp-dev]}}
 
+  # long-double-0.1 doesn't build with base-4.14.0.0
+  - env: BUILD=stack ARGS="--resolver nightly --compiler ghc-8.10.1" BUILDARGS="--flag rounded-hw:-x87-long-double"
+    compiler: ": #stack 8.10.1 arch=native"
+    addons: {apt: {packages: [libgmp-dev]}}
+
   # Nightly builds are allowed to fail
   - env: BUILD=stack ARGS="--resolver nightly"
     compiler: ": #stack nightly"
@@ -200,6 +205,11 @@ jobs:
     compiler: ": #stack 8.8.3 osx arch=native"
     os: osx
 
+  # long-double-0.1 doesn't build with base-4.14.0.0
+  - env: BUILD=stack ARGS="--resolver nightly --compiler ghc-8.10.1" BUILDARGS="--flag rounded-hw:-x87-long-double"
+    compiler: ": #stack 8.10.1 osx arch=native"
+    os: osx
+
   - env: BUILD=stack ARGS="--resolver nightly"
     compiler: ": #stack nightly osx"
     os: osx
@@ -208,6 +218,8 @@ jobs:
   - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
   - env: BUILD=stack ARGS="--resolver nightly"
   - env: BUILD=cabal GHCVER=8.8.2 CABALVER=3.0 HAPPYVER=1.19.5 ALEXVER=3.1.7
+  - env: BUILD=stack ARGS="--resolver nightly --compiler ghc-8.10.1" BUILDARGS="--flag rounded-hw:-x87-long-double"
+  - env: BUILD=stack ARGS="--resolver nightly --compiler ghc-8.10.1" BUILDARGS="--flag rounded-hw:-x87-long-double"
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
