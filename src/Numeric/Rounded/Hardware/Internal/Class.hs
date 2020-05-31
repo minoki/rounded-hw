@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -16,8 +17,7 @@ import           Data.Coerce
 import           Data.Proxy
 import           Data.Ratio
 import           Data.Tagged
-import qualified Data.Vector.Storable as VS
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Generic as VG
 import           Foreign.Storable (Storable)
 import           Numeric.Rounded.Hardware.Internal.Rounding
 import           Prelude hiding (fromInteger, fromRational, recip, sqrt, (*),
@@ -123,14 +123,30 @@ class RoundedRing a => RoundedSqrt a where
           sqrt (Rounded z) = Rounded (roundedSqrt (rounding (Proxy :: Proxy r)) z)
   {-# INLINE intervalSqrt #-}
 
-class RoundedRing a => RoundedVectorOperation a where
-  roundedSum_StorableVector :: Storable a => RoundingMode -> VS.Vector a -> a
-  default roundedSum_StorableVector :: (Num a, Storable a) => RoundingMode -> VS.Vector a -> a
-  roundedSum_StorableVector mode = VS.foldl' (roundedAdd mode) 0
+class RoundedRing a => RoundedRing_Vector vector a where
+  roundedSum :: RoundingMode -> vector a -> a
+  zipWith_roundedAdd :: RoundingMode -> vector a -> vector a -> vector a
+  zipWith_roundedSub :: RoundingMode -> vector a -> vector a -> vector a
+  zipWith_roundedMul :: RoundingMode -> vector a -> vector a -> vector a
 
-  roundedSum_UnboxedVector :: VU.Unbox a => RoundingMode -> VU.Vector a -> a
-  default roundedSum_UnboxedVector :: (Num a, VU.Unbox a) => RoundingMode -> VU.Vector a -> a
-  roundedSum_UnboxedVector mode = VU.foldl' (roundedAdd mode) 0
+  default roundedSum :: (VG.Vector vector a, Num a) => RoundingMode -> vector a -> a
+  roundedSum mode = VG.foldl' (roundedAdd mode) 0
+
+  default zipWith_roundedAdd :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
+  zipWith_roundedAdd mode = VG.zipWith (roundedAdd mode)
+
+  default zipWith_roundedSub :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
+  zipWith_roundedSub mode = VG.zipWith (roundedSub mode)
+
+  default zipWith_roundedMul :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
+  zipWith_roundedMul mode = VG.zipWith (roundedMul mode)
+
+class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Vector vector a where
+  zipWith_roundedDiv :: RoundingMode -> vector a -> vector a -> vector a
+  map_roundedRecip :: RoundingMode -> vector a -> vector a
+
+class (RoundedRing a, RoundedRing_Vector vector a) => RoundedSqrt_Vector vector a where
+  map_roundedSqrt :: RoundingMode -> vector a -> vector a
 
 instance (Rounding r, Num a, RoundedRing a) => Num (Rounded r a) where
   Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy r)) x y)

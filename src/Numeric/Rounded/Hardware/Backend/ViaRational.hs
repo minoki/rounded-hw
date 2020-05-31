@@ -13,6 +13,7 @@ import           Data.Ratio
 import           Data.Tagged
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Foreign.Storable (Storable)
@@ -96,7 +97,8 @@ instance (RealFloat a, RealFloatConstants a) => RoundedSqrt (ViaRational a) wher
     | otherwise = ViaRational y
     where y = sqrt x
 
-instance (RealFloat a, Num a, RealFloatConstants a) => RoundedVectorOperation (ViaRational a)
+instance (RealFloat a, Num a, RealFloatConstants a, RoundedRing a, Storable a) => RoundedRing_Vector VS.Vector (ViaRational a)
+instance (RealFloat a, Num a, RealFloatConstants a, VU.Unbox a) => RoundedRing_Vector VU.Vector (ViaRational a)
 
 --
 -- instance for Data.Vector.Unboxed.Unbox

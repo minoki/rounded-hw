@@ -123,10 +123,12 @@ instance RoundedSqrt CFloat where
   roundedSqrt = coerce F.roundedSqrt
   {-# INLINE roundedSqrt #-}
 
-instance RoundedVectorOperation CFloat where
-  roundedSum_StorableVector mode vec = CFloat $ unsafePerformIO $
+instance RoundedRing_Vector VS.Vector CFloat where
+  roundedSum mode vec = CFloat $ unsafePerformIO $
     VS.unsafeWith vec $ \ptr -> F.roundedSumPtr mode 0 (VS.length vec) (castPtr ptr)
-  roundedSum_UnboxedVector mode (V_CFloat (VU.V_Float (VP.Vector off len (ByteArray arr)))) =
+
+instance RoundedRing_Vector VU.Vector CFloat where
+  roundedSum mode (V_CFloat (VU.V_Float (VP.Vector off len (ByteArray arr)))) =
     CFloat $ F.roundedSumByteArray mode off len arr
 
 --
@@ -221,10 +223,12 @@ instance RoundedSqrt CDouble where
   roundedSqrt = coerce D.roundedSqrt
   {-# INLINE roundedSqrt #-}
 
-instance RoundedVectorOperation CDouble where
-  roundedSum_StorableVector mode vec = CDouble $ unsafePerformIO $
+instance RoundedRing_Vector VS.Vector CDouble where
+  roundedSum mode vec = CDouble $ unsafePerformIO $
     VS.unsafeWith vec $ \ptr -> D.roundedSumPtr mode 0 (VS.length vec) (castPtr ptr)
-  roundedSum_UnboxedVector mode (V_CDouble (VU.V_Double (VP.Vector off len (ByteArray arr)))) =
+
+instance RoundedRing_Vector VU.Vector CDouble where
+  roundedSum mode (V_CDouble (VU.V_Double (VP.Vector off len (ByteArray arr)))) =
     CDouble $ D.roundedSumByteArray mode off len arr
 
 --

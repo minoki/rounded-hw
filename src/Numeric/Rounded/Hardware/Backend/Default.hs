@@ -2,6 +2,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -Wno-orphans -Wno-unused-imports #-}
 module Numeric.Rounded.Hardware.Backend.Default
   () where
@@ -17,6 +18,7 @@ import           Numeric.Rounded.Hardware.Backend.X87LongDouble ()
 #endif
 #endif
 import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Unboxed as VU
 import           Unsafe.Coerce
 import           Data.Coerce
 
@@ -36,10 +38,20 @@ type DoubleImpl = VR.ViaRational Double
 deriving via FloatImpl instance RoundedRing Float
 deriving via FloatImpl instance RoundedFractional Float
 deriving via FloatImpl instance RoundedSqrt Float
+deriving via FloatImpl instance RoundedRing_Vector VU.Vector Float
+
+instance RoundedRing_Vector VS.Vector Float where
+  roundedSum mode vec = coerce (roundedSum mode (unsafeCoerce vec :: VS.Vector FloatImpl))
+  {-# INLINE roundedSum #-}
 
 deriving via DoubleImpl instance RoundedRing Double
 deriving via DoubleImpl instance RoundedFractional Double
 deriving via DoubleImpl instance RoundedSqrt Double
+deriving via DoubleImpl instance RoundedRing_Vector VU.Vector Double
+
+instance RoundedRing_Vector VS.Vector Double where
+  roundedSum mode vec = coerce (roundedSum mode (unsafeCoerce vec :: VS.Vector DoubleImpl))
+  {-# INLINE roundedSum #-}
 
 -- orphaned rules
 {-# RULES
@@ -60,11 +72,3 @@ deriving via DoubleImpl instance RoundedSqrt Double
 "fromIntegral/a->Rounded TowardZero Double"
   forall x. fromIntegral x = Rounded (roundedFromInteger TowardZero (fromIntegral x)) :: Rounded 'TowardZero Double
   #-}
-
-instance RoundedVectorOperation Float where
-  roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec :: VS.Vector FloatImpl))
-  roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: FloatImpl)
-
-instance RoundedVectorOperation Double where
-  roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec :: VS.Vector DoubleImpl))
-  roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: DoubleImpl)

@@ -1,10 +1,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GHCForeignImportPrim #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UnliftedFFITypes #-}
@@ -22,6 +24,7 @@ import           Data.Proxy
 import           Data.Tagged
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import qualified FFIWrapper.Double as D
@@ -86,11 +89,11 @@ instance RoundedSqrt CDouble where
   roundedSqrt = coerce D.roundedSqrt
   {-# INLINE roundedSqrt #-}
 
-instance RoundedVectorOperation CDouble where
-  roundedSum_StorableVector mode vec = coerce (roundedSum_StorableVector mode (unsafeCoerce vec) :: C.CDouble)
-  roundedSum_UnboxedVector mode vec = coerce (roundedSum_UnboxedVector mode (coerce vec) :: C.CDouble)
-  {-# INLINE roundedSum_StorableVector #-}
-  {-# INLINE roundedSum_UnboxedVector #-}
+instance RoundedRing_Vector VS.Vector CDouble where
+  roundedSum mode vec = coerce (roundedSum mode (unsafeCoerce vec :: VS.Vector C.CDouble))
+  {-# INLINE roundedSum #-}
+
+deriving via C.CDouble instance RoundedRing_Vector VU.Vector CDouble
 
 --
 -- FFI
