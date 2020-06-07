@@ -1,6 +1,8 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -14,22 +16,26 @@ import           Control.DeepSeq (NFData (..))
 import           Data.Bifunctor
 import           Data.Coerce
 import           Data.Int (Int64)
+import           Data.Primitive (Prim)
 import           Data.Primitive.ByteArray
 import           Data.Ratio
 import           Data.Tagged
 import qualified Data.Vector.Generic as VG
 import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Primitive as VP
+import qualified Data.Vector.Primitive.Mutable as VPM
 import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Storable.Mutable as VSM
 import qualified Data.Vector.Unboxed.Base as VU
 import qualified Data.Vector.Unboxed.Mutable as VUM
 import           Data.Word (Word64)
 import qualified FFIWrapper.Double as D
 import qualified FFIWrapper.Float as F
 import           Foreign.C.String (CString, peekCString)
-import           Foreign.Ptr (castPtr)
+import           Foreign.Ptr (Ptr, castPtr)
 import           Foreign.Storable (Storable)
 import           GHC.Generics (Generic)
+import           GHC.Exts (RealWorld)
 import           Numeric.Rounded.Hardware.Internal.Class
 import           Numeric.Rounded.Hardware.Internal.Conversion
 import           System.IO.Unsafe (unsafePerformIO)
@@ -125,11 +131,29 @@ instance RoundedSqrt CFloat where
 
 instance RoundedRing_Vector VS.Vector CFloat where
   roundedSum mode vec = CFloat $ unsafePerformIO $
-    VS.unsafeWith vec $ \ptr -> F.roundedSumPtr mode 0 (VS.length vec) (castPtr ptr)
+    VS.unsafeWith vec $ \ptr -> F.vectorSumPtr mode (VS.length vec) 0 (castPtr ptr)
+  zipWith_roundedAdd = zipWith_Storable (coerce F.vectorAddPtr)
+  zipWith_roundedSub = zipWith_Storable (coerce F.vectorSubPtr)
+  zipWith_roundedMul = zipWith_Storable (coerce F.vectorMulPtr)
+
+instance RoundedFractional_Vector VS.Vector CFloat where
+  zipWith_roundedDiv = zipWith_Storable (coerce F.vectorDivPtr)
+
+instance RoundedSqrt_Vector VS.Vector CFloat where
+  map_roundedSqrt = map_Storable (coerce F.vectorSqrtPtr)
 
 instance RoundedRing_Vector VU.Vector CFloat where
   roundedSum mode (V_CFloat (VU.V_Float (VP.Vector off len (ByteArray arr)))) =
-    CFloat $ F.roundedSumByteArray mode off len arr
+    CFloat $ F.vectorSumByteArray mode len off arr
+  zipWith_roundedAdd = coerce (zipWith_Primitive F.vectorAddByteArray :: RoundingMode -> VP.Vector Float -> VP.Vector Float -> VP.Vector Float)
+  zipWith_roundedSub = coerce (zipWith_Primitive F.vectorSubByteArray :: RoundingMode -> VP.Vector Float -> VP.Vector Float -> VP.Vector Float)
+  zipWith_roundedMul = coerce (zipWith_Primitive F.vectorMulByteArray :: RoundingMode -> VP.Vector Float -> VP.Vector Float -> VP.Vector Float)
+
+instance RoundedFractional_Vector VU.Vector CFloat where
+  zipWith_roundedDiv = coerce (zipWith_Primitive F.vectorDivByteArray :: RoundingMode -> VP.Vector Float -> VP.Vector Float -> VP.Vector Float)
+
+instance RoundedSqrt_Vector VU.Vector CFloat where
+  map_roundedSqrt = coerce (map_Primitive F.vectorSqrtByteArray :: RoundingMode -> VP.Vector Float -> VP.Vector Float)
 
 --
 -- Double
@@ -225,11 +249,29 @@ instance RoundedSqrt CDouble where
 
 instance RoundedRing_Vector VS.Vector CDouble where
   roundedSum mode vec = CDouble $ unsafePerformIO $
-    VS.unsafeWith vec $ \ptr -> D.roundedSumPtr mode 0 (VS.length vec) (castPtr ptr)
+    VS.unsafeWith vec $ \ptr -> D.vectorSumPtr mode (VS.length vec) 0 (castPtr ptr)
+  zipWith_roundedAdd = zipWith_Storable (coerce D.vectorAddPtr)
+  zipWith_roundedSub = zipWith_Storable (coerce D.vectorSubPtr)
+  zipWith_roundedMul = zipWith_Storable (coerce D.vectorMulPtr)
+
+instance RoundedFractional_Vector VS.Vector CDouble where
+  zipWith_roundedDiv = zipWith_Storable (coerce D.vectorDivPtr)
+
+instance RoundedSqrt_Vector VS.Vector CDouble where
+  map_roundedSqrt = map_Storable (coerce D.vectorSqrtPtr)
 
 instance RoundedRing_Vector VU.Vector CDouble where
   roundedSum mode (V_CDouble (VU.V_Double (VP.Vector off len (ByteArray arr)))) =
-    CDouble $ D.roundedSumByteArray mode off len arr
+    CDouble $ D.vectorSumByteArray mode len off arr
+  zipWith_roundedAdd = coerce (zipWith_Primitive D.vectorAddByteArray :: RoundingMode -> VP.Vector Double -> VP.Vector Double -> VP.Vector Double)
+  zipWith_roundedSub = coerce (zipWith_Primitive D.vectorSubByteArray :: RoundingMode -> VP.Vector Double -> VP.Vector Double -> VP.Vector Double)
+  zipWith_roundedMul = coerce (zipWith_Primitive D.vectorMulByteArray :: RoundingMode -> VP.Vector Double -> VP.Vector Double -> VP.Vector Double)
+
+instance RoundedFractional_Vector VU.Vector CDouble where
+  zipWith_roundedDiv = coerce (zipWith_Primitive D.vectorDivByteArray :: RoundingMode -> VP.Vector Double -> VP.Vector Double -> VP.Vector Double)
+
+instance RoundedSqrt_Vector VU.Vector CDouble where
+  map_roundedSqrt = coerce (map_Primitive D.vectorSqrtByteArray :: RoundingMode -> VP.Vector Double -> VP.Vector Double)
 
 --
 -- Backend name
@@ -253,6 +295,45 @@ staticIf _ _ x = x
 "staticIf/True" forall x y. staticIf True x y = x
 "staticIf/False" forall x y. staticIf False x y = y
   #-}
+
+--
+-- Utility functions for vector operations
+--
+
+zipWith_Storable :: (Storable a, Storable b, Storable c) => (RoundingMode -> Int -> Int -> Ptr c -> Int -> Ptr a -> Int -> Ptr b -> IO ()) -> RoundingMode -> VS.Vector a -> VS.Vector b -> VS.Vector c
+zipWith_Storable f mode vec vec' = unsafePerformIO $ do
+  let !len = min (VS.length vec) (VS.length vec')
+  result <- VSM.new len
+  VS.unsafeWith vec $ \ptr ->
+    VS.unsafeWith vec' $ \ptr' ->
+      VSM.unsafeWith result $ \resultPtr ->
+        f mode len 0 resultPtr 0 ptr 0 ptr'
+  VS.unsafeFreeze result
+{-# INLINE zipWith_Storable #-}
+
+map_Storable :: (Storable a, Storable b) => (RoundingMode -> Int -> Int -> Ptr b -> Int -> Ptr a -> IO ()) -> RoundingMode -> VS.Vector a -> VS.Vector b
+map_Storable f mode vec = unsafePerformIO $ do
+  let !len = VS.length vec
+  result <- VSM.new len
+  VS.unsafeWith vec $ \ptr ->
+    VSM.unsafeWith result $ \resultPtr ->
+      f mode len 0 resultPtr 0 ptr
+  VS.unsafeFreeze result
+{-# INLINE map_Storable #-}
+
+zipWith_Primitive :: (Prim a, Prim b, Prim c) => (RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()) -> RoundingMode -> VP.Vector a -> VP.Vector b -> VP.Vector c
+zipWith_Primitive f mode (VP.Vector offA lenA (ByteArray arrA)) (VP.Vector offB lenB (ByteArray arrB)) = unsafePerformIO $ do
+  result@(VPM.MVector offR lenR (MutableByteArray arrR)) <- VPM.unsafeNew (min lenA lenB)
+  f mode lenR offR arrR offA arrA offB arrB
+  VP.unsafeFreeze result
+{-# INLINE zipWith_Primitive #-}
+
+map_Primitive :: (Prim a, Prim b) => (RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> IO ()) -> RoundingMode -> VP.Vector a -> VP.Vector b
+map_Primitive f mode (VP.Vector offA lenA (ByteArray arrA)) = unsafePerformIO $ do
+  result@(VPM.MVector offR lenR (MutableByteArray arrR)) <- VPM.unsafeNew lenA
+  f mode lenR offR arrR offA arrA
+  VP.unsafeFreeze result
+{-# INLINE map_Primitive #-}
 
 --
 -- instance for Data.Vector.Unboxed.Unbox

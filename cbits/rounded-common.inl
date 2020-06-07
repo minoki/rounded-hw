@@ -325,13 +325,14 @@ extern double rounded_hw_interval_div_add_double_down(double lo1, double hi1, do
 }
 
 //
-// Summation
+// Vector Operations
 //
 
-static inline double rounded_sum_impl_double(native_rounding_mode mode, HsInt offset, HsInt length, const double *a)
+extern double rounded_hw_vector_sum_double(HsInt mode, HsInt length, HsInt offset, const double *a)
 {
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
     fp_reg oldreg = get_fp_reg();
-    set_rounding(oldreg, mode);
+    set_rounding(oldreg, nmode);
     volatile double s = 0.0;
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
@@ -339,14 +340,61 @@ static inline double rounded_sum_impl_double(native_rounding_mode mode, HsInt of
     restore_fp_reg(oldreg);
     return s;
 }
-extern double rounded_hw_sum_double(HsInt mode, HsInt offset, HsInt length, const double *a)
-{ return rounded_sum_impl_double(hs_rounding_mode_to_native(mode), offset, length, a); }
-extern double rounded_hw_sum_double_up(HsInt offset, HsInt length, const double *a)
-{ return rounded_sum_impl_double(ROUND_UPWARD, offset, length, a); }
-extern double rounded_hw_sum_double_down(HsInt offset, HsInt length, const double *a)
-{ return rounded_sum_impl_double(ROUND_DOWNWARD, offset, length, a); }
-extern double rounded_hw_sum_double_zero(HsInt offset, HsInt length, const double *a)
-{ return rounded_sum_impl_double(ROUND_TOWARDZERO, offset, length, a); }
+
+extern void rounded_hw_vector_add_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] + b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_sub_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] - b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_mul_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] * b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_div_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] / b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_sqrt_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = sqrt(a[offsetA + i]);
+    }
+    restore_fp_reg(oldreg);
+}
 
 //
 // float
@@ -673,13 +721,14 @@ extern float rounded_hw_interval_div_add_float_down(float lo1, float hi1, float 
 }
 
 //
-// Summation
+// Vector Operations
 //
 
-static inline float rounded_sum_impl_float(native_rounding_mode mode, HsInt offset, HsInt length, const float *a)
+extern float rounded_hw_vector_sum_float(HsInt mode, HsInt length, HsInt offset, const float *a)
 {
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
     fp_reg oldreg = get_fp_reg();
-    set_rounding(oldreg, mode);
+    set_rounding(oldreg, nmode);
     volatile float s = 0.0f;
     for (HsInt i = 0; i < length; ++i) {
         s += a[offset + i];
@@ -687,11 +736,58 @@ static inline float rounded_sum_impl_float(native_rounding_mode mode, HsInt offs
     restore_fp_reg(oldreg);
     return s;
 }
-extern float rounded_hw_sum_float(HsInt mode, HsInt offset, HsInt length, const float *a)
-{ return rounded_sum_impl_float(hs_rounding_mode_to_native(mode), offset, length, a); }
-extern float rounded_hw_sum_float_up(HsInt offset, HsInt length, const float *a)
-{ return rounded_sum_impl_float(ROUND_UPWARD, offset, length, a); }
-extern float rounded_hw_sum_float_down(HsInt offset, HsInt length, const float *a)
-{ return rounded_sum_impl_float(ROUND_DOWNWARD, offset, length, a); }
-extern float rounded_hw_sum_float_zero(HsInt offset, HsInt length, const float *a)
-{ return rounded_sum_impl_float(ROUND_TOWARDZERO, offset, length, a); }
+
+extern void rounded_hw_vector_add_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a, HsInt offsetB, const float * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] + b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_sub_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a, HsInt offsetB, const float * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] - b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_mul_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a, HsInt offsetB, const float * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] * b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_div_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a, HsInt offsetB, const float * restrict b)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = a[offsetA + i] / b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_sqrt_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = sqrtf(a[offsetA + i]);
+    }
+    restore_fp_reg(oldreg);
+}

@@ -91,9 +91,25 @@ instance RoundedSqrt CDouble where
 
 instance RoundedRing_Vector VS.Vector CDouble where
   roundedSum mode vec = coerce (roundedSum mode (unsafeCoerce vec :: VS.Vector C.CDouble))
+  zipWith_roundedAdd mode vec vec' = unsafeCoerce (zipWith_roundedAdd mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
+  zipWith_roundedSub mode vec vec' = unsafeCoerce (zipWith_roundedSub mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
+  zipWith_roundedMul mode vec vec' = unsafeCoerce (zipWith_roundedMul mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
   {-# INLINE roundedSum #-}
+  {-# INLINE zipWith_roundedAdd #-}
+  {-# INLINE zipWith_roundedSub #-}
+  {-# INLINE zipWith_roundedMul #-}
+
+instance RoundedFractional_Vector VS.Vector CDouble where
+  zipWith_roundedDiv mode vec vec' = unsafeCoerce (zipWith_roundedDiv mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
+  {-# INLINE zipWith_roundedDiv #-}
+
+instance RoundedSqrt_Vector VS.Vector CDouble where
+  map_roundedSqrt mode vec = unsafeCoerce (map_roundedSqrt mode (unsafeCoerce vec) :: VS.Vector C.CDouble)
+  {-# INLINE map_roundedSqrt #-}
 
 deriving via C.CDouble instance RoundedRing_Vector VU.Vector CDouble
+deriving via C.CDouble instance RoundedFractional_Vector VU.Vector CDouble
+deriving via C.CDouble instance RoundedSqrt_Vector VU.Vector CDouble
 
 --
 -- FFI

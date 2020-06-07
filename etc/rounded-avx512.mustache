@@ -338,36 +338,107 @@ extern {{TYPE}} rounded_hw_interval_div_add_{{NAME}}_down({{TYPE}} lo1, {{TYPE}}
 }
 
 //
-// Summation
+// Vector Operations
 //
 
-static inline {{TYPE}} rounded_sum_impl_{{NAME}}(native_rounding_mode mode, HsInt offset, HsInt length, const {{TYPE}} *a)
-{
-    {{TYPE}} s = 0.0{{LIT_SUFFIX}};
-    for (HsInt i = 0; i < length; ++i) {
-        s = rounded_add_impl_{{NAME}}(mode, s, a[offset + i]);
-    }
-    return s;
-}
-static {{TYPE}} rounded_hw_sum_{{NAME}}_nearest(HsInt offset, HsInt length, const {{TYPE}} *a)
-{ return rounded_sum_impl_{{NAME}}(ROUND_TONEAREST, offset, length, a); }
-{{#each_rounding_mode}}
-{{^is_dynamic}}
-extern {{TYPE}} rounded_hw_sum_{{NAME}}{{MODE_SUFFIX}}({{MODE_PARAM}}HsInt offset, HsInt length, const {{TYPE}} *a)
-{ return rounded_sum_impl_{{NAME}}({{MODE_ARG}}, offset, length, a); }
-{{/is_dynamic}}
-{{/each_rounding_mode}}
-extern {{TYPE}} rounded_hw_sum_{{NAME}}(HsInt mode, HsInt offset, HsInt length, const {{TYPE}} *a)
+extern {{TYPE}} rounded_hw_vector_sum_{{NAME}}(HsInt mode, HsInt length, HsInt offset, const {{TYPE}} *a)
 {
     switch (hs_rounding_mode_to_native(mode)) {
-    case ROUND_TONEAREST:
-        return rounded_hw_sum_{{NAME}}_nearest(offset, length, a);
-    case ROUND_UPWARD:
-        return rounded_hw_sum_{{NAME}}_up(offset, length, a);
-    case ROUND_DOWNWARD:
-        return rounded_hw_sum_{{NAME}}_down(offset, length, a);
-    case ROUND_TOWARDZERO:
-        return rounded_hw_sum_{{NAME}}_zero(offset, length, a);
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        {
+            {{TYPE}} s = 0.0{{LIT_SUFFIX}};
+            for (HsInt i = 0; i < length; ++i) {
+                s = rounded_add_impl_{{NAME}}({{MODE}}, s, a[offset + i]);
+            }
+            return s;
+        }
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
+extern void rounded_hw_vector_add_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_add_impl_{{NAME}}({{MODE}}, a[offsetA + i], b[offsetB + i]);
+        }
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
+extern void rounded_hw_vector_sub_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_sub_impl_{{NAME}}({{MODE}}, a[offsetA + i], b[offsetB + i]);
+        }
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
+extern void rounded_hw_vector_mul_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_mul_impl_{{NAME}}({{MODE}}, a[offsetA + i], b[offsetB + i]);
+        }
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
+extern void rounded_hw_vector_div_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_div_impl_{{NAME}}({{MODE}}, a[offsetA + i], b[offsetB + i]);
+        }
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
+extern void rounded_hw_vector_sqrt_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_sqrt_impl_{{NAME}}({{MODE}}, a[offsetA + i]);
+        }
+        break;
+{{/each_static_rounding_mode}}
     default:
         UNREACHABLE();
         abort();

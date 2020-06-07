@@ -40,14 +40,6 @@ each_function:
   CFnName: rounded_hw_word64_to
   CFnNameInHs: c_rounded_from_word64
   FnType: "Word64 -> Float"
-- HsFnName: roundedSumPtr
-  CFnName: rounded_hw_sum
-  CFnNameInHs: c_rounded_sum_ptr
-  FnType: "Int -> Int -> Ptr Float -> IO Float"
-- HsFnName: roundedSumByteArray
-  CFnName: rounded_hw_sum
-  CFnNameInHs: c_rounded_sum_bytearr
-  FnType: "Int -> Int -> ByteArray# -> Float"
 each_rounding_mode:
 - MODE_PARAM: "Int -> "
   MODE_SUFFIX: ""

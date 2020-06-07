@@ -97,8 +97,12 @@ instance (RealFloat a, RealFloatConstants a) => RoundedSqrt (ViaRational a) wher
     | otherwise = ViaRational y
     where y = sqrt x
 
-instance (RealFloat a, Num a, RealFloatConstants a, RoundedRing a, Storable a) => RoundedRing_Vector VS.Vector (ViaRational a)
-instance (RealFloat a, Num a, RealFloatConstants a, VU.Unbox a) => RoundedRing_Vector VU.Vector (ViaRational a)
+instance (RealFloat a, RealFloatConstants a, Storable a) => RoundedRing_Vector VS.Vector (ViaRational a)
+instance (RealFloat a, RealFloatConstants a, Storable a) => RoundedFractional_Vector VS.Vector (ViaRational a)
+instance (RealFloat a, RealFloatConstants a, Storable a) => RoundedSqrt_Vector VS.Vector (ViaRational a)
+instance (RealFloat a, RealFloatConstants a, VU.Unbox a) => RoundedRing_Vector VU.Vector (ViaRational a)
+instance (RealFloat a, RealFloatConstants a, VU.Unbox a) => RoundedFractional_Vector VU.Vector (ViaRational a)
+instance (RealFloat a, RealFloatConstants a, VU.Unbox a) => RoundedSqrt_Vector VU.Vector (ViaRational a)
 
 --
 -- instance for Data.Vector.Unboxed.Unbox

@@ -14,11 +14,23 @@ module {{ModName}}
   , intervalMulAdd_up
   , intervalDivAdd_down
   , intervalDivAdd_up
+  , vectorSumPtr
+  , vectorSumByteArray
+  , vectorAddPtr
+  , vectorAddByteArray
+  , vectorSubPtr
+  , vectorSubByteArray
+  , vectorMulPtr
+  , vectorMulByteArray
+  , vectorDivPtr
+  , vectorDivByteArray
+  , vectorSqrtPtr
+  , vectorSqrtByteArray
   ) where
 import Data.Int (Int64)
 import Data.Word (Word64)
 import Foreign.Ptr (Ptr)
-import GHC.Exts (ByteArray#)
+import GHC.Exts (ByteArray#, MutableByteArray#, RealWorld)
 import Numeric.Rounded.Hardware.Internal.Rounding (RoundingMode(..))
 {{#each_function}}
 
@@ -56,3 +68,87 @@ foreign import ccall unsafe "rounded_hw_interval_div_add_{{NAME}}_down"
   intervalDivAdd_down :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
 foreign import ccall unsafe "rounded_hw_interval_div_add_{{NAME}}_up"
   intervalDivAdd_up :: {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}} -> {{HsType}}
+
+foreign import ccall unsafe "rounded_hw_vector_sum_{{NAME}}"
+  c_vectorSumPtr :: Int -> Int -> Int -> Ptr {{HsType}} -> IO {{HsType}}
+
+vectorSumPtr :: RoundingMode -> Int -> Int -> Ptr {{HsType}} -> IO {{HsType}}
+vectorSumPtr r = c_vectorSumPtr (fromEnum r)
+{-# INLINE vectorSumPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_sum_{{NAME}}"
+  c_vectorSumByteArray :: Int -> Int -> Int -> ByteArray# -> {{HsType}}
+
+vectorSumByteArray :: RoundingMode -> Int -> Int -> ByteArray# -> {{HsType}}
+vectorSumByteArray r = c_vectorSumByteArray (fromEnum r)
+{-# INLINE vectorSumByteArray #-}
+
+foreign import ccall unsafe "rounded_hw_vector_add_{{NAME}}"
+  c_vectorAddPtr :: Int -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+
+vectorAddPtr :: RoundingMode -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+vectorAddPtr r = c_vectorAddPtr (fromEnum r)
+{-# INLINE vectorAddPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_add_{{NAME}}"
+  c_vectorAddByteArray :: Int -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+
+vectorAddByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+vectorAddByteArray r = c_vectorAddByteArray (fromEnum r)
+{-# INLINE vectorAddByteArray #-}
+
+foreign import ccall unsafe "rounded_hw_vector_sub_{{NAME}}"
+  c_vectorSubPtr :: Int -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+
+vectorSubPtr :: RoundingMode -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+vectorSubPtr r = c_vectorSubPtr (fromEnum r)
+{-# INLINE vectorSubPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_sub_{{NAME}}"
+  c_vectorSubByteArray :: Int -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+
+vectorSubByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+vectorSubByteArray r = c_vectorSubByteArray (fromEnum r)
+{-# INLINE vectorSubByteArray #-}
+
+foreign import ccall unsafe "rounded_hw_vector_mul_{{NAME}}"
+  c_vectorMulPtr :: Int -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+
+vectorMulPtr :: RoundingMode -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+vectorMulPtr r = c_vectorMulPtr (fromEnum r)
+{-# INLINE vectorMulPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_mul_{{NAME}}"
+  c_vectorMulByteArray :: Int -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+
+vectorMulByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+vectorMulByteArray r = c_vectorMulByteArray (fromEnum r)
+{-# INLINE vectorMulByteArray #-}
+
+foreign import ccall unsafe "rounded_hw_vector_div_{{NAME}}"
+  c_vectorDivPtr :: Int -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+
+vectorDivPtr :: RoundingMode -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+vectorDivPtr r = c_vectorDivPtr (fromEnum r)
+{-# INLINE vectorDivPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_div_{{NAME}}"
+  c_vectorDivByteArray :: Int -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+
+vectorDivByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+vectorDivByteArray r = c_vectorDivByteArray (fromEnum r)
+{-# INLINE vectorDivByteArray #-}
+
+foreign import ccall unsafe "rounded_hw_vector_sqrt_{{NAME}}"
+  c_vectorSqrtPtr :: Int -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+
+vectorSqrtPtr :: RoundingMode -> Int -> Int -> Ptr {{HsType}} -> Int -> Ptr {{HsType}} -> IO ()
+vectorSqrtPtr r = c_vectorSqrtPtr (fromEnum r)
+{-# INLINE vectorSqrtPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_sqrt_{{NAME}}"
+  c_vectorSqrtByteArray :: Int -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> IO ()
+
+vectorSqrtByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> IO ()
+vectorSqrtByteArray r = c_vectorSqrtByteArray (fromEnum r)
+{-# INLINE vectorSqrtByteArray #-}

@@ -10,6 +10,7 @@ import qualified RoundedArithmeticSpec
 import qualified ShowFloatSpec
 import qualified FloatUtilSpec
 import           Test.Hspec
+import qualified VectorSpec
 #ifdef TEST_X87_LONG_DOUBLE
 import           Numeric.LongDouble (LongDouble)
 import qualified X87LongDoubleSpec
@@ -33,6 +34,7 @@ main = do
     describe "rounded arithmetic" RoundedArithmeticSpec.spec
     describe "interval arithmetic" IntervalArithmeticSpec.spec
     describe "FloatUtil" FloatUtilSpec.spec
+    describe "Vector" VectorSpec.spec
 #ifdef TEST_X87_LONG_DOUBLE
     describe "x87 long double" X87LongDoubleSpec.spec
 #endif

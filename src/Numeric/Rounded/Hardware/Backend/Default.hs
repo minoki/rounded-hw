@@ -39,19 +39,51 @@ deriving via FloatImpl instance RoundedRing Float
 deriving via FloatImpl instance RoundedFractional Float
 deriving via FloatImpl instance RoundedSqrt Float
 deriving via FloatImpl instance RoundedRing_Vector VU.Vector Float
+deriving via FloatImpl instance RoundedFractional_Vector VU.Vector Float
+deriving via FloatImpl instance RoundedSqrt_Vector VU.Vector Float
 
 instance RoundedRing_Vector VS.Vector Float where
   roundedSum mode vec = coerce (roundedSum mode (unsafeCoerce vec :: VS.Vector FloatImpl))
+  zipWith_roundedAdd mode vec vec' = unsafeCoerce (zipWith_roundedAdd mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector FloatImpl)
+  zipWith_roundedSub mode vec vec' = unsafeCoerce (zipWith_roundedSub mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector FloatImpl)
+  zipWith_roundedMul mode vec vec' = unsafeCoerce (zipWith_roundedMul mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector FloatImpl)
   {-# INLINE roundedSum #-}
+  {-# INLINE zipWith_roundedAdd #-}
+  {-# INLINE zipWith_roundedSub #-}
+  {-# INLINE zipWith_roundedMul #-}
+
+instance RoundedFractional_Vector VS.Vector Float where
+  zipWith_roundedDiv mode vec vec' = unsafeCoerce (zipWith_roundedDiv mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector FloatImpl)
+  {-# INLINE zipWith_roundedDiv #-}
+
+instance RoundedSqrt_Vector VS.Vector Float where
+  map_roundedSqrt mode vec = unsafeCoerce (map_roundedSqrt mode (unsafeCoerce vec) :: VS.Vector FloatImpl)
+  {-# INLINE map_roundedSqrt #-}
 
 deriving via DoubleImpl instance RoundedRing Double
 deriving via DoubleImpl instance RoundedFractional Double
 deriving via DoubleImpl instance RoundedSqrt Double
 deriving via DoubleImpl instance RoundedRing_Vector VU.Vector Double
+deriving via DoubleImpl instance RoundedFractional_Vector VU.Vector Double
+deriving via DoubleImpl instance RoundedSqrt_Vector VU.Vector Double
 
 instance RoundedRing_Vector VS.Vector Double where
   roundedSum mode vec = coerce (roundedSum mode (unsafeCoerce vec :: VS.Vector DoubleImpl))
+  zipWith_roundedAdd mode vec vec' = unsafeCoerce (zipWith_roundedAdd mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector DoubleImpl)
+  zipWith_roundedSub mode vec vec' = unsafeCoerce (zipWith_roundedSub mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector DoubleImpl)
+  zipWith_roundedMul mode vec vec' = unsafeCoerce (zipWith_roundedMul mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector DoubleImpl)
   {-# INLINE roundedSum #-}
+  {-# INLINE zipWith_roundedAdd #-}
+  {-# INLINE zipWith_roundedSub #-}
+  {-# INLINE zipWith_roundedMul #-}
+
+instance RoundedFractional_Vector VS.Vector Double where
+  zipWith_roundedDiv mode vec vec' = unsafeCoerce (zipWith_roundedDiv mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector DoubleImpl)
+  {-# INLINE zipWith_roundedDiv #-}
+
+instance RoundedSqrt_Vector VS.Vector Double where
+  map_roundedSqrt mode vec = unsafeCoerce (map_roundedSqrt mode (unsafeCoerce vec) :: VS.Vector DoubleImpl)
+  {-# INLINE map_roundedSqrt #-}
 
 -- orphaned rules
 {-# RULES

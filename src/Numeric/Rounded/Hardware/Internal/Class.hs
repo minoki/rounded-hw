@@ -143,10 +143,16 @@ class RoundedRing a => RoundedRing_Vector vector a where
 
 class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Vector vector a where
   zipWith_roundedDiv :: RoundingMode -> vector a -> vector a -> vector a
-  map_roundedRecip :: RoundingMode -> vector a -> vector a
+  -- map_roundedRecip :: RoundingMode -> vector a -> vector a
 
-class (RoundedRing a, RoundedRing_Vector vector a) => RoundedSqrt_Vector vector a where
+  default zipWith_roundedDiv :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
+  zipWith_roundedDiv mode = VG.zipWith (roundedDiv mode)
+
+class (RoundedSqrt a, RoundedRing_Vector vector a) => RoundedSqrt_Vector vector a where
   map_roundedSqrt :: RoundingMode -> vector a -> vector a
+
+  default map_roundedSqrt :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a
+  map_roundedSqrt mode = VG.map (roundedSqrt mode)
 
 instance (Rounding r, Num a, RoundedRing a) => Num (Rounded r a) where
   Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy r)) x y)
