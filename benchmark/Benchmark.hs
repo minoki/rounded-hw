@@ -232,6 +232,29 @@ main =
          [ bench "naive" $ nf VU.sum vec'
          , bench "C impl" $ nf RVU.sum vec'
          ]
+    , let vec :: VU.Vector Double
+          vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral (i+1))
+          vec1, vec2 :: VU.Vector (Rounded 'TowardInf Double)
+          vec1 = VU.drop 3 $ VU.take 58645 $ VU.map Rounded vec
+          vec2 = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
+      in bgroup "vector"
+         [ bgroup "add"
+           [ bench "naive" $ nf (uncurry (VU.zipWith (+))) (vec1, vec2)
+           , bench "C impl" $ nf (uncurry RVU.zipWith_add) (vec1, vec2)
+           ]
+         , bgroup "sub"
+           [ bench "naive" $ nf (uncurry (VU.zipWith (-))) (vec1, vec2)
+           , bench "C impl" $ nf (uncurry RVU.zipWith_sub) (vec1, vec2)
+           ]
+         , bgroup "mul"
+           [ bench "naive" $ nf (uncurry (VU.zipWith (*))) (vec1, vec2)
+           , bench "C impl" $ nf (uncurry RVU.zipWith_mul) (vec1, vec2)
+           ]
+         , bgroup "div"
+           [ bench "naive" $ nf (uncurry (VU.zipWith (/))) (vec1, vec2)
+           , bench "C impl" $ nf (uncurry RVU.zipWith_div) (vec1, vec2)
+           ]
+         ]
     , let vec :: V.Vector (Interval Double)
           vec = V.generate 100000 $ \i -> fromRational (1 % (1 + fromIntegral i))
       in bgroup "interval sum"
