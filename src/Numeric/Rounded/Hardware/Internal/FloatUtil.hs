@@ -6,6 +6,7 @@ module Numeric.Rounded.Hardware.Internal.FloatUtil
   , minPositive_ieee
   , maxFinite_ieee
   , distanceUlp
+  , fusedMultiplyAdd
   ) where
 import           Data.Bits
 import           Data.Ratio
@@ -289,6 +290,21 @@ nextTowardZeroDouble x
     d, expMin :: Int
     d = floatDigits x -- 53 for Double
     (expMin,expMax) = floatRange x -- (-1021,1024) for Double
+
+fusedMultiplyAdd :: RealFloat a => a -> a -> a -> a
+fusedMultiplyAdd x y z
+  | isNaN x || isNaN y || isNaN z || isInfinite x || isInfinite y || isInfinite z = x * y + z
+  | otherwise = case toRational x * toRational y + toRational z of
+                  0 | isNegativeZero (x * y + z) -> -0
+                  r -> fromRational r
+{-# INLINE [1] fusedMultiplyAdd #-}
+{-
+TODO: Implement specialized version
+{-# RULES
+"fusedMultiplyAdd/Float" fusedMultiplyAdd = fusedMultiplyAddFloat :: Float -> Float -> Float -> Float
+"fusedMultiplyAdd/Double" fusedMultiplyAdd = fusedMultiplyAddDouble :: Double -> Double -> Double -> Double
+  #-}
+-}
 
 distanceUlp :: RealFloat a => a -> a -> Maybe Integer
 distanceUlp x y
