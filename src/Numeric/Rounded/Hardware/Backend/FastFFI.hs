@@ -50,6 +50,7 @@ instance RoundedRing CDouble where
   roundedAdd = coerce D.roundedAdd
   roundedSub = coerce D.roundedSub
   roundedMul = coerce D.roundedMul
+  roundedFusedMultiplyAdd = coerce D.roundedFMA
   intervalAdd x x' y y' = coerce fastIntervalAdd x x' y y'
   intervalSub x x' y y' = coerce fastIntervalSub x x' y y'
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
@@ -64,6 +65,7 @@ instance RoundedRing CDouble where
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
+  {-# INLINE roundedFusedMultiplyAdd #-}
   {-# INLINE intervalAdd #-}
   {-# INLINE intervalSub #-}
   {-# INLINE intervalMul #-}

@@ -122,12 +122,14 @@ instance RoundedRing LongDouble where
   roundedAdd = roundedAdd_ld
   roundedSub = roundedSub_ld
   roundedMul = roundedMul_ld
+  roundedFusedMultiplyAdd = roundedFMA_ld
   roundedFromInteger = fromInt
   intervalFromInteger = intervalFromInteger_default
   backendNameT = Tagged cBackendName
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
+  {-# INLINE roundedFusedMultiplyAdd #-}
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
 

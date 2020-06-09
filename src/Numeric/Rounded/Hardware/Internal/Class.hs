@@ -28,6 +28,7 @@ class Ord a => RoundedRing a where
   roundedAdd :: RoundingMode -> a -> a -> a
   roundedSub :: RoundingMode -> a -> a -> a
   roundedMul :: RoundingMode -> a -> a -> a
+  roundedFusedMultiplyAdd :: RoundingMode -> a -> a -> a -> a
   roundedFromInteger :: RoundingMode -> Integer -> a
   -- roundedToFloat :: RoundingMode -> a -> Float
   -- roundedToDouble :: RoundingMode -> a -> Double
@@ -193,6 +194,7 @@ instance RoundedRing Integer where
   roundedAdd _ = (Prelude.+)
   roundedSub _ = (Prelude.-)
   roundedMul _ = (Prelude.*)
+  roundedFusedMultiplyAdd _ x y z = x Prelude.* y Prelude.+ z
   roundedFromInteger _ = id
   backendNameT = Tagged "Integer"
 
@@ -212,6 +214,7 @@ instance Integral a => RoundedRing (Ratio a) where
   roundedAdd _ = (Prelude.+)
   roundedSub _ = (Prelude.-)
   roundedMul _ = (Prelude.*)
+  roundedFusedMultiplyAdd _ x y z = x Prelude.* y Prelude.+ z
   roundedFromInteger _ = Prelude.fromInteger
   backendNameT = Tagged "Rational"
 

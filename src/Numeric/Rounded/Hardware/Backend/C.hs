@@ -100,6 +100,7 @@ instance RoundedRing CFloat where
   roundedAdd = coerce F.roundedAdd
   roundedSub = coerce F.roundedSub
   roundedMul = coerce F.roundedMul
+  roundedFusedMultiplyAdd = coerce F.roundedFMA
   intervalMul x x' y y' = (coerce F.intervalMul_down x x' y y', coerce F.intervalMul_up x x' y y')
   intervalMulAdd x x' y y' z z' = (coerce F.intervalMulAdd_down x x' y y' z, coerce F.intervalMulAdd_up x x' y y' z')
   roundedFromInteger r x = CFloat (roundedFloatFromInteger r x)
@@ -108,6 +109,7 @@ instance RoundedRing CFloat where
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
+  {-# INLINE roundedFusedMultiplyAdd #-}
   {-# INLINE intervalMul #-}
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
@@ -217,6 +219,7 @@ instance RoundedRing CDouble where
   roundedAdd = coerce D.roundedAdd
   roundedSub = coerce D.roundedSub
   roundedMul = coerce D.roundedMul
+  roundedFusedMultiplyAdd = coerce D.roundedFMA
   intervalMul x x' y y' = (coerce D.intervalMul_down x x' y y', coerce D.intervalMul_up x x' y y')
   intervalMulAdd x x' y y' z z' = (coerce D.intervalMulAdd_down x x' y y' z, coerce D.intervalMulAdd_up x x' y y' z')
   roundedFromInteger = coerce roundedDoubleFromInteger
@@ -225,6 +228,7 @@ instance RoundedRing CDouble where
   {-# INLINE roundedAdd #-}
   {-# INLINE roundedSub #-}
   {-# INLINE roundedMul #-}
+  {-# INLINE roundedFusedMultiplyAdd #-}
   {-# INLINE intervalMul #-}
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}

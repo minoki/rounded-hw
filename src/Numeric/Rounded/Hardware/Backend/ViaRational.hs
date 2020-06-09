@@ -58,6 +58,18 @@ instance (RealFloat a, Num a, RealFloatConstants a) => RoundedRing (ViaRational 
   roundedMul r (ViaRational x) (ViaRational y)
     | isNaN x || isNaN y || isInfinite x || isInfinite y || isNegativeZero x || isNegativeZero y = ViaRational (x * y)
     | otherwise = roundedFromRational r (toRational x * toRational y)
+  roundedFusedMultiplyAdd r (ViaRational x) (ViaRational y) (ViaRational z)
+    | isNaN x || isNaN y || isNaN z || isInfinite x || isInfinite y || isInfinite z = ViaRational (x * y + z)
+    | otherwise = case toRational x * toRational y + toRational z of
+                    0 -> if z == 0 && isNegativeZero (x * y) == isNegativeZero z
+                         then ViaRational z
+                         else ViaRational roundedZero
+                    w -> roundedFromRational r w
+      where roundedZero = case r of
+              ToNearest    ->  0
+              TowardNegInf -> -0
+              TowardInf    ->  0
+              TowardZero   ->  0
   roundedFromInteger r x = ViaRational (fromInt r x)
   intervalFromInteger x = case fromIntF x :: Product (Rounded 'TowardNegInf) (Rounded 'TowardInf) a of
     Pair a b -> (ViaRational <$> a, ViaRational <$> b)
