@@ -98,14 +98,24 @@ foreign import ccall unsafe "nextafter"
   c_nextafter_double :: Double -> Double -> Double
 foreign import ccall unsafe "nextafterf"
   c_nextafter_float :: Float -> Float -> Float
+foreign import ccall unsafe "fma"
+  c_fma_double :: Double -> Double -> Double -> Double
+foreign import ccall unsafe "fmaf"
+  c_fma_float :: Float -> Float -> Float -> Float
 
-class Fractional a => CNextAfter a where
+class Fractional a => CFloat a where
   c_nextafter :: a -> a -> a
+  c_fma :: a -> a -> a -> a
 
-instance CNextAfter Double where c_nextafter = c_nextafter_double
-instance CNextAfter Float where c_nextafter = c_nextafter_float
+instance CFloat Double where
+  c_nextafter = c_nextafter_double
+  c_fma = c_fma_double
 
-c_nextUp, c_nextDown :: (RealFloat a, CNextAfter a) => a -> a
+instance CFloat Float where
+  c_nextafter = c_nextafter_float
+  c_fma = c_fma_float
+
+c_nextUp, c_nextDown :: (RealFloat a, CFloat a) => a -> a
 c_nextUp x = c_nextafter x (1/0)
 c_nextDown x = c_nextafter x (-1/0)
 
@@ -299,6 +309,22 @@ main =
              [ bench (showHFloat x "") $ nf nextDown x | x <- cases ]
            , bgroup "Haskell (generic)"
              [ bench (showHFloat x "") $ nf nextDown (Identity x) | x <- cases ]
+           ]
+      ]
+    , bgroup "FMA"
+      [ let arg = (1.0, 2.0, 3.0) :: (Double, Double, Double)
+        in bgroup "Double"
+           [ bench "C" $ nf (\(x,y,z) -> c_fma x y z) arg
+           , bench "Haskell" $ nf (\(x,y,z) -> fusedMultiplyAdd x y z) arg
+           , bench "Haskell (generic)" $ nf (\(x,y,z) -> fusedMultiplyAdd (Identity x) (Identity y) (Identity z)) arg
+           , bench "Haskell (rounded)" $ nf (\(x,y,z) -> roundedFusedMultiplyAdd ToNearest x y z) arg
+           ]
+      , let arg = (1.0, 2.0, 3.0) :: (Float, Float, Float)
+        in bgroup "Float"
+           [ bench "C" $ nf (\(x,y,z) -> c_fma x y z) arg
+           , bench "Haskell" $ nf (\(x,y,z) -> fusedMultiplyAdd x y z) arg
+           , bench "Haskell (generic)" $ nf (\(x,y,z) -> fusedMultiplyAdd (Identity x) (Identity y) (Identity z)) arg
+           , bench "Haskell (rounded)" $ nf (\(x,y,z) -> roundedFusedMultiplyAdd ToNearest x y z) arg
            ]
       ]
     ]
