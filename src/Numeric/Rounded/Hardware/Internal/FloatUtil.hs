@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE NumericUnderscores #-}
 module Numeric.Rounded.Hardware.Internal.FloatUtil
   ( nextUp
@@ -297,14 +298,21 @@ fusedMultiplyAdd x y z
   | otherwise = case toRational x * toRational y + toRational z of
                   0 | isNegativeZero (x * y + z) -> -0
                   r -> fromRational r
-{-# INLINE [1] fusedMultiplyAdd #-}
-{-
-TODO: Implement specialized version
+{-# NOINLINE [1] fusedMultiplyAdd #-}
+
+#ifdef USE_FFI
+
+foreign import ccall unsafe "fmaf"
+  fusedMultiplyAddFloat :: Float -> Float -> Float -> Float
+foreign import ccall unsafe "fma"
+  fusedMultiplyAddDouble :: Double -> Double -> Double -> Double
+
 {-# RULES
-"fusedMultiplyAdd/Float" fusedMultiplyAdd = fusedMultiplyAddFloat :: Float -> Float -> Float -> Float
-"fusedMultiplyAdd/Double" fusedMultiplyAdd = fusedMultiplyAddDouble :: Double -> Double -> Double -> Double
+"fusedMultiplyAdd/Float" fusedMultiplyAdd = fusedMultiplyAddFloat
+"fusedMultiplyAdd/Double" fusedMultiplyAdd = fusedMultiplyAddDouble
   #-}
--}
+
+#endif
 
 distanceUlp :: RealFloat a => a -> a -> Maybe Integer
 distanceUlp x y
