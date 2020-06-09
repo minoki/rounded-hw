@@ -69,9 +69,9 @@ jobs:
 
   # The following script does not seem to work with cabal 3.0.
   # Allowed to fail for now.
-  - env: BUILD=cabal GHCVER=8.8.2 CABALVER=3.0 HAPPYVER=1.19.5 ALEXVER=3.1.7
-    compiler: ": #GHC 8.8.2"
-    addons: {apt: {packages: [cabal-install-3.0,ghc-8.8.2,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
+  - env: BUILD=cabal GHCVER=8.8.3 CABALVER=3.0 HAPPYVER=1.19.5 ALEXVER=3.1.7
+    compiler: ": #GHC 8.8.3"
+    addons: {apt: {packages: [cabal-install-3.0,ghc-8.8.3,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
@@ -115,10 +115,6 @@ jobs:
 
   - env: BUILD=stack ARGS="--resolver lts-14"
     compiler: ": #stack 8.6.5"
-    addons: {apt: {packages: [libgmp-dev]}}
-
-  - env: BUILD=stack ARGS="--resolver lts-15.3"
-    compiler: ": #stack 8.8.2"
     addons: {apt: {packages: [libgmp-dev]}}
 
   - env: BUILD=stack ARGS="--resolver lts-15"
@@ -185,10 +181,6 @@ jobs:
     compiler: ": #stack 8.6.5 osx"
     os: osx
 
-  - env: BUILD=stack ARGS="--resolver lts-15.3"
-    compiler: ": #stack 8.8.2 osx"
-    os: osx
-
   - env: BUILD=stack ARGS="--resolver lts-15"
     compiler: ": #stack 8.8.3 osx"
     os: osx
@@ -217,7 +209,7 @@ jobs:
   allow_failures:
   - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
   - env: BUILD=stack ARGS="--resolver nightly"
-  - env: BUILD=cabal GHCVER=8.8.2 CABALVER=3.0 HAPPYVER=1.19.5 ALEXVER=3.1.7
+  - env: BUILD=cabal GHCVER=8.8.3 CABALVER=3.0 HAPPYVER=1.19.5 ALEXVER=3.1.7
   - env: BUILD=stack ARGS="--resolver nightly --compiler ghc-8.10.1" BUILDARGS="--flag rounded-hw:-x87-long-double"
   - env: BUILD=stack ARGS="--resolver nightly --compiler ghc-8.10.1" BUILDARGS="--flag rounded-hw:-x87-long-double"
 
