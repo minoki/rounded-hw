@@ -3,13 +3,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE HexFloatLiterals #-}
 {-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE QuantifiedConstraints #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 import           Control.Monad
 import           Control.Monad.ST
-import           Data.Array (Array)
-import           Data.Array.IArray (IArray)
-import           Data.Array.ST
-import           Data.Array.Unboxed
+import           Data.Array.IArray
+import           Data.Array.MArray
+import           Data.Array.ST (STArray, STUArray)
+import           Data.Array.Unboxed (UArray)
 import           Data.Bits
 import           Data.Functor.Identity
 import           Data.Int
@@ -28,6 +29,10 @@ import qualified Numeric.Rounded.Hardware.Vector.Unboxed as RVU
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
 thawST = thaw
+
+thawSTU :: (Ix i, IArray a e {-, MArray (STUArray s) e (ST s) -}) => a i e -> ST s (STArray s i e)
+thawSTU = thaw
+{-# INLINE thawSTU #-}
 
 intervalGaussianElimination :: (Fractional a) => Array (Int,Int) a -> V.Vector a -> V.Vector a
 intervalGaussianElimination a b
@@ -62,11 +67,15 @@ intervalGaussianElimination a b
             x <- VM.read vec i
             VM.write vec i $! f x
 
-intervalGaussianEliminationU :: (Fractional a, IArray UArray a, VU.Unbox a) => UArray (Int,Int) a -> VU.Vector a -> VU.Vector a
+{-# SPECIALIZE
+  intervalGaussianEliminationU :: UArray (Int,Int) Double -> VU.Vector Double -> VU.Vector Double, UArray (Int,Int) (Interval Double) -> VU.Vector (Interval Double) -> VU.Vector (Interval Double)
+                                , UArray (Int,Int) (NE.Interval Double) -> VU.Vector (NE.Interval Double) -> VU.Vector (NE.Interval Double)
+  #-}
+intervalGaussianEliminationU :: (Fractional a, IArray UArray a, forall s. MArray (STUArray s) a (ST s), VU.Unbox a) => UArray (Int,Int) a -> VU.Vector a -> VU.Vector a
 intervalGaussianEliminationU a b
   | not (i0 == 0 && j0 == 0 && iN == n - 1 && jN == n - 1) = error "invalid size"
   | otherwise = VU.create $ do
-      a' <- thawST a
+      a' <- thawSTU a
       b' <- VU.thaw b
 
       -- elimination
@@ -233,6 +242,7 @@ main =
       in bgroup "(Interval) Gaussian Elimination, unboxed"
          [ bench "non-interval" $ nf (uncurry intervalGaussianEliminationU) (arr, vec :: VU.Vector Double)
          , bench "naive" $ nf (uncurry intervalGaussianEliminationU) (arr, vec :: VU.Vector (Interval Double))
+         , bench "non-empty" $ nf (uncurry intervalGaussianEliminationU) (arr, vec :: VU.Vector (NE.Interval Double))
          ]
     , let vec :: VU.Vector Double
           vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral (i+1))
