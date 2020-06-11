@@ -23,6 +23,7 @@ import           Gauge.Main
 import           Numeric
 import           Numeric.Rounded.Hardware.Internal
 import           Numeric.Rounded.Hardware.Interval
+import qualified Numeric.Rounded.Hardware.Interval.NonEmpty as NE
 import qualified Numeric.Rounded.Hardware.Vector.Unboxed as RVU
 
 thawST :: (Ix i, IArray a e) => a i e -> ST s (STArray s i e)
@@ -217,6 +218,7 @@ main =
       in bgroup "(Interval) Gaussian Elimination"
          [ bench "non-interval" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector Double)
          , bench "naive" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector (Interval Double))
+         , bench "non-empty" $ nf (uncurry intervalGaussianElimination) (arr, vec :: V.Vector (NE.Interval Double))
          ]
     , let arr :: (IArray UArray a, Fractional a) => UArray (Int,Int) a
           arr = listArray ((0,0),(4,4))
@@ -271,6 +273,12 @@ main =
          [ bench "naive" $ nf V.sum vec
          , bench "naive 2" $ nf (V.foldl' (+) 0) vec
          ]
+    , bgroup "interval elementary functions"
+      [ bench "exp" $ nf exp (0.3 :: Interval Double)
+      , bench "NE.exp" $ nf exp (0.3 :: NE.Interval Double)
+      , bench "sin" $ nf sin (7.3 :: Interval Double)
+      , bench "NE.sin" $ nf sin (7.3 :: NE.Interval Double)
+      ]
     , bgroup "nextUp"
       [ let cases = [0,1,0x1.ffff_ffff_ffff_fp200] :: [Double]
         in bgroup "Double"
