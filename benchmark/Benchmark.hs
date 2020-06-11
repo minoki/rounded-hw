@@ -246,21 +246,15 @@ main =
          ]
     , let vec :: VU.Vector Double
           vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral (i+1))
-          vec' :: VU.Vector (Rounded 'TowardInf Double)
-          vec' = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
-          vec'' :: VU.Vector (Rounded 'TowardNegInf Double)
-          vec'' = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
-      in bgroup "sum"
-         [ bench "naive" $ nf VU.sum vec'
-         , bench "C impl" $ nf RVU.sum vec'
-         ]
-    , let vec :: VU.Vector Double
-          vec = VU.generate 100000 $ \i -> fromRational (1 % fromIntegral (i+1))
           vec1, vec2 :: VU.Vector (Rounded 'TowardInf Double)
           vec1 = VU.drop 3 $ VU.take 58645 $ VU.map Rounded vec
           vec2 = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
       in bgroup "vector"
-         [ bgroup "add"
+         [ bgroup "sum"
+           [ bench "naive" $ nf VU.sum vec1
+           , bench "C impl" $ nf RVU.sum vec1
+           ]
+         , bgroup "add"
            [ bench "naive" $ nf (uncurry (VU.zipWith (+))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_add) (vec1, vec2)
            ]
