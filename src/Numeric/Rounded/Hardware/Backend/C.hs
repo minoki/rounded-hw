@@ -1,3 +1,24 @@
+{-|
+Module: Numeric.Rounded.Hardware.Backend.C
+
+The types in this module implements rounding-mode-controlled operations in C.
+
+There are several ways to control rounding mode in C, and an appropriate technology will be selected at compile time.
+This library implements the following options:
+
+    * C99 @fesetround@
+    * On x86 systems,
+
+        * SSE2 MXCSR (for 'Float' and 'Double')
+        * AVX512 EVEX encoding (for 'Float' and 'Double')
+        * x87 Control Word (for 'Numeric.LongDouble.LongDouble')
+
+    * On AArch64, FPCR
+
+You should not need to import this module directly.
+
+This module is not available if the package flag @pure-hs@ is set.
+-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -44,6 +65,9 @@ import           System.IO.Unsafe (unsafePerformIO)
 -- Float
 --
 
+-- | A wrapper providing particular instances for 'RoundedRing', 'RoundedFractional' and 'RoundedSqrt'.
+--
+-- This type is different from @CFloat@ from "Foreign.C.Types".
 newtype CFloat = CFloat Float
   deriving (Eq,Ord,Show,Generic,Num,Storable)
 
@@ -161,6 +185,9 @@ instance RoundedSqrt_Vector VU.Vector CFloat where
 -- Double
 --
 
+-- | A wrapper providing particular instances for 'RoundedRing', 'RoundedFractional' and 'RoundedSqrt'.
+--
+-- This type is different from @CDouble@ from "Foreign.C.Types".
 newtype CDouble = CDouble Double
   deriving (Eq,Ord,Show,Generic,Num,Storable)
 

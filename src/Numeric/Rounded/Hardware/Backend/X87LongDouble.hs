@@ -118,6 +118,8 @@ instance RealFloatConstants LongDouble where
   two_minus_sqrt2_down = Rounded 0x9.5f619980c4336f7p-4
   two_minus_sqrt2_up   = Rounded 0x9.5f619980c4336f8p-4
 
+-- | Only available on x86/x86_64 systems.
+-- Note that 'LongDouble' may not work correctly on Win64.
 instance RoundedRing LongDouble where
   roundedAdd = roundedAdd_ld
   roundedSub = roundedSub_ld
@@ -133,6 +135,8 @@ instance RoundedRing LongDouble where
   {-# INLINE roundedFromInteger #-}
   {-# INLINE intervalFromInteger #-}
 
+-- | Only available on x86/x86_64 systems.
+-- Note that 'LongDouble' may not work correctly on Win64.
 instance RoundedFractional LongDouble where
   roundedDiv = roundedDiv_ld
   roundedFromRational r x = fromRatio r (numerator x) (denominator x)
@@ -141,6 +145,8 @@ instance RoundedFractional LongDouble where
   {-# INLINE roundedFromRational #-}
   {-# INLINE intervalFromRational #-}
 
+-- | Only available on x86/x86_64 systems.
+-- Note that 'LongDouble' may not work correctly on Win64.
 instance RoundedSqrt LongDouble where
   roundedSqrt = roundedSqrt_ld
   {-# INLINE roundedSqrt #-}

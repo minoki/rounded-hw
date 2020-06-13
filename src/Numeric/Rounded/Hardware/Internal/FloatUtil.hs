@@ -66,7 +66,7 @@ staticIf _ _ x = x
 -- prop> isNegativeZero (nextUp (-0x1p-1074) :: Double)
 nextUp :: RealFloat a => a -> a
 nextUp x | not (isIEEE x) = error "non-IEEE numbers are not supported"
-         | floatRadix x /= 2 = error "non-binary types are not supported "
+         | floatRadix x /= 2 = error "non-binary types are not supported"
          | isNaN x || (isInfinite x && x > 0) = x -- NaN or positive infinity
          | x >= 0 = nextUp_ieee_positive x
          | otherwise = - nextDown_ieee_positive (- x)
@@ -82,7 +82,7 @@ nextUp x | not (isIEEE x) = error "non-IEEE numbers are not supported"
 -- prop> nextDown 0x1p-1074 == (0 :: Double)
 nextDown :: RealFloat a => a -> a
 nextDown x | not (isIEEE x) = error "non-IEEE numbers are not supported"
-           | floatRadix x /= 2 = error "non-binary types are not supported "
+           | floatRadix x /= 2 = error "non-binary types are not supported"
            | isNaN x || (isInfinite x && x < 0) = x -- NaN or negative infinity
            | x >= 0 = nextDown_ieee_positive x
            | otherwise = - nextUp_ieee_positive (- x)

@@ -1,3 +1,19 @@
+{-|
+Module: Numeric.Rounded.Hardware.Backend.FastFFI
+
+The types in this module implements interval addition and subtraction in assembly.
+
+Currently, the only platform supported is x86_64.
+
+One of the following technology will be used to control rounding mode:
+
+    * SSE2 MXCSR
+    * AVX512 EVEX encoding
+
+You should not need to import this module directly.
+
+This module may not be available depending on the platform or package flags.
+-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}

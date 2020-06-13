@@ -28,21 +28,28 @@ import           Foreign.Storable (Storable)
 import           GHC.Generics (Generic)
 
 -- See cbits/rounded.c for the ordering
+-- | The type for IEEE754 rounding-direction attributes.
 data RoundingMode
-  = ToNearest     -- ^ IEEE754 roundTiesToEven
-  | TowardNegInf  -- ^ IEEE754 roundTowardNegative
-  | TowardInf     -- ^ IEEE754 roundTowardPositive
-  | TowardZero    -- ^ IEEE754 roundTowardZero
+  = ToNearest     -- ^ Round to the nearest value (IEEE754 roundTiesToEven)
+  | TowardNegInf  -- ^ Round downward (IEEE754 roundTowardNegative)
+  | TowardInf     -- ^ Round upward (IEEE754 roundTowardPositive)
+  | TowardZero    -- ^ Round toward zero (IEEE754 roundTowardZero)
   deriving (Eq, Ord, Read, Show, Enum, Bounded, Generic)
 
 instance NFData RoundingMode
 
+-- | Returns the opposite rounding direction.
+--
+-- @TowardNegInf@ and @TowardInf@ are swapped.
 oppositeRoundingMode :: RoundingMode -> RoundingMode
 oppositeRoundingMode ToNearest    = ToNearest
 oppositeRoundingMode TowardZero   = TowardZero
 oppositeRoundingMode TowardInf    = TowardNegInf
 oppositeRoundingMode TowardNegInf = TowardInf
 
+-- | This class allows you to recover the runtime value from a type-level rounding mode.
+--
+-- See 'rounding'.
 class Rounding (r :: RoundingMode) where
   roundingT :: Tagged r RoundingMode
 
@@ -58,10 +65,12 @@ instance Rounding 'TowardNegInf where
 instance Rounding 'TowardZero where
   roundingT = Tagged TowardZero
 
+-- | Recovers the value from type-level rounding mode.
 rounding :: Rounding r => proxy r -> RoundingMode
 rounding = Data.Tagged.proxy roundingT
 {-# INLINE rounding #-}
 
+-- | Lifts a rounding mode to type-level.
 reifyRounding :: RoundingMode -> (forall s. Rounding s => Proxy s -> a) -> a
 reifyRounding ToNearest f    = f (Proxy :: Proxy 'ToNearest)
 reifyRounding TowardInf f    = f (Proxy :: Proxy 'TowardInf)
@@ -69,14 +78,18 @@ reifyRounding TowardNegInf f = f (Proxy :: Proxy 'TowardNegInf)
 reifyRounding TowardZero f   = f (Proxy :: Proxy 'TowardZero)
 {-# INLINE reifyRounding #-}
 
--- | A type tagged with a rounding mode.
+-- | A type tagged with a rounding direction.
 --
--- The rounding mode is effective for a /single/ operation.
--- You don't obtain the correctly-rounded result for a compound expression like @(a - b * c) :: Rounded 'TowardInf Double@.
+-- The rounding direction is effective for a /single/ operation.
+-- You won't get the correctly-rounded result for a compound expression like @(a - b * c) :: Rounded 'TowardInf Double@.
+--
+-- In particular, a negative literal like @-0.1 :: Rounded r Double@ doesn't yield the correctly-rounded value for @-0.1@.
+-- To get the correct value, call 'fromRational' explicitly (i.e. @fromRational (-0.1) :: Rounded r Double@) or use @NegativeLiterals@ extension.
 newtype Rounded (r :: RoundingMode) a = Rounded { getRounded :: a }
   deriving (Eq, Ord, Generic, Functor, Storable)
 
 instance Show a => Show (Rounded r a) where
+  -- TODO: Take the rounding direction into account
   showsPrec prec (Rounded x) = showParen (prec > 10) $ showString "Rounded " . showsPrec 11 x
 
 instance NFData a => NFData (Rounded r a)
@@ -86,7 +99,7 @@ instance NFData a => NFData (Rounded r a)
 -- instance Fractional (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
 -- instance Real (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
 -- instance RealFrac (Rounded r a) is defined in Numeric.Rounded.Hardware.Internal.Class.
--- instance Floating (Rounded r a) is not implemented yet...
+-- instance Floating (Rounded r a) is not implemented (something like CRlibm would be needed)
 
 newtype instance VUM.MVector s (Rounded r a) = MV_Rounded (VUM.MVector s a)
 newtype instance VU.Vector (Rounded r a) = V_Rounded (VU.Vector a)

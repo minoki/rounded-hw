@@ -24,6 +24,7 @@ import           Prelude hiding (fromInteger, fromRational, recip, sqrt, (*),
                           (+), (-), (/))
 import qualified Prelude
 
+-- | Rounding-controlled version of 'Num'.
 class Ord a => RoundedRing a where
   roundedAdd :: RoundingMode -> a -> a -> a
   roundedSub :: RoundingMode -> a -> a -> a
@@ -33,10 +34,15 @@ class Ord a => RoundedRing a where
   -- roundedToFloat :: RoundingMode -> a -> Float
   -- roundedToDouble :: RoundingMode -> a -> Double
 
+  -- |
+  -- prop> \x_lo x_hi y_lo y_hi -> intervalAdd (Rounded x_lo) (Rounded x_hi) (Rounded y_lo) (Rounded y_hi) == (Rounded (roundedAdd TowardNegInf x_lo y_lo), Rounded (roundedAdd TowardInf x_hi y_hi))
   intervalAdd :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalAdd x_lo x_hi y_lo y_hi = (x_lo + y_lo, x_hi + y_hi)
     where (+) :: forall r. Rounding r => Rounded r a -> Rounded r a -> Rounded r a
           Rounded x + Rounded y = Rounded (roundedAdd (rounding (Proxy :: Proxy r)) x y)
+
+  -- |
+  -- prop> \x_lo x_hi y_lo y_hi -> intervalSub (Rounded x_lo) (Rounded x_hi) (Rounded y_lo) (Rounded y_hi) == (Rounded (roundedSub TowardNegInf x_lo y_hi), Rounded (roundedSub TowardInf x_hi y_lo))
   intervalSub :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
   intervalSub x_lo x_hi y_lo y_hi = (x_lo - coerce y_hi, x_hi - coerce y_lo)
     where (-) :: forall r. Rounding r => Rounded r a -> Rounded r a -> Rounded r a
@@ -70,10 +76,20 @@ class Ord a => RoundedRing a where
 
   backendNameT :: Tagged a String
 
+-- | Returns the name of backend as a string.
+--
+-- Example:
+--
+-- @
+-- >>> :m + Data.Proxy
+-- >>> 'backendName' (Proxy :: Proxy Double)
+-- "FastFFI+SSE2"
+-- @
 backendName :: RoundedRing a => proxy a -> String
 backendName = Data.Tagged.proxy backendNameT
 {-# INLINE backendName #-}
 
+-- | Rounding-controlled version of 'Fractional'.
 class RoundedRing a => RoundedFractional a where
   roundedDiv :: RoundingMode -> a -> a -> a
   roundedRecip :: RoundingMode -> a -> a
@@ -116,6 +132,7 @@ class RoundedRing a => RoundedFractional a where
   {-# INLINE intervalRecip #-}
   {-# INLINE intervalFromRational #-}
 
+-- | Rounding-controlled version of 'sqrt'.
 class RoundedRing a => RoundedSqrt a where
   roundedSqrt :: RoundingMode -> a -> a
   intervalSqrt :: Rounded 'TowardNegInf a -> Rounded 'TowardInf a -> (Rounded 'TowardNegInf a, Rounded 'TowardInf a)
@@ -124,6 +141,7 @@ class RoundedRing a => RoundedSqrt a where
           sqrt (Rounded z) = Rounded (roundedSqrt (rounding (Proxy :: Proxy r)) z)
   {-# INLINE intervalSqrt #-}
 
+-- | Lifted version of 'RoundedRing'
 class RoundedRing a => RoundedRing_Vector vector a where
   roundedSum :: RoundingMode -> vector a -> a
   zipWith_roundedAdd :: RoundingMode -> vector a -> vector a -> vector a
@@ -142,6 +160,7 @@ class RoundedRing a => RoundedRing_Vector vector a where
   default zipWith_roundedMul :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
   zipWith_roundedMul mode = VG.zipWith (roundedMul mode)
 
+-- | Lifted version of 'RoundedFractional'
 class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Vector vector a where
   zipWith_roundedDiv :: RoundingMode -> vector a -> vector a -> vector a
   -- map_roundedRecip :: RoundingMode -> vector a -> vector a
@@ -149,6 +168,7 @@ class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Ve
   default zipWith_roundedDiv :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
   zipWith_roundedDiv mode = VG.zipWith (roundedDiv mode)
 
+-- | Lifted version of 'RoundedSqrt'
 class (RoundedSqrt a, RoundedRing_Vector vector a) => RoundedSqrt_Vector vector a where
   map_roundedSqrt :: RoundingMode -> vector a -> vector a
 
@@ -181,6 +201,7 @@ instance (Rounding r, Num a, RoundedFractional a) => Fractional (Rounded r a) wh
 
 deriving newtype instance (Rounding r, Real a, RoundedFractional a) => Real (Rounded r a)
 deriving newtype instance (Rounding r, RealFrac a, RoundedFractional a) => RealFrac (Rounded r a)
+-- no instance for Floating/RealFloat currently...
 
 -- These instances are provided in Numeric.Rounded.Hardware.Backend.Default:
 --   instance RoundedRing Float
