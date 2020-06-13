@@ -15,7 +15,7 @@ instance (Arbitrary a, Ord a) => Arbitrary (OrdPair a) where
                  y <- arbitrary
                  return $ OrdPair (min x y) (max x y)
 
-verifyImplementation :: forall a. (Arbitrary a, Ord a, Show a, RoundedRing a, RealFloat a) => Proxy a -> Spec
+verifyImplementation :: forall a. (Arbitrary a, Ord a, Show a, RoundedFractional a, RoundedSqrt a, RealFloatConstants a, RealFloat a) => Proxy a -> Spec
 verifyImplementation _ = do
   prop "intervalAdd" $ \(OrdPair (x :: a) y) (OrdPair x' y') ->
     let iv1, iv2 :: Interval a
@@ -26,6 +26,11 @@ verifyImplementation _ = do
     let iv1, iv2 :: Interval a
         iv1 = makeInterval (Rounded x) (Rounded y) - makeInterval (Rounded x') (Rounded y')
         iv2 = makeInterval (Rounded $ roundedSub TowardNegInf x y') (Rounded $ roundedSub TowardInf y x')
+    in iv1 `equalAsSet` iv2
+  prop "intervalSqrt" $ \(OrdPair (NonNegative (x :: a)) (NonNegative y)) ->
+    let iv1, iv2 :: Interval a
+        iv1 = sqrt (makeInterval (Rounded x) (Rounded y))
+        iv2 = makeInterval (Rounded $ roundedSqrt TowardNegInf x) (Rounded $ roundedSqrt TowardInf y)
     in iv1 `equalAsSet` iv2
 
 spec :: Spec
