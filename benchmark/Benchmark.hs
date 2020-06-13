@@ -24,6 +24,7 @@ import           Gauge.Main
 import           Numeric
 import           Numeric.Rounded.Hardware.Internal
 import           Numeric.Rounded.Hardware.Interval
+import           Numeric.Rounded.Hardware.Interval.Class (makeInterval)
 import qualified Numeric.Rounded.Hardware.Interval.NonEmpty as NE
 import qualified Numeric.Rounded.Hardware.Vector.Unboxed as RVU
 
@@ -270,6 +271,18 @@ main =
            [ bench "naive" $ nf (uncurry (VU.zipWith (/))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_div) (vec1, vec2)
            ]
+         ]
+    , let iv1, iv2 :: Interval Double
+          iv1 = makeInterval (Rounded 1) (Rounded 2)
+          iv2 = makeInterval (Rounded 15) (Rounded 18)
+      in bgroup "Interval"
+         [ bench "add" $ nf (uncurry (+)) (iv1, iv2)
+         , bench "sub" $ nf (uncurry (-)) (iv1, iv2)
+         , bench "mul" $ nf (uncurry (*)) (iv1, iv2)
+         , bench "div" $ nf (uncurry (/)) (iv1, iv2)
+         , bench "sqrt" $ nf sqrt iv1
+         , bench "fromInteger" $ nf (fromInteger :: Integer -> Interval Double) (2^60 + 1)
+         , bench "fromIntegral/Int64" $ nf (fromIntegral :: Int64 -> Interval Double) (2^60 + 1)
          ]
     , let vec :: V.Vector (Interval Double)
           vec = V.generate 100000 $ \i -> fromRational (1 % (1 + fromIntegral i))
