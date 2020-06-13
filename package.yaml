@@ -13,6 +13,7 @@ extra-source-files:
 - ChangeLog.md
 - cbits/rounded-common.inl
 - cbits/rounded-avx512.inl
+- cbits/interval-prim-x86_64-sse2.S
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
