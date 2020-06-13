@@ -1,0 +1,9 @@
+module Numeric.Rounded.Hardware.Class
+  ( RoundedRing(..)
+  , RoundedFractional(..)
+  , RoundedSqrt(..)
+  , RoundedRing_Vector(..)
+  , RoundedFractional_Vector(..)
+  , RoundedSqrt_Vector(..)
+  ) where
+import           Numeric.Rounded.Hardware.Internal
