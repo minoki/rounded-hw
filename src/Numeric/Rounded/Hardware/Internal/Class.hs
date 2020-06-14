@@ -147,6 +147,7 @@ class RoundedRing a => RoundedRing_Vector vector a where
   zipWith_roundedAdd :: RoundingMode -> vector a -> vector a -> vector a
   zipWith_roundedSub :: RoundingMode -> vector a -> vector a -> vector a
   zipWith_roundedMul :: RoundingMode -> vector a -> vector a -> vector a
+  zipWith3_roundedFusedMultiplyAdd :: RoundingMode -> vector a -> vector a -> vector a -> vector a
 
   default roundedSum :: (VG.Vector vector a, Num a) => RoundingMode -> vector a -> a
   roundedSum mode = VG.foldl' (roundedAdd mode) 0
@@ -159,6 +160,9 @@ class RoundedRing a => RoundedRing_Vector vector a where
 
   default zipWith_roundedMul :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a
   zipWith_roundedMul mode = VG.zipWith (roundedMul mode)
+
+  default zipWith3_roundedFusedMultiplyAdd :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a -> vector a -> vector a
+  zipWith3_roundedFusedMultiplyAdd mode = VG.zipWith3 (roundedFusedMultiplyAdd mode)
 
 -- | Lifted version of 'RoundedFractional'
 class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Vector vector a where

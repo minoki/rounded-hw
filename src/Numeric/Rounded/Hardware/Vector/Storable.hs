@@ -12,12 +12,14 @@ module Numeric.Rounded.Hardware.Vector.Storable
   , zipWith_roundedAdd
   , zipWith_roundedSub
   , zipWith_roundedMul
+  , zipWith3_roundedFusedMultiplyAdd
   , zipWith_roundedDiv
   , map_roundedSqrt
   , sum
   , zipWith_add
   , zipWith_sub
   , zipWith_mul
+  , zipWith3_fusedMultiplyAdd
   , zipWith_div
   , map_sqrt
   ) where
@@ -87,6 +89,12 @@ zipWith_mul :: forall r a. (Rounding r, Storable a, RoundedRing_Vector VS.Vector
 zipWith_mul v1 v2 = toVectorOfRounded (zipWith_roundedMul r (fromVectorOfRounded v1) (fromVectorOfRounded v2))
   where r = rounding (Proxy :: Proxy r)
 {-# INLINE zipWith_mul #-}
+
+-- | Equivalent to @'VS.zipWith3' fusedMultiplyAdd@
+zipWith3_fusedMultiplyAdd :: forall r a. (Rounding r, Storable a, RoundedRing_Vector VS.Vector a) => VS.Vector (Rounded r a) -> VS.Vector (Rounded r a) -> VS.Vector (Rounded r a) -> VS.Vector (Rounded r a)
+zipWith3_fusedMultiplyAdd v1 v2 v3 = toVectorOfRounded (zipWith3_roundedFusedMultiplyAdd r (fromVectorOfRounded v1) (fromVectorOfRounded v2) (fromVectorOfRounded v3))
+  where r = rounding (Proxy :: Proxy r)
+{-# INLINE zipWith3_fusedMultiplyAdd #-}
 
 -- | Equivalent to @'VS.zipWith' (/)@
 zipWith_div :: forall r a. (Rounding r, Storable a, RoundedFractional_Vector VS.Vector a) => VS.Vector (Rounded r a) -> VS.Vector (Rounded r a) -> VS.Vector (Rounded r a)

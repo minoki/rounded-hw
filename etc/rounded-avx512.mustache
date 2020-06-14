@@ -411,6 +411,23 @@ extern void rounded_hw_vector_mul_{{NAME}}(HsInt mode, HsInt length, HsInt offse
     }
 }
 
+extern void rounded_hw_vector_fma_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b, HsInt offsetC, const {{TYPE}} * restrict c)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+{{#each_static_rounding_mode}}
+    case {{MODE}}:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_{{NAME}}({{MODE}}, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+{{/each_static_rounding_mode}}
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
 extern void rounded_hw_vector_div_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b)
 {
     // TODO: Use SIMD

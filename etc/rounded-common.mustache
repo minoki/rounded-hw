@@ -337,6 +337,17 @@ extern void rounded_hw_vector_mul_{{NAME}}(HsInt mode, HsInt length, HsInt offse
     restore_fp_reg(oldreg);
 }
 
+extern void rounded_hw_vector_fma_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b, HsInt offsetC, const {{TYPE}} * restrict c)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = {{fma}}(a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+    }
+    restore_fp_reg(oldreg);
+}
+
 extern void rounded_hw_vector_div_{{NAME}}(HsInt mode, HsInt length, HsInt offsetR, {{TYPE}} * restrict result, HsInt offsetA, const {{TYPE}} * restrict a, HsInt offsetB, const {{TYPE}} * restrict b)
 {
     native_rounding_mode nmode = hs_rounding_mode_to_native(mode);

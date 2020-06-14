@@ -55,9 +55,14 @@ main =
           vec1, vec2 :: VU.Vector (Rounded 'TowardInf Double)
           vec1 = VU.drop 3 $ VU.take 58645 $ VU.map Rounded vec
           vec2 = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
+          vec3 = VU.drop 123 $ VU.take 78245 $ VU.map Rounded vec
           sqrt' :: forall r a. (Rounding r, RoundedSqrt a) => Rounded r a -> Rounded r a
           sqrt' (Rounded x) = Rounded (roundedSqrt r x)
             where r = rounding (Proxy :: Proxy r)
+          fma' :: forall r a. (Rounding r, RoundedRing a) => Rounded r a -> Rounded r a -> Rounded r a -> Rounded r a
+          fma' (Rounded x) (Rounded y) (Rounded z) = Rounded (roundedFusedMultiplyAdd r x y z)
+            where r = rounding (Proxy :: Proxy r)
+          uncurry3 f (x, y, z) = f x y z
       in bgroup "Vector"
          [ bgroup "sum"
            [ bench "naive" $ nf VU.sum vec1
@@ -78,6 +83,11 @@ main =
            [ bench "naive" $ nf (uncurry (VU.zipWith (*))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_mul) (vec1, vec2)
            , bench "non-rounded" $ nf (uncurry (VU.zipWith (*))) (coerce vec1 :: VU.Vector Double, coerce vec2)
+           ]
+         , bgroup "FMA"
+           [ bench "naive" $ nf (uncurry3 (VU.zipWith3 fma')) (vec1, vec2, vec3)
+           , bench "C impl" $ nf (uncurry3 RVU.zipWith3_fusedMultiplyAdd) (vec1, vec2, vec3)
+           , bench "non-rounded" $ nf (uncurry3 (VU.zipWith3 fusedMultiplyAdd)) (coerce vec1 :: VU.Vector Double, coerce vec2, coerce vec3)
            ]
          , bgroup "div"
            [ bench "naive" $ nf (uncurry (VU.zipWith (/))) (vec1, vec2)

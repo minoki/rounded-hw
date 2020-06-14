@@ -117,10 +117,12 @@ instance RoundedRing_Vector VS.Vector CDouble where
   zipWith_roundedAdd mode vec vec' = unsafeCoerce (zipWith_roundedAdd mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
   zipWith_roundedSub mode vec vec' = unsafeCoerce (zipWith_roundedSub mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
   zipWith_roundedMul mode vec vec' = unsafeCoerce (zipWith_roundedMul mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)
+  zipWith3_roundedFusedMultiplyAdd mode vec1 vec2 vec3 = unsafeCoerce (zipWith3_roundedFusedMultiplyAdd mode (unsafeCoerce vec1) (unsafeCoerce vec2) (unsafeCoerce vec3) :: VS.Vector C.CDouble)
   {-# INLINE roundedSum #-}
   {-# INLINE zipWith_roundedAdd #-}
   {-# INLINE zipWith_roundedSub #-}
   {-# INLINE zipWith_roundedMul #-}
+  {-# INLINE zipWith3_roundedFusedMultiplyAdd #-}
 
 instance RoundedFractional_Vector VS.Vector CDouble where
   zipWith_roundedDiv mode vec vec' = unsafeCoerce (zipWith_roundedDiv mode (unsafeCoerce vec) (unsafeCoerce vec') :: VS.Vector C.CDouble)

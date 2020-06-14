@@ -28,6 +28,8 @@ module FFIWrapper.Float
   , vectorSubByteArray
   , vectorMulPtr
   , vectorMulByteArray
+  , vectorFMAPtr
+  , vectorFMAByteArray
   , vectorDivPtr
   , vectorDivByteArray
   , vectorSqrtPtr
@@ -276,6 +278,20 @@ foreign import ccall unsafe "rounded_hw_vector_mul_float"
 vectorMulByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
 vectorMulByteArray r = c_vectorMulByteArray (fromEnum r)
 {-# INLINE vectorMulByteArray #-}
+
+foreign import ccall unsafe "rounded_hw_vector_fma_float"
+  c_vectorFMAPtr :: Int -> Int -> Int -> Ptr Float -> Int -> Ptr Float -> Int -> Ptr Float -> Int -> Ptr Float -> IO ()
+
+vectorFMAPtr :: RoundingMode -> Int -> Int -> Ptr Float -> Int -> Ptr Float -> Int -> Ptr Float -> Int -> Ptr Float -> IO ()
+vectorFMAPtr r = c_vectorFMAPtr (fromEnum r)
+{-# INLINE vectorFMAPtr #-}
+
+foreign import ccall unsafe "rounded_hw_vector_fma_float"
+  c_vectorFMAByteArray :: Int -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+
+vectorFMAByteArray :: RoundingMode -> Int -> Int -> MutableByteArray# RealWorld -> Int -> ByteArray# -> Int -> ByteArray# -> Int -> ByteArray# -> IO ()
+vectorFMAByteArray r = c_vectorFMAByteArray (fromEnum r)
+{-# INLINE vectorFMAByteArray #-}
 
 foreign import ccall unsafe "rounded_hw_vector_div_float"
   c_vectorDivPtr :: Int -> Int -> Int -> Ptr Float -> Int -> Ptr Float -> Int -> Ptr Float -> IO ()

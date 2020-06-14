@@ -374,6 +374,17 @@ extern void rounded_hw_vector_mul_double(HsInt mode, HsInt length, HsInt offsetR
     restore_fp_reg(oldreg);
 }
 
+extern void rounded_hw_vector_fma_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b, HsInt offsetC, const double * restrict c)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = fma(a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+    }
+    restore_fp_reg(oldreg);
+}
+
 extern void rounded_hw_vector_div_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b)
 {
     native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
@@ -766,6 +777,17 @@ extern void rounded_hw_vector_mul_float(HsInt mode, HsInt length, HsInt offsetR,
     set_rounding(oldreg, nmode);
     for (HsInt i = 0; i < length; ++i) {
         result[offsetR + i] = a[offsetA + i] * b[offsetB + i];
+    }
+    restore_fp_reg(oldreg);
+}
+
+extern void rounded_hw_vector_fma_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a, HsInt offsetB, const float * restrict b, HsInt offsetC, const float * restrict c)
+{
+    native_rounding_mode nmode = hs_rounding_mode_to_native(mode);
+    fp_reg oldreg = get_fp_reg();
+    set_rounding(oldreg, nmode);
+    for (HsInt i = 0; i < length; ++i) {
+        result[offsetR + i] = fmaf(a[offsetA + i], b[offsetB + i], c[offsetC + i]);
     }
     restore_fp_reg(oldreg);
 }

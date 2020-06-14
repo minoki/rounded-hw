@@ -35,6 +35,9 @@ prop_roundedSub _proxy r v1 v2 = VG.zipWith (roundedSub r) v1 v2 ==^ zipWith_rou
 prop_roundedMul :: (RealFloat a, Show a, RoundedRing_Vector vector a, VG.Vector vector a) => Proxy (vector a) -> RoundingMode -> vector a -> vector a -> Property
 prop_roundedMul _proxy r v1 v2 = VG.zipWith (roundedMul r) v1 v2 ==^ zipWith_roundedMul r v1 v2
 
+prop_roundedFMA :: (RealFloat a, Show a, RoundedRing_Vector vector a, VG.Vector vector a) => Proxy (vector a) -> RoundingMode -> vector a -> vector a -> vector a -> Property
+prop_roundedFMA _proxy r v1 v2 v3 = VG.zipWith3 (roundedFusedMultiplyAdd r) v1 v2 v3 ==^ zipWith3_roundedFusedMultiplyAdd r v1 v2 v3
+
 prop_roundedDiv :: (RealFloat a, Show a, RoundedFractional_Vector vector a, VG.Vector vector a) => Proxy (vector a) -> RoundingMode -> vector a -> vector a -> Property
 prop_roundedDiv _proxy r v1 v2 = VG.zipWith (roundedDiv r) v1 v2 ==^ zipWith_roundedDiv r v1 v2
 
@@ -47,6 +50,7 @@ specT proxy = do
   prop "roundedAdd" $ forAll arbitraryVector $ \v1 -> forAll arbitraryVector $ \v2 r -> prop_roundedAdd proxy r v1 v2
   prop "roundedSub" $ forAll arbitraryVector $ \v1 -> forAll arbitraryVector $ \v2 r -> prop_roundedSub proxy r v1 v2
   prop "roundedMul" $ forAll arbitraryVector $ \v1 -> forAll arbitraryVector $ \v2 r -> prop_roundedMul proxy r v1 v2
+  prop "roundedFMA" $ forAll arbitraryVector $ \v1 -> forAll arbitraryVector $ \v2 -> forAll arbitraryVector $ \v3 r -> prop_roundedFMA proxy r v1 v2 v3
   prop "roundedDiv" $ forAll arbitraryVector $ \v1 -> forAll arbitraryVector $ \v2 r -> prop_roundedDiv proxy r v1 v2
   prop "roundedSqrt" $ forAll arbitraryVector $ \v r -> prop_roundedSqrt proxy r v
 

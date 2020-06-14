@@ -565,6 +565,36 @@ extern void rounded_hw_vector_mul_double(HsInt mode, HsInt length, HsInt offsetR
     }
 }
 
+extern void rounded_hw_vector_fma_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b, HsInt offsetC, const double * restrict c)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+    case ROUND_TONEAREST:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_double(ROUND_TONEAREST, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    case ROUND_DOWNWARD:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_double(ROUND_DOWNWARD, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    case ROUND_UPWARD:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_double(ROUND_UPWARD, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    case ROUND_TOWARDZERO:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_double(ROUND_TOWARDZERO, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
 extern void rounded_hw_vector_div_double(HsInt mode, HsInt length, HsInt offsetR, double * restrict result, HsInt offsetA, const double * restrict a, HsInt offsetB, const double * restrict b)
 {
     // TODO: Use SIMD
@@ -1182,6 +1212,36 @@ extern void rounded_hw_vector_mul_float(HsInt mode, HsInt length, HsInt offsetR,
     case ROUND_TOWARDZERO:
         for (HsInt i = 0; i < length; ++i) {
             result[offsetR + i] = rounded_mul_impl_float(ROUND_TOWARDZERO, a[offsetA + i], b[offsetB + i]);
+        }
+        break;
+    default:
+        UNREACHABLE();
+        abort();
+    }
+}
+
+extern void rounded_hw_vector_fma_float(HsInt mode, HsInt length, HsInt offsetR, float * restrict result, HsInt offsetA, const float * restrict a, HsInt offsetB, const float * restrict b, HsInt offsetC, const float * restrict c)
+{
+    // TODO: Use SIMD
+    switch (hs_rounding_mode_to_native(mode)) {
+    case ROUND_TONEAREST:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_float(ROUND_TONEAREST, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    case ROUND_DOWNWARD:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_float(ROUND_DOWNWARD, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    case ROUND_UPWARD:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_float(ROUND_UPWARD, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
+        }
+        break;
+    case ROUND_TOWARDZERO:
+        for (HsInt i = 0; i < length; ++i) {
+            result[offsetR + i] = rounded_fma_impl_float(ROUND_TOWARDZERO, a[offsetA + i], b[offsetB + i], c[offsetC + i]);
         }
         break;
     default:

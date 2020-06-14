@@ -7,12 +7,14 @@ module Numeric.Rounded.Hardware.Vector.Unboxed
   , zipWith_roundedAdd
   , zipWith_roundedSub
   , zipWith_roundedMul
+  , zipWith3_roundedFusedMultiplyAdd
   , zipWith_roundedDiv
   , map_roundedSqrt
   , sum
   , zipWith_add
   , zipWith_sub
   , zipWith_mul
+  , zipWith3_fusedMultiplyAdd
   , zipWith_div
   , map_sqrt
   ) where
@@ -45,6 +47,12 @@ zipWith_mul :: forall r a. (Rounding r, VU.Unbox a, RoundedRing_Vector VU.Vector
 zipWith_mul = coerce (zipWith_roundedMul r :: VU.Vector a -> VU.Vector a -> VU.Vector a)
   where r = rounding (Proxy :: Proxy r)
 {-# INLINE zipWith_mul #-}
+
+-- | Equivalent to @'VU.zipWith3' fusedMultiplyAdd@
+zipWith3_fusedMultiplyAdd :: forall r a. (Rounding r, VU.Unbox a, RoundedRing_Vector VU.Vector a) => VU.Vector (Rounded r a) -> VU.Vector (Rounded r a) -> VU.Vector (Rounded r a) -> VU.Vector (Rounded r a)
+zipWith3_fusedMultiplyAdd = coerce (zipWith3_roundedFusedMultiplyAdd r :: VU.Vector a -> VU.Vector a -> VU.Vector a -> VU.Vector a)
+  where r = rounding (Proxy :: Proxy r)
+{-# INLINE zipWith3_fusedMultiplyAdd #-}
 
 -- | Equivalent to @'VU.zipWith' (/)@
 zipWith_div :: forall r a. (Rounding r, VU.Unbox a, RoundedFractional_Vector VU.Vector a) => VU.Vector (Rounded r a) -> VU.Vector (Rounded r a) -> VU.Vector (Rounded r a)
