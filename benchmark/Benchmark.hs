@@ -4,6 +4,7 @@
 {-# LANGUAGE HexFloatLiterals #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 import           Control.Monad
 import           Control.Monad.ST
@@ -12,8 +13,10 @@ import           Data.Array.MArray
 import           Data.Array.ST (STArray, STUArray)
 import           Data.Array.Unboxed (UArray)
 import           Data.Bits
+import           Data.Coerce
 import           Data.Functor.Identity
 import           Data.Int
+import           Data.Proxy
 import           Data.Ratio
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
@@ -250,26 +253,44 @@ main =
           vec1, vec2 :: VU.Vector (Rounded 'TowardInf Double)
           vec1 = VU.drop 3 $ VU.take 58645 $ VU.map Rounded vec
           vec2 = VU.drop 1234 $ VU.take 78245 $ VU.map Rounded vec
-      in bgroup "vector"
+          sqrt' :: forall r a. (Rounding r, RoundedSqrt a) => Rounded r a -> Rounded r a
+          sqrt' (Rounded x) = Rounded (roundedSqrt r x)
+            where r = rounding (Proxy :: Proxy r)
+      in bgroup "Vector"
          [ bgroup "sum"
            [ bench "naive" $ nf VU.sum vec1
            , bench "C impl" $ nf RVU.sum vec1
+           , bench "non-rounded" $ nf VU.sum (coerce vec1 :: VU.Vector Double)
            ]
          , bgroup "add"
            [ bench "naive" $ nf (uncurry (VU.zipWith (+))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_add) (vec1, vec2)
+           , bench "non-rounded" $ nf (uncurry (VU.zipWith (+))) (coerce vec1 :: VU.Vector Double, coerce vec2)
            ]
          , bgroup "sub"
            [ bench "naive" $ nf (uncurry (VU.zipWith (-))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_sub) (vec1, vec2)
+           , bench "non-rounded" $ nf (uncurry (VU.zipWith (-))) (coerce vec1 :: VU.Vector Double, coerce vec2)
            ]
          , bgroup "mul"
            [ bench "naive" $ nf (uncurry (VU.zipWith (*))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_mul) (vec1, vec2)
+           , bench "non-rounded" $ nf (uncurry (VU.zipWith (*))) (coerce vec1 :: VU.Vector Double, coerce vec2)
            ]
          , bgroup "div"
            [ bench "naive" $ nf (uncurry (VU.zipWith (/))) (vec1, vec2)
            , bench "C impl" $ nf (uncurry RVU.zipWith_div) (vec1, vec2)
+           , bench "non-rounded" $ nf (uncurry (VU.zipWith (/))) (coerce vec1 :: VU.Vector Double, coerce vec2)
+           ]
+         , bgroup "sqrt"
+           [ bench "naive" $ nf (VU.map sqrt') vec1
+           , bench "C impl" $ nf RVU.map_sqrt vec1
+           , bench "non-rounded" $ nf (VU.map sqrt) (coerce vec1 :: VU.Vector Double)
+           ]
+         , bgroup "compound"
+           [ bench "naive" $ nf (\(v1,v2) -> VU.zipWith (+) (VU.zipWith (*) v1 v2) (VU.map sqrt' v2)) (vec1, vec2)
+           , bench "C impl" $ nf (\(v1,v2) -> RVU.zipWith_add (RVU.zipWith_mul v1 v2) (RVU.map_sqrt v2)) (vec1, vec2)
+           , bench "non-rounded" $ nf (\(v1,v2) -> VU.zipWith (+) (VU.zipWith (*) v1 v2) (VU.map sqrt v2)) (coerce vec1 :: VU.Vector Double, coerce vec2)
            ]
          ]
     , let iv1, iv2 :: Interval Double
@@ -343,6 +364,7 @@ main =
            , bench "Haskell" $ nf (\(x,y,z) -> fusedMultiplyAdd x y z) arg
            , bench "Haskell (generic)" $ nf (\(x,y,z) -> fusedMultiplyAdd (Identity x) (Identity y) (Identity z)) arg
            , bench "Haskell (rounded)" $ nf (\(x,y,z) -> roundedFusedMultiplyAdd ToNearest x y z) arg
+           , bench "non-fused" $ nf (\(x,y,z) -> x * y + z) arg
            ]
       , let arg = (1.0, 2.0, 3.0) :: (Float, Float, Float)
         in bgroup "Float"
@@ -350,6 +372,7 @@ main =
            , bench "Haskell" $ nf (\(x,y,z) -> fusedMultiplyAdd x y z) arg
            , bench "Haskell (generic)" $ nf (\(x,y,z) -> fusedMultiplyAdd (Identity x) (Identity y) (Identity z)) arg
            , bench "Haskell (rounded)" $ nf (\(x,y,z) -> roundedFusedMultiplyAdd ToNearest x y z) arg
+           , bench "non-fused" $ nf (\(x,y,z) -> x * y + z) arg
            ]
       ]
     ]
