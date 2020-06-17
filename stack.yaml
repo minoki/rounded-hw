@@ -1,7 +1,7 @@
-resolver: lts-15.15
+resolver: lts-16.1
 
 packages:
 - .
 
 extra-deps:
-- long-double-0.1@sha256:af062ec9f60be3de9d0164d5aa602cd4515fbfc0fcead12a15338515991fa80f,1964
+- long-double-0.1.1
