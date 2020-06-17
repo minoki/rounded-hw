@@ -16,6 +16,9 @@ import qualified Numeric.Rounded.Hardware.Backend.FastFFI as FastFFI
 #ifdef USE_X87_LONG_DOUBLE
 import           Numeric.Rounded.Hardware.Backend.X87LongDouble ()
 #endif
+#ifdef USE_FLOAT128
+import           Numeric.Rounded.Hardware.Backend.Float128 ()
+#endif
 #endif
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Unboxed as VU

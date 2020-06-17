@@ -4,6 +4,7 @@ This package provides directed rounding and interval arithmetic for built-in flo
 Unlike [rounded](https://hackage.haskell.org/package/rounded), this package does not depend on an external C library.
 
 In addition to `Float` and `Double`, `LongDouble` from [long-double](https://hackage.haskell.org/package/long-double) package is supported on x86.
+There is also support for `Float128` from [float128](https://hackage.haskell.org/package/float128) package under a package flag.
 
 # API overview
 

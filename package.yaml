@@ -57,6 +57,11 @@ flags:
     manual: true
     default: true
 
+  float128:
+    description: "Support Float128"
+    manual: true
+    default: false
+
 # Custom setup is required to allow assembly sources to #include "ghcconfig.h"
 build-type: Custom
 custom-setup:
@@ -127,6 +132,16 @@ library:
     cpp-options:
     - -DUSE_X87_LONG_DOUBLE
 
+  # flag(float128): Support Float128
+  - condition: flag(float128)
+    dependencies: float128
+    c-sources:
+    - cbits/rounded-float128.c
+    other-modules:
+    - Numeric.Rounded.Hardware.Backend.Float128
+    cpp-options:
+    - -DUSE_FLOAT128
+
 tests:
   rounded-hw-test:
     main:                Spec.hs
@@ -148,6 +163,13 @@ tests:
       cpp-options:
       - -DTEST_X87_LONG_DOUBLE
       # Support for 80-bit long double is not good on Win64, so don't test
+
+    - condition: flag(float128)
+      dependencies: float128
+      other-modules:
+      - Float128Spec
+      cpp-options:
+      - -DTEST_FLOAT128
 
   rounded-hw-doctests:
     main: doctests.hs

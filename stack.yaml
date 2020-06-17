@@ -5,3 +5,4 @@ packages:
 
 extra-deps:
 - long-double-0.1.1
+- float128-0.1
