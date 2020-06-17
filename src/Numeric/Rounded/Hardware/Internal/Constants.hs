@@ -78,44 +78,42 @@ instance RealFloatConstants Double where
   maxFinite = 0x1.fffffffffffffp+1023
   -- minPositiveNormal = 0x1p-1022
   minPositive = 0x1p-1074 -- subnormal
-  -- pi_up      = 0x1.921fb54442d19p1
-  -- pi_down    = 0x1.921fb54442d18p1
   -- (pi :: Double) == 0x1.921fb54442d18p1
-  pi_down = Rounded 0x3.243f6a8885a3p+0
-  pi_up   = Rounded 0x3.243f6a8885a32p+0
+  pi_down = Rounded 0x1.921fb54442d18p+1
+  pi_up   = Rounded 0x1.921fb54442d19p+1
   -- 3*pi
-  three_pi_down = Rounded 0x9.6cbe3f9990e9p+0
-  three_pi_up   = Rounded 0x9.6cbe3f9990e98p+0
+  three_pi_down = Rounded 0x1.2d97c7f3321d2p+3
+  three_pi_up   = Rounded 0x1.2d97c7f3321d3p+3
   -- 5*pi
-  five_pi_down = Rounded 0xf.b53d14aa9c2fp+0
-  five_pi_up   = Rounded 0xf.b53d14aa9c2f8p+0
+  five_pi_down = Rounded 0x1.f6a7a2955385ep+3
+  five_pi_up   = Rounded 0x1.f6a7a2955385fp+3
   -- log(2)
-  log2_down = Rounded 0xb.17217f7d1cf78p-4
-  log2_up   = Rounded 0xb.17217f7d1cf8p-4
+  log2_down = Rounded 0x1.62e42fefa39efp-1
+  log2_up   = Rounded 0x1.62e42fefa39f0p-1
   -- exp(1)
-  exp1_down = Rounded 0x2.b7e151628aed2p+0
-  exp1_up   = Rounded 0x2.b7e151628aed4p+0
+  exp1_down = Rounded 0x1.5bf0a8b145769p+1
+  exp1_up   = Rounded 0x1.5bf0a8b14576ap+1
   -- exp(1/2)
   exp1_2_down = Rounded 0x1.a61298e1e069bp+0
   exp1_2_up   = Rounded 0x1.a61298e1e069cp+0
   -- exp(-1/2)
-  expm1_2_down = Rounded 0x9.b4597e37cb048p-4
-  expm1_2_up   = Rounded 0x9.b4597e37cb05p-4
+  expm1_2_down = Rounded 0x1.368b2fc6f9609p-1
+  expm1_2_up   = Rounded 0x1.368b2fc6f960ap-1
   -- sqrt(2)
   sqrt2_down = Rounded 0x1.6a09e667f3bccp+0
   sqrt2_up   = Rounded 0x1.6a09e667f3bcdp+0
   -- sqrt(1/2)
-  sqrt1_2_down = Rounded 0xb.504f333f9de6p-4
-  sqrt1_2_up   = Rounded 0xb.504f333f9de68p-4
+  sqrt1_2_down = Rounded 0x1.6a09e667f3bccp-1
+  sqrt1_2_up   = Rounded 0x1.6a09e667f3bcdp-1
   -- sqrt(2)-1
-  sqrt2m1_down = Rounded 0x6.a09e667f3bcc8p-4
-  sqrt2m1_up   = Rounded 0x6.a09e667f3bcccp-4
+  sqrt2m1_down = Rounded 0x1.a827999fcef32p-2
+  sqrt2m1_up   = Rounded 0x1.a827999fcef33p-2
   -- 3 - 2 * sqrt(2)
-  three_minus_2sqrt2_down = Rounded 0x2.bec333018866cp-4
-  three_minus_2sqrt2_up   = Rounded 0x2.bec333018866ep-4
+  three_minus_2sqrt2_down = Rounded 0x1.5f619980c4336p-3
+  three_minus_2sqrt2_up   = Rounded 0x1.5f619980c4337p-3
   -- 2 - sqrt(2)
-  two_minus_sqrt2_down = Rounded 0x9.5f619980c433p-4
-  two_minus_sqrt2_up   = Rounded 0x9.5f619980c4338p-4
+  two_minus_sqrt2_down = Rounded 0x1.2bec333018866p-1
+  two_minus_sqrt2_up   = Rounded 0x1.2bec333018867p-1
   {-# INLINE positiveInfinity #-}
   {-# INLINE negativeInfinity #-}
   {-# INLINE maxFinite #-}
@@ -126,41 +124,41 @@ instance RealFloatConstants Float where
   negativeInfinity = -1/0
   maxFinite = 0x1.fffffep+127
   minPositive = 0x1p-149
-  pi_down = Rounded 0x3.243f68p+0
-  pi_up   = Rounded 0x3.243f6cp+0
+  pi_down = Rounded 0x1.921fb4p+1
+  pi_up   = Rounded 0x1.921fb6p+1
   -- 3*pi
-  three_pi_down = Rounded 0x9.6cbe3p+0
-  three_pi_up   = Rounded 0x9.6cbe4p+0
+  three_pi_down = Rounded 0x1.2d97c6p+3
+  three_pi_up   = Rounded 0x1.2d97c8p+3
   -- 5*pi
-  five_pi_down = Rounded 0xf.b53d1p+0
-  five_pi_up   = Rounded 0xf.b53d2p+0
+  five_pi_down = Rounded 0x1.f6a7a2p+3
+  five_pi_up   = Rounded 0x1.f6a7a4p+3
   -- log(2)
-  log2_down = Rounded 0xb.17217p-4
-  log2_up   = Rounded 0xb.17218p-4
+  log2_down = Rounded 0x1.62e42ep-1
+  log2_up   = Rounded 0x1.62e430p-1
   -- exp(1)
-  exp1_down = Rounded 0x2.b7e15p+0
-  exp1_up   = Rounded 0x2.b7e154p+0
+  exp1_down = Rounded 0x1.5bf0a8p+1
+  exp1_up   = Rounded 0x1.5bf0aap+1
   -- exp(1/2)
   exp1_2_down = Rounded 0x1.a61298p+0
   exp1_2_up   = Rounded 0x1.a6129ap+0
   -- exp(-1/2)
-  expm1_2_down = Rounded 0x9.b4597p-4
-  expm1_2_up   = Rounded 0x9.b4598p-4
+  expm1_2_down = Rounded 0x1.368b2ep-1
+  expm1_2_up   = Rounded 0x1.368b30p-1
   -- sqrt(2)
   sqrt2_down = Rounded 0x1.6a09e6p+0
   sqrt2_up   = Rounded 0x1.6a09e8p+0
   -- sqrt(1/2)
-  sqrt1_2_down = Rounded 0xb.504f3p-4
-  sqrt1_2_up   = Rounded 0xb.504f4p-4
+  sqrt1_2_down = Rounded 0x1.6a09e6p-1
+  sqrt1_2_up   = Rounded 0x1.6a09e8p-1
   -- sqrt(2)-1
-  sqrt2m1_down = Rounded 0x6.a09e6p-4
-  sqrt2m1_up   = Rounded 0x6.a09e68p-4
+  sqrt2m1_down = Rounded 0x1.a82798p-2
+  sqrt2m1_up   = Rounded 0x1.a8279ap-2
   -- 3 - 2 * sqrt(2)
-  three_minus_2sqrt2_down = Rounded 0x2.bec33p-4
-  three_minus_2sqrt2_up   = Rounded 0x2.bec334p-4
+  three_minus_2sqrt2_down = Rounded 0x1.5f6198p-3
+  three_minus_2sqrt2_up   = Rounded 0x1.5f619ap-3
   -- 2 - sqrt(2)
-  two_minus_sqrt2_down = Rounded 0x9.5f619p-4
-  two_minus_sqrt2_up   = Rounded 0x9.5f61ap-4
+  two_minus_sqrt2_down = Rounded 0x1.2bec32p-1
+  two_minus_sqrt2_up   = Rounded 0x1.2bec34p-1
   {-# INLINE positiveInfinity #-}
   {-# INLINE negativeInfinity #-}
   {-# INLINE maxFinite #-}

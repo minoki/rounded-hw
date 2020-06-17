@@ -82,41 +82,41 @@ instance RealFloatConstants LongDouble where
   negativeInfinity = -1/0
   maxFinite = 0x1.fffffffffffffffep+16383
   minPositive = (1/2)^(16445 :: Int) -- The literal 0x1p-16445 yields 0 on long-double-0.1
-  pi_down = Rounded 0x3.243f6a8885a308dp+0
-  pi_up   = Rounded 0x3.243f6a8885a308d4p+0
+  pi_down = Rounded 0x1.921fb54442d18468p+1
+  pi_up   = Rounded 0x1.921fb54442d1846ap+1
   -- 3*pi
-  three_pi_down = Rounded 0x9.6cbe3f9990e91a7p+0
-  three_pi_up   = Rounded 0x9.6cbe3f9990e91a8p+0
+  three_pi_down = Rounded 0x1.2d97c7f3321d234ep+3
+  three_pi_up   = Rounded 0x1.2d97c7f3321d2350p+3
   -- 5*pi
-  five_pi_down = Rounded 0xf.b53d14aa9c2f2c1p+0
-  five_pi_up   = Rounded 0xf.b53d14aa9c2f2c2p+0
+  five_pi_down = Rounded 0x1.f6a7a2955385e582p+3
+  five_pi_up   = Rounded 0x1.f6a7a2955385e584p+3
   -- log(2)
-  log2_down = Rounded 0xb.17217f7d1cf79abp-4
-  log2_up   = Rounded 0xb.17217f7d1cf79acp-4
+  log2_down = Rounded 0x1.62e42fefa39ef356p-1
+  log2_up   = Rounded 0x1.62e42fefa39ef358p-1
   -- exp(1)
-  exp1_down = Rounded 0x2.b7e151628aed2a68p+0
-  exp1_up   = Rounded 0x2.b7e151628aed2a6cp+0
+  exp1_down = Rounded 0x1.5bf0a8b145769534p+1
+  exp1_up   = Rounded 0x1.5bf0a8b145769536p+1
   -- exp(1/2)
   exp1_2_down = Rounded 0x1.a61298e1e069bc96p+0
   exp1_2_up   = Rounded 0x1.a61298e1e069bc98p+0
   -- exp(-1/2)
-  expm1_2_down = Rounded 0x9.b4597e37cb04ff3p-4
-  expm1_2_up   = Rounded 0x9.b4597e37cb04ff4p-4
+  expm1_2_down = Rounded 0x1.368b2fc6f9609fe6p-1
+  expm1_2_up   = Rounded 0x1.368b2fc6f9609fe8p-1
   -- sqrt(2)
   sqrt2_down = Rounded 0x1.6a09e667f3bcc908p+0
   sqrt2_up   = Rounded 0x1.6a09e667f3bcc90ap+0
   -- sqrt(1/2)
-  sqrt1_2_down = Rounded 0xb.504f333f9de6484p-4
-  sqrt1_2_up   = Rounded 0xb.504f333f9de6485p-4
+  sqrt1_2_down = Rounded 0x1.6a09e667f3bcc908p-1
+  sqrt1_2_up   = Rounded 0x1.6a09e667f3bcc90ap-1
   -- sqrt(2)-1
-  sqrt2m1_down = Rounded 0x6.a09e667f3bcc9088p-4
-  sqrt2m1_up   = Rounded 0x6.a09e667f3bcc909p-4
+  sqrt2m1_down = Rounded 0x1.a827999fcef32422p-2
+  sqrt2m1_up   = Rounded 0x1.a827999fcef32424p-2
   -- 3 - 2 * sqrt(2)
-  three_minus_2sqrt2_down = Rounded 0x2.bec333018866dee8p-4
-  three_minus_2sqrt2_up   = Rounded 0x2.bec333018866deecp-4
+  three_minus_2sqrt2_down = Rounded 0x1.5f619980c4336f74p-3
+  three_minus_2sqrt2_up   = Rounded 0x1.5f619980c4336f76p-3
   -- 2 - sqrt(2)
-  two_minus_sqrt2_down = Rounded 0x9.5f619980c4336f7p-4
-  two_minus_sqrt2_up   = Rounded 0x9.5f619980c4336f8p-4
+  two_minus_sqrt2_down = Rounded 0x1.2bec333018866deep-1
+  two_minus_sqrt2_up   = Rounded 0x1.2bec333018866df0p-1
 
 -- | Only available on x86/x86_64 systems.
 -- Note that 'LongDouble' may not work correctly on Win64.
