@@ -11,6 +11,9 @@
 # Run jobs on Linux unless "os" is specified explicitly.
 os: linux
 
+# On Travis, the version of GCC is 5.4, so _Float128 is not supported.
+# _Float128 is available on GCC 7 or later.
+
 # Do not choose a language; we provide our own build tools.
 language: generic
 
