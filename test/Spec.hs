@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+import qualified ConstantsSpec
 import           Data.Proxy
 import qualified FromIntegerSpec
 import qualified FromRationalSpec
@@ -42,6 +43,7 @@ main = do
     describe "interval arithmetic" IntervalArithmeticSpec.spec
     describe "FloatUtil" FloatUtilSpec.spec
     describe "Vector" VectorSpec.spec
+    describe "Constants" ConstantsSpec.spec
 #ifdef TEST_X87_LONG_DOUBLE
     describe "x87 long double" X87LongDoubleSpec.spec
 #endif

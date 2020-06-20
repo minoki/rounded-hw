@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Float128Spec where
+import qualified ConstantsSpec
 import           Data.Int
 import           Data.Proxy
 import qualified FloatUtilSpec
@@ -35,6 +36,7 @@ spec = do
   describe "fromInteger"         $ FromIntegerSpec.specT f128Proxy False
   describe "fromRational"        $ FromRationalSpec.specT f128Proxy False
   describe "showFloat"           $ ShowFloatSpec.specT f128Proxy
+  describe "constants"           $ ConstantsSpec.specT f128Proxy
   prop "nextUp . nextDown == id (unless -inf)" $ forAll variousFloats (FloatUtilSpec.prop_nextUp_nextDown :: Float128 -> Property)
   prop "nextDown . nextUp == id (unless inf)" $ forAll variousFloats (FloatUtilSpec.prop_nextDown_nextUp :: Float128 -> Property)
   where
