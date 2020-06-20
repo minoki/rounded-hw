@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK not-home #-}
 {-# OPTIONS -Wno-unused-imports #-}
 module Numeric.Rounded.Hardware.Internal
   ( module Internal

@@ -18,7 +18,6 @@ import           Data.Proxy
 import           Data.Ratio
 import           Data.Tagged
 import qualified Data.Vector.Generic as VG
-import           Foreign.Storable (Storable)
 import           Numeric.Rounded.Hardware.Internal.Rounding
 import           Prelude hiding (fromInteger, fromRational, recip, sqrt, (*),
                           (+), (-), (/))
@@ -143,10 +142,15 @@ class RoundedRing a => RoundedSqrt a where
 
 -- | Lifted version of 'RoundedRing'
 class RoundedRing a => RoundedRing_Vector vector a where
+  -- | Equivalent to @\\r -> foldl ('roundedAdd' r) 0@
   roundedSum :: RoundingMode -> vector a -> a
+  -- | Equivalent to @zipWith . 'roundedAdd'@
   zipWith_roundedAdd :: RoundingMode -> vector a -> vector a -> vector a
+  -- | Equivalent to @zipWith . 'roundedSub'@
   zipWith_roundedSub :: RoundingMode -> vector a -> vector a -> vector a
+  -- | Equivalent to @zipWith . 'roundedMul'@
   zipWith_roundedMul :: RoundingMode -> vector a -> vector a -> vector a
+  -- | Equivalent to @zipWith3 . 'roundedFusedMultiplyAdd'@
   zipWith3_roundedFusedMultiplyAdd :: RoundingMode -> vector a -> vector a -> vector a -> vector a
 
   default roundedSum :: (VG.Vector vector a, Num a) => RoundingMode -> vector a -> a
@@ -166,6 +170,7 @@ class RoundedRing a => RoundedRing_Vector vector a where
 
 -- | Lifted version of 'RoundedFractional'
 class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Vector vector a where
+  -- | Equivalent to @zipWith . 'roundedDiv'@
   zipWith_roundedDiv :: RoundingMode -> vector a -> vector a -> vector a
   -- map_roundedRecip :: RoundingMode -> vector a -> vector a
 
@@ -174,6 +179,7 @@ class (RoundedFractional a, RoundedRing_Vector vector a) => RoundedFractional_Ve
 
 -- | Lifted version of 'RoundedSqrt'
 class (RoundedSqrt a, RoundedRing_Vector vector a) => RoundedSqrt_Vector vector a where
+  -- | Equivalent to @map . 'roundedSqrt'@
   map_roundedSqrt :: RoundingMode -> vector a -> vector a
 
   default map_roundedSqrt :: (VG.Vector vector a) => RoundingMode -> vector a -> vector a

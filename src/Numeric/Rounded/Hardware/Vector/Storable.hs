@@ -2,12 +2,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module Numeric.Rounded.Hardware.Vector.Storable
-  ( coercion
+  ( -- * Conversion between @VS.Vector a@ and @VS.Vector (Rounded r a)@
+    coercion
   , fromVectorOfRounded
   , toVectorOfRounded
   , coercionM
   , fromMVectorOfRounded
   , toMVectorOfRounded
+    -- * Specialized functions
   , roundedSum
   , zipWith_roundedAdd
   , zipWith_roundedSub
