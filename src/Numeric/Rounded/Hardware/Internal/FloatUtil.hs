@@ -25,6 +25,8 @@ minPositive_ieee = let d = floatDigits x
                        (expMin,_expMax) = floatRange x
                        x = encodeFloat 1 (expMin - d)
                    in x
+{-# SPECIALIZE minPositive_ieee :: Double #-}
+{-# SPECIALIZE minPositive_ieee :: Float #-}
 
 -- |
 -- prop> (maxFinite_ieee :: Double) == 0x1.ffff_ffff_ffff_fp+1023
