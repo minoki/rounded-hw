@@ -1,0 +1,1 @@
+rounded-hw has moved under [minoki/haskell-floating-point](https://github.com/minoki/haskell-floating-point): [minoki/haskell-floating-point/rounded-hw](https://github.com/minoki/haskell-floating-point/tree/master/rounded-hw)
